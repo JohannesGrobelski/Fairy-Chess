@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RadioGroup
+        android:id="@+id/radiogroup"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RadioButton
+            android:id="@+id/radioButtonKnight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Knight" />
+
+        <RadioButton
+            android:id="@+id/radioButtonBishop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bishop" />
+
+        <RadioButton
+            android:id="@+id/radioButtonRook"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rook" />
+
+        <RadioButton
+            android:id="@+id/radioButtonQueen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Queen" />
+
+    </RadioGroup>
+
+</LinearLayout>

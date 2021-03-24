@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Fairy Chess</string>
+    <string name="app_name">Schach</string>
+    <string name="title_activity_chess">ChessActivity</string>
+    <string name="title_activity_janus_chess">JanusChessActivity</string>
 </resources>
