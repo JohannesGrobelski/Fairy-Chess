@@ -1,0 +1,19 @@
+
+n
+>app/src/main/java/emerald/apps/fairychess/view/MainActivity.kt,4\d\4de483a94ff2b5ab369202f2c0777a28b4f6edea
+o
+?app/src/main/java/emerald/apps/fairychess/view/ChessActivity.kt,6\a\6ae2e72a999c775f1a488f593ca8da7a282f53fb
+}
+Mapp/src/main/java/emerald/apps/fairychess/controller/ChessActivityListener.kt,4\c\4c1a4bc6b12f474e7b962e0481911725e70d10e9
+|
+Lapp/src/main/java/emerald/apps/fairychess/controller/MainActivityListener.kt,5\5\5522cc29cdb4dd6ef8aa2cd6673ce7f887924edf
+P
+ app/src/main/AndroidManifest.xml,8\c\8c55c3ccc257e5907959013f99656e4c8ec3903e
+p
+@app/src/main/java/emerald/apps/fairychess/model/pieces/Leaper.kt,5\5\5534bc731042b4ff308cc54d1fe211967cd523f7
+w
+Gapp/src/main/java/emerald/apps/fairychess/model/pieces/PawnPromotion.kt,f\6\f699e80c772de9be3708fc5c47d652771f5a38bd
+t
+Dapp/src/main/java/emerald/apps/fairychess/model/pieces/ChessPiece.kt,e\f\ef3c98ea93477d127d2de05102b0554a1abd7d2e
+m
+=app/src/main/java/emerald/apps/fairychess/model/Chessboard.kt,7\6\762925c2c8bf0d3c60dc8585c807511546a1756f

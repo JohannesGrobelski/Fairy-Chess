@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="gamemodes">
+        <item name = "normal">normal chess</item>
+        <item>Berolina chess</item>
+        <item>grashopper chess</item>
+    </string-array>
+    <string-array name="timemodes">
+        <item>bullet (2 minutes)</item>
+        <item>blitz (5 minutes)</item>
+        <item>rapid (10 minutes)</item>
+        <item>infinite</item>
+    </string-array>
+</resources>

@@ -1,8 +1,6 @@
 package emerald.apps.fairychess.view
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
@@ -17,7 +15,7 @@ class MainActivity : AppCompatActivity() {
 
         mainActivityListener = MainActivityListener(this)
         btn_human.setOnClickListener(mainActivityListener)
-        btn_ki.setOnClickListener(mainActivityListener)
+        btn_ai.setOnClickListener(mainActivityListener)
     }
 
 
