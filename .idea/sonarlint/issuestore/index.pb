@@ -9,10 +9,6 @@ Mapp/src/main/java/emerald/apps/fairychess/controller/ChessActivityListener.kt,
 Lapp/src/main/java/emerald/apps/fairychess/controller/MainActivityListener.kt,5\5\5522cc29cdb4dd6ef8aa2cd6673ce7f887924edf
 P
  app/src/main/AndroidManifest.xml,8\c\8c55c3ccc257e5907959013f99656e4c8ec3903e
-p
-@app/src/main/java/emerald/apps/fairychess/model/pieces/Leaper.kt,5\5\5534bc731042b4ff308cc54d1fe211967cd523f7
-w
-Gapp/src/main/java/emerald/apps/fairychess/model/pieces/PawnPromotion.kt,f\6\f699e80c772de9be3708fc5c47d652771f5a38bd
 t
 Dapp/src/main/java/emerald/apps/fairychess/model/pieces/ChessPiece.kt,e\f\ef3c98ea93477d127d2de05102b0554a1abd7d2e
 m

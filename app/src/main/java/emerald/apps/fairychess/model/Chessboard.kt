@@ -85,11 +85,42 @@ class Chessboard(val context: Context) {
         for(targetSquare in preFilterTargetSquareList){
             if(!(
                 targetSquare[0] < 0 || targetSquare[0] > 7 || targetSquare[1] < 0 || targetSquare[1] > 7
-                || pieces[targetSquare[0]][targetSquare[1]].color == pieces[sourceRank][sourceFile].color)){
+                    || pieces[targetSquare[0]][targetSquare[1]].color == pieces[sourceRank][sourceFile].color)
+                        && !isShadowsByFigure(sourceRank,sourceFile,targetSquare[0],targetSquare[1])){
                 filteredTargetSquareList.add(targetSquare)
             }
         }
         return filteredTargetSquareList
+    }
+
+    fun isShadowsByFigure(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
+        for(movement in pieces[sourceRank][sourceFile].movingPatternString.split(",")){
+            when {
+                movement.contains("+") -> {
+                    if(sourceRank == targetRank){//move on file
+                        for(i in Math.min(sourceFile,targetFile) .. Math.max(sourceFile,targetFile)){
+                            if(pieces[sourceRank][i].color != "" && i != sourceFile){
+                                return true
+                            }
+                        }
+                    }
+                    if(sourceFile == targetFile){//move on file
+                        for(i in Math.min(sourceRank,targetRank) .. Math.max(sourceRank,targetRank)){
+                            if(pieces[i][sourceFile].color != "" && i != sourceRank){
+                                return true
+                            }
+                        }
+                    }
+                }
+                movement.contains("X") -> {
+
+                }
+                movement.contains("*") -> {
+
+                }
+            }
+        }
+        return false
     }
 
     fun gameOver(): Boolean {
