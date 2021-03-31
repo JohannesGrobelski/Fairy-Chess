@@ -14,18 +14,17 @@ class Leaper(name: String, position: Array<Int>, value: Int, color: String,
     value,
     color, movingPattern
 ) {
+    private var difs : List<Array<Int>>
 
-    private lateinit var difs : List<Array<Int>>
-
-    override fun move(rank: Int, file: Int): Boolean {
-        TODO("Not yet implemented")
+    init {
+        difs = generateDifs(movingPattern)
     }
 
-    fun getDifs():List<Array<Int>>{
+    fun generateDifs(movingPattern: String) : List<Array<Int>>{
         return listOf()
     }
 
-    override fun getDestinations(): List<Array<Int>> {
+    override fun getTargetSquares(): List<Array<Int>> {
         val destinations = mutableListOf<Array<Int>>()
         for(dif in difs){
             destinations.add(arrayOf(position[0]+dif[0],position[1]+dif[1]))

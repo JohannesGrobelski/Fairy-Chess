@@ -37,7 +37,6 @@ class MainActivityListener(var mainActivity: MainActivity) : View.OnClickListene
         spinner_timemode.adapter = ArrayAdapter(mainActivity,android.R.layout.simple_list_item_1,timeModes)
         val btn_start_game_search = rootView.findViewById<Button>(R.id.btn_start_game_search)
 
-        R.array.gamemodes.
         val builder = AlertDialog.Builder(mainActivity)
         builder.setView(rootView)
         val dialog = builder.create()

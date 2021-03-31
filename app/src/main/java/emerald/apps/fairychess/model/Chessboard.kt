@@ -1,29 +1,54 @@
 package emerald.apps.fairychess.model.pieces
 
-import java.util.*
+import android.content.Context
+import emerald.apps.fairychess.utility.ChessFormationParser
 
-class Chessboard() {
+class Chessboard(val context: Context) {
     lateinit var pieces: Array<Array<ChessPiece>>
 
     private enum class Value(val value: Int) {
         pawn(10), knight(30), bishop(30), rook(50), queen(90), king(1000);
     }
 
-    private var moveCounter = 0
+    private var moveColor = "white"
+    private var moveCounter : Int = 0
     private var lastError = ""
 
 
-    fun init(mode : String){
+    fun init(mode: String){
         //hier einen aufstellungsstring übergeben
         when(mode){
-            "normal" ->  {
+            "normal" -> {
                 pieces = Array(8) {
                     Array(8) {
-                        ChessPiece("", arrayOf(-1,-1),0,"","")
+                        ChessPiece("", arrayOf(-1, -1), 0, "", "")
                     }
                 }
-                pieces[0][0] = Leaper("rook", arrayOf(0,0),8,"white","")
+                val chessFormationArray = ChessFormationParser.parseChessFormation(
+                    context,
+                    "normal"
+                )
+                if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
+                    for (file in 0..7) {
+                        for (rank in 0..7) {
+                            var color = ""
+                            if(file < 2)color = "white"
+                            if (file > 5) color = "black"
+                            val movingpattern = ""
+                            when(getType(chessFormationArray[file][rank])){
+                                "Leaper" -> {
+                                    pieces[file][rank] = Leaper(
+                                        chessFormationArray[file][rank], arrayOf(
+                                            file,
+                                            rank
+                                        ), 10, color, movingpattern
+                                    )
+                                }
+                            }
 
+                        }
+                    }
+                }
             }
         }
     }
@@ -33,8 +58,14 @@ class Chessboard() {
     }
 
 
-    fun checkMovement(x1: Int, y1: Int, x2: Int, y2: Int, color: String?): Boolean {
-        return true
+    fun checkMovement(sourceRank:Int,sourceFile:Int,destinationRank: Int,destinationFile: Int): String {
+        if(pieces[sourceRank][sourceFile].color == "")return "empty field"
+        else if(pieces[sourceRank][sourceFile].color == pieces[destinationRank][destinationFile].color)return "same color"
+        else if(pieces[sourceRank][sourceFile].color != moveColor)return "wrong player"
+        else {
+            when(pieces[sourceRank][sourceFile] instanceOf)
+            return ""
+        }
     }
 
     fun gameOver(): Boolean {
@@ -63,8 +94,29 @@ class Chessboard() {
         return "remis"
     }
 
-    fun move(x1: Int, y1: Int, x2: Int, y2: Int, color: String?): ChessPiece? {
-        return null
+    fun move(sourceRank: Int, sourceFile: Int, destinationRank: Int, destinationFile: Int) : String{
+        val check = checkMovement(sourceRank,sourceFile,destinationRank,destinationFile)
+        if(check.isEmpty()){
+            pieces[destinationRank][destinationFile] = ChessPiece(
+                pieces[sourceRank][sourceFile].name,
+                arrayOf(sourceFile,sourceRank),
+                pieces[sourceRank][sourceFile].value,
+                pieces[sourceRank][sourceFile].color,
+                pieces[sourceRank][sourceFile].movingPattern,
+            )
+            pieces[sourceRank][sourceFile] = ChessPiece(
+                "",
+                arrayOf(sourceFile,sourceRank),
+                0,
+                "",
+                "",
+            )
+            ++moveCounter
+            switchColors()
+            return ""
+        } else {
+            return check
+        }
     }
 
     fun checkForPawnPromotion(): Array<Int>? {
@@ -100,13 +152,23 @@ class Chessboard() {
         return punkte
     }
 
-    private fun contains(array: CharArray, x: Char, times: Int): Boolean {
-        var cnt = 0
-        for (c in array) {
-            if (c == x) ++cnt
+    // do something with the data coming from the AlertDialog
+    private fun promote(figure: String, position: Array<Int>?) {
+        if (position == null) return
+        val color: String = pieces[position[1]][position[0]].color
+        pieces[position[1]][position[0]] = ChessPiece(figure,position,10,color,"")
+    }
+
+    fun switchColors(){
+        if(moveColor == "white"){
+            moveColor = "black"
+        } else if(moveColor == "black"){
+            moveColor = "white"
         }
-        return cnt == times
     }
 
 
+    fun getType(figure: String) : String{
+        return "Leaper"
+    }
 }

@@ -25,7 +25,7 @@ class PawnPromotion(name: String, position: Array<Int>, value: Int, color: Strin
         return listOf()
     }
 
-    override fun getDestinations(): List<Array<Int>> {
+    override fun getTargetSquares(): List<Array<Int>> {
         val destinations = mutableListOf<Array<Int>>()
         for(dif in difs){
             destinations.add(arrayOf(position[0]+dif[0],position[1]+dif[1]))

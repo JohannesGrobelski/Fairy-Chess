@@ -10,5 +10,5 @@ open class ChessPiece (
     var movingPattern : String) {
 
     open fun move(rank : Int, file : Int) : Boolean {return true}
-    open fun getDestinations() : List<Array<Int>> {return listOf()}
+    open fun getTargetSquares() : List<Array<Int>> {return listOf()}
 }
