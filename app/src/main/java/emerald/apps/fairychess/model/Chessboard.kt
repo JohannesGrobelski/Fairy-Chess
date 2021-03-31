@@ -2,6 +2,7 @@ package emerald.apps.fairychess.model.pieces
 
 import android.content.Context
 import emerald.apps.fairychess.utility.ChessFormationParser
+import emerald.apps.fairychess.utility.FigureParser
 
 class Chessboard(val context: Context) {
     lateinit var pieces: Array<Array<ChessPiece>>
@@ -28,24 +29,28 @@ class Chessboard(val context: Context) {
                     context,
                     "normal"
                 )
+                val figureMap = FigureParser.parseFigureMapFromFile(
+                    context,
+                    "figures"
+                )
                 if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
                     for (file in 0..7) {
                         for (rank in 0..7) {
                             var color = ""
                             if(file < 2)color = "white"
                             if (file > 5) color = "black"
-                            val movingpattern = ""
-                            when(getType(chessFormationArray[file][rank])){
-                                "Leaper" -> {
-                                    pieces[file][rank] = Leaper(
-                                        chessFormationArray[file][rank], arrayOf(
-                                            file,
-                                            rank
-                                        ), 10, color, movingpattern
-                                    )
+                            if(figureMap.containsKey(chessFormationArray[file][rank])){
+                                val movement = figureMap[chessFormationArray[file][rank]]?.movementParlett
+                                val value =  figureMap[chessFormationArray[file][rank]]?.value!!
+                                if(movement != null){
+                                    pieces[file][rank] = ChessPiece(
+                                        chessFormationArray[file][rank],
+                                        arrayOf(file,rank),
+                                        value,
+                                        color,
+                                        movement)
                                 }
                             }
-
                         }
                     }
                 }
@@ -63,9 +68,28 @@ class Chessboard(val context: Context) {
         else if(pieces[sourceRank][sourceFile].color == pieces[destinationRank][destinationFile].color)return "same color"
         else if(pieces[sourceRank][sourceFile].color != moveColor)return "wrong player"
         else {
-            when(pieces[sourceRank][sourceFile] instanceOf)
-            return ""
+            val targetSquares = getTargetSquares(sourceRank,sourceFile)
+            val destinationSquare = arrayOf(destinationRank,destinationFile)
+            for(targetSquare in targetSquares){
+                if(targetSquare[0] == destinationSquare[0] && targetSquare[1] == destinationSquare[1]){
+                    return ""
+                }
+            }
+            return "cannot move there"
         }
+    }
+
+    fun getTargetSquares(sourceRank:Int,sourceFile:Int) : List<Array<Int>>{
+        val preFilterTargetSquareList = pieces[sourceRank][sourceFile].generateTargetSquares()
+        val filteredTargetSquareList = mutableListOf<Array<Int>>()
+        for(targetSquare in preFilterTargetSquareList){
+            if(!(
+                targetSquare[0] < 0 || targetSquare[0] > 7 || targetSquare[1] < 0 || targetSquare[1] > 7
+                || pieces[targetSquare[0]][targetSquare[1]].color == pieces[sourceRank][sourceFile].color)){
+                filteredTargetSquareList.add(targetSquare)
+            }
+        }
+        return filteredTargetSquareList
     }
 
     fun gameOver(): Boolean {
@@ -102,7 +126,7 @@ class Chessboard(val context: Context) {
                 arrayOf(sourceFile,sourceRank),
                 pieces[sourceRank][sourceFile].value,
                 pieces[sourceRank][sourceFile].color,
-                pieces[sourceRank][sourceFile].movingPattern,
+                pieces[sourceRank][sourceFile].movingPatternString,
             )
             pieces[sourceRank][sourceFile] = ChessPiece(
                 "",
@@ -121,8 +145,8 @@ class Chessboard(val context: Context) {
 
     fun checkForPawnPromotion(): Array<Int>? {
         for (j in pieces!!.indices) {
-            if (pieces!![j][0] is PawnPromotion) return arrayOf(0, j)
-            if (pieces!![j][7] is PawnPromotion) return arrayOf(7, j)
+            if (pieces!![j][0].name == "PawnPromotion") return arrayOf(0, j)
+            if (pieces!![j][7].name == "PawnPromotion") return arrayOf(7, j)
         }
         return null
     }

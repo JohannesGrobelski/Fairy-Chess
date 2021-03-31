@@ -57,6 +57,9 @@ class ChessActivityListener() {
             }
         }
         markFigure(v)
+        if(selectionRank != -1 && selectionFile != -1){
+            displayTargetSquares()
+        }
     }
 
 
@@ -69,6 +72,13 @@ class ChessActivityListener() {
                 )
                 if (x != -1) imageViews[file][rank].setImageResource(x)
             }
+        }
+    }
+
+    private fun displayTargetSquares() {
+        val targetSquares = chessboard.getTargetSquares(selectionRank,selectionFile)
+        for (targetSquare in targetSquares){
+            markSquare(targetSquare[0],targetSquare[1])
         }
     }
 
@@ -152,25 +162,33 @@ class ChessActivityListener() {
             selectionRank = -1
         } else {
             imageViews[rank][file].setBackgroundColor(
-                getMixedColor(file, rank, Color.YELLOW)
+                getMixedColor(file, rank, Color.RED)
             )
             selectionFile = file
             selectionRank = rank
         }
     }
 
+    fun markSquare(rank : Int, file : Int) {
+        imageViews[rank][file].setBackgroundColor(
+            getMixedColor(file, rank, Color.YELLOW)
+        )
+    }
+
     private fun resetFieldColor() {
-        if(selectionFile != -1 && selectionRank != -1){
-            if ((selectionRank + selectionFile) % 2 != 0) imageViews[selectionRank][selectionFile].setBackgroundColor(
-                chessActivity.resources.getColor(
-                    R.color.colorWhite
+        for(rank in 0..7){
+            for(file in 0..7){
+                if ((rank + file) % 2 != 0) imageViews[rank][file].setBackgroundColor(
+                    chessActivity.resources.getColor(
+                        R.color.colorWhite
+                    )
                 )
-            )
-            if ((selectionRank + selectionFile) % 2 == 0) imageViews[selectionRank][selectionFile].setBackgroundColor(
-                chessActivity.resources.getColor(
-                    R.color.colorBlack
+                if ((rank + file) % 2 == 0) imageViews[rank][file].setBackgroundColor(
+                    chessActivity.resources.getColor(
+                        R.color.colorBlack
+                    )
                 )
-            )
+            }
         }
     }
 

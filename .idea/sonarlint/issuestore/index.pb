@@ -17,3 +17,7 @@ t
 Dapp/src/main/java/emerald/apps/fairychess/model/pieces/ChessPiece.kt,e\f\ef3c98ea93477d127d2de05102b0554a1abd7d2e
 m
 =app/src/main/java/emerald/apps/fairychess/model/Chessboard.kt,7\6\762925c2c8bf0d3c60dc8585c807511546a1756f
+y
+Iapp/src/main/java/emerald/apps/fairychess/utility/ChessFormationParser.kt,0\1\014bfeb84afd28ddf1b6627ec1d93823023fe1ba
+q
+Aapp/src/main/java/emerald/apps/fairychess/utility/FigureParser.kt,7\e\7ec25044130d93e7df803f207c02a6934fab28d8

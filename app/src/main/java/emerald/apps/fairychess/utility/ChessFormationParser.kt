@@ -27,7 +27,7 @@ class ChessFormationParser {
             return fileList.toTypedArray()
         }
 
-        public fun parseChessFormation(context: Context, fileName: String) : Array<Array<String>> {
+        fun parseChessFormation(context: Context, fileName: String) : Array<Array<String>> {
             try {
                 val inputStream = context.resources.openRawResource(
                     context.resources.getIdentifier(

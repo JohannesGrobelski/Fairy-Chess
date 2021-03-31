@@ -1,0 +1,34 @@
+{
+  "figures" : [
+    {
+      "name": "king",
+      "value": 1000,
+      "movement": "1*"
+    },
+    {
+      "name": "queen",
+      "value": 9,
+      "movement": "n*"
+    },
+    {
+      "name": "bishop",
+      "value": 3,
+      "movement": "nX"
+    },
+    {
+      "name": "rook",
+      "value": 5,
+      "movement": "n+"
+    },
+    {
+      "name": "pawn",
+      "value": 1,
+      "movement": "o1>,c1X>,oi2>"
+    },
+    {
+      "name": "knight",
+      "value": 3,
+      "movement": "~1/2"
+    }
+  ]
+}
