@@ -3,6 +3,7 @@ package emerald.apps.fairychess.model.pieces
 import android.content.Context
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
+import kotlin.math.sign
 
 class Chessboard(val context: Context) {
     lateinit var pieces: Array<Array<ChessPiece>>
@@ -86,42 +87,78 @@ class Chessboard(val context: Context) {
             if(!(
                 targetSquare[0] < 0 || targetSquare[0] > 7 || targetSquare[1] < 0 || targetSquare[1] > 7
                     || pieces[targetSquare[0]][targetSquare[1]].color == pieces[sourceRank][sourceFile].color)
-                        && !isShadowsByFigure(sourceRank,sourceFile,targetSquare[0],targetSquare[1])){
+                        && !isShadowedByFigure(sourceRank,sourceFile,targetSquare[0],targetSquare[1])){
                 filteredTargetSquareList.add(targetSquare)
             }
         }
         return filteredTargetSquareList
     }
 
-    fun isShadowsByFigure(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
+    fun isShadowedByFigure(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
         for(movement in pieces[sourceRank][sourceFile].movingPatternString.split(",")){
             when {
                 movement.contains("+") -> {
-                    if(sourceRank == targetRank){//move on file
-                        for(i in Math.min(sourceFile,targetFile) .. Math.max(sourceFile,targetFile)){
-                            if(pieces[sourceRank][i].color != "" && i != sourceFile){
-                                return true
-                            }
-                        }
-                    }
-                    if(sourceFile == targetFile){//move on file
-                        for(i in Math.min(sourceRank,targetRank) .. Math.max(sourceRank,targetRank)){
-                            if(pieces[i][sourceFile].color != "" && i != sourceRank){
-                                return true
-                            }
-                        }
-                    }
+                    return isShadowedByFigureOrthogonal(sourceRank,sourceFile,targetRank,targetFile)
                 }
                 movement.contains("X") -> {
-
+                    return isShadowedByFigureDiagonal(sourceRank,sourceFile,targetRank,targetFile)
                 }
                 movement.contains("*") -> {
-
+                    return(isShadowedByFigureOrthogonal(sourceRank,sourceFile,targetRank,targetFile)
+                          || isShadowedByFigureDiagonal(sourceRank,sourceFile,targetRank,targetFile))
                 }
             }
         }
         return false
     }
+
+    fun isShadowedByFigureOrthogonal(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
+        if(sourceRank == targetRank && (Math.abs(targetFile-sourceFile) > 1)){//distance > 1 because a figure has to stand between them for shadow
+            //move on file
+            val difFile = sign((targetFile-sourceFile).toDouble()).toInt()
+            var file = sourceFile + difFile
+            while(file != targetFile){
+                if(pieces[sourceRank][file].color != ""){
+                    return true
+                }
+                file += difFile
+            }
+        }
+        if(sourceFile == targetFile && (Math.abs(targetRank-sourceRank) > 1)){
+            //move on file
+            val difRank = sign((targetRank-sourceRank).toDouble()).toInt()
+            var rank = sourceRank + difRank
+            while(rank != targetRank){
+                if(pieces[rank][sourceFile].color != ""){
+                    return true
+                }
+                rank += difRank
+            }
+        }
+        return false
+    }
+
+    fun isShadowedByFigureDiagonal(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
+        if(Math.abs(targetRank-sourceRank)>1 && Math.abs(targetRank-sourceRank)>1){
+            val difRank = sign((targetRank-sourceRank).toDouble()).toInt()
+            val difFile = sign((targetFile-sourceFile).toDouble()).toInt()
+            if(Math.abs(targetFile-sourceFile) - Math.abs(targetRank-sourceRank) == 0){
+                for(i in 1..Math.abs(targetFile-sourceFile)){
+                    val rank = sourceRank+(difRank*i)
+                    val file = sourceFile+(difFile*i)
+                    if(rank in 0..7 && file in 0..7){
+                        if(pieces[rank][file].color != ""){
+                            if(rank != targetRank && file != targetFile){
+                                return true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false
+    }
+
 
     fun gameOver(): Boolean {
         var cntKing = 0
@@ -154,7 +191,7 @@ class Chessboard(val context: Context) {
         if(check.isEmpty()){
             pieces[destinationRank][destinationFile] = ChessPiece(
                 pieces[sourceRank][sourceFile].name,
-                arrayOf(sourceFile,sourceRank),
+                arrayOf(destinationRank,destinationFile),
                 pieces[sourceRank][sourceFile].value,
                 pieces[sourceRank][sourceFile].color,
                 pieces[sourceRank][sourceFile].movingPatternString,

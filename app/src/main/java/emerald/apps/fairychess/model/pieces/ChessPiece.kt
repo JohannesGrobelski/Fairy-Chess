@@ -35,22 +35,25 @@ class ChessPiece (
         //leaper-movements always have 8 sub-moves
         val m1 = movements[0].toInt()
         val m2 = movements[1].toInt()
-        targetSquares.add(arrayOf(position[0]+m1,position[1]+m2))
-        targetSquares.add(arrayOf(position[0]-m1,position[1]+m2))
-        targetSquares.add(arrayOf(position[0]+m1,position[1]-m2))
-        targetSquares.add(arrayOf(position[0]-m1,position[1]-m2))
-        targetSquares.add(arrayOf(position[0]+m2,position[1]+m1))
-        targetSquares.add(arrayOf(position[0]-m2,position[1]+m1))
-        targetSquares.add(arrayOf(position[0]+m2,position[1]-m1))
-        targetSquares.add(arrayOf(position[0]-m2,position[1]-m1))
+        if(position[0]+m1 in 0..7 && position[1]+m2 in 0..7)targetSquares.add(arrayOf(position[0]+m1,position[1]+m2))
+        if(position[0]-m1 in 0..7 && position[1]+m2 in 0..7)targetSquares.add(arrayOf(position[0]-m1,position[1]+m2))
+        if(position[0]+m1 in 0..7 && position[1]-m2 in 0..7)targetSquares.add(arrayOf(position[0]+m1,position[1]-m2))
+        if(position[0]-m1 in 0..7 && position[1]-m2 in 0..7)targetSquares.add(arrayOf(position[0]-m1,position[1]-m2))
+        if(position[0]+m2 in 0..7 && position[1]+m1 in 0..7)targetSquares.add(arrayOf(position[0]+m2,position[1]+m1))
+        if(position[0]-m2 in 0..7 && position[1]+m1 in 0..7)targetSquares.add(arrayOf(position[0]-m2,position[1]+m1))
+        if(position[0]+m2 in 0..7 && position[1]-m1 in 0..7)targetSquares.add(arrayOf(position[0]+m2,position[1]-m1))
+        if(position[0]-m2 in 0..7 && position[1]-m1 in 0..7)targetSquares.add(arrayOf(position[0]-m2,position[1]-m1))
         return targetSquares
     }
 
     fun generateRiderTargetSquares(movingPattern: String) : List<Array<Int>> {
         val targetSquares = mutableListOf<Array<Int>>()
-        //TODO: options
-        val quantity = movingPattern.split("")[1]
-        val dir = movingPattern.split("")[2]
+        var quantity = ""
+        var dir = ""
+        if(movingPattern.length == 2){
+            quantity = movingPattern.toCharArray()[0].toString()
+            dir = movingPattern.toCharArray()[1].toString()
+        }
         when(dir){
             "+" -> {
                 targetSquares.addAll(generateOrthogonalSquares("+"))
