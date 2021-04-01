@@ -24,7 +24,7 @@ class Chessboard(val context: Context) {
             "normal" -> {
                 pieces = Array(8) {
                     Array(8) {
-                        ChessPiece("", arrayOf(-1, -1), 0, "", "")
+                        ChessPiece("", arrayOf(-1, -1), 0, "", "", 0)
                     }
                 }
                 val chessFormationArray = ChessFormationParser.parseChessFormation(
@@ -50,7 +50,9 @@ class Chessboard(val context: Context) {
                                         arrayOf(file,rank),
                                         value,
                                         color,
-                                        movement)
+                                        movement,
+                                        0
+                                    )
                                 }
                             }
                         }
@@ -82,17 +84,19 @@ class Chessboard(val context: Context) {
     }
 
     fun getTargetSquares(sourceRank:Int,sourceFile:Int) : List<Array<Int>>{
-        val preFilterTargetSquareList = pieces[sourceRank][sourceFile].generateTargetSquares()
-        val filteredTargetSquareList = mutableListOf<Array<Int>>()
-        for(targetSquare in preFilterTargetSquareList){
+        val nonRelativeMovements = pieces[sourceRank][sourceFile].generateMovements()
+        val relativeMovements = mutableListOf<Array<Int>>()
+        //filter target squares
+        for(nonRelativeMovement in nonRelativeMovements){
             if(!(
-                targetSquare[0] < 0 || targetSquare[0] > 7 || targetSquare[1] < 0 || targetSquare[1] > 7
-                    || pieces[targetSquare[0]][targetSquare[1]].color == pieces[sourceRank][sourceFile].color)
-                        && !isShadowedByFigure(sourceRank,sourceFile,targetSquare[0],targetSquare[1])){
-                filteredTargetSquareList.add(targetSquare)
+                nonRelativeMovement.sourceRank !in 0..7 || nonRelativeMovement.sourceFile !in 0..7
+                    || pieces[nonRelativeMovement.targetRank][nonRelativeMovement.targetFile].color == pieces[sourceRank][sourceFile].color)
+                        && !isShadowedByFigure(sourceRank,sourceFile,nonRelativeMovement.targetRank,nonRelativeMovement.targetFile)
+                            && fullfillsCondition(nonRelativeMovement)){
+                relativeMovements.add(arrayOf(nonRelativeMovement.targetRank,nonRelativeMovement.targetFile))
             }
         }
-        return filteredTargetSquareList
+        return relativeMovements
     }
 
     fun isShadowedByFigure(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
@@ -111,6 +115,30 @@ class Chessboard(val context: Context) {
             }
         }
         return false
+    }
+
+    /**
+     * does the movement fullfil condition in Movement.MovementNotation.Condition?
+     */
+    fun fullfillsCondition(movement : ChessPiece.Movement) : Boolean {
+        if(movement.movementNotation.conditions.isEmpty())return true
+        var returnValue = true
+        when {
+            movement.movementNotation.conditions.contains("o") -> {//May not be used for a capture (e.g. pawn's forward move)
+                returnValue = returnValue && !(pieces[movement.sourceRank][movement.sourceFile].color != pieces[movement.targetRank][movement.targetFile].color
+                        && pieces[movement.sourceRank][movement.sourceFile].color.isNotEmpty()
+                        && pieces[movement.targetRank][movement.targetFile].color.isNotEmpty())
+            }
+            movement.movementNotation.conditions.contains("i") -> {//May only be made on a capture (e.g. pawn's diagonal capture)
+                returnValue = returnValue && (pieces[movement.sourceRank][movement.sourceFile].color != pieces[movement.targetRank][movement.targetFile].color
+                        && pieces[movement.sourceRank][movement.sourceFile].color.isNotEmpty()
+                        && pieces[movement.targetRank][movement.targetFile].color.isNotEmpty())
+            }
+            movement.movementNotation.conditions.contains("c") -> {//May only be made on the initial move (e.g. pawn's 2 moves forward)
+                returnValue = returnValue && (pieces[movement.sourceRank][movement.sourceFile].moveCounter == 0)
+            }
+        }
+        return returnValue
     }
 
     fun isShadowedByFigureOrthogonal(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
@@ -196,6 +224,7 @@ class Chessboard(val context: Context) {
                 pieces[sourceRank][sourceFile].value,
                 pieces[sourceRank][sourceFile].color,
                 pieces[sourceRank][sourceFile].movingPatternString,
+                pieces[sourceRank][sourceFile].moveCounter+1,
             )
             pieces[sourceRank][sourceFile] = ChessPiece(
                 "",
@@ -203,6 +232,7 @@ class Chessboard(val context: Context) {
                 0,
                 "",
                 "",
+                0,
             )
             ++moveCounter
             switchColors()
@@ -249,7 +279,7 @@ class Chessboard(val context: Context) {
     private fun promote(figure: String, position: Array<Int>?) {
         if (position == null) return
         val color: String = pieces[position[1]][position[0]].color
-        pieces[position[1]][position[0]] = ChessPiece(figure,position,10,color,"")
+        pieces[position[1]][position[0]] = ChessPiece(figure, position, 10, color, "", 0)
     }
 
     fun switchColors(){
@@ -265,16 +295,16 @@ class Chessboard(val context: Context) {
         return "Leaper"
     }
 
-    class Movement(val grouping : String, val conditions : String, val movetype : String, val distances : List<String>, val direction : String){
+    class MovementNotation(val grouping: String, val conditions: List<String>, val movetype: String, val distances: List<String>, val direction: String){
         companion object {
-            fun parseMovementString(movementString : String) : List<Movement> {
+            fun parseMovementString(movementString : String) : List<MovementNotation> {
                 if(movementString.isEmpty())return emptyList()
-                val movementList = mutableListOf<Movement>()
+                val movementList = mutableListOf<MovementNotation>()
                 val movementArray = movementString.split(",")
                 for(submovement in movementArray){
                     var submovementString = submovement
                     var grouping = ""
-                    var condition = ""
+                    var conditions = mutableListOf<String>()
                     var movetype = ""
                     var distances = mutableListOf<String>()
                     var direction = ""
@@ -286,21 +316,21 @@ class Chessboard(val context: Context) {
                     if(submovementString.contains("&")){grouping = "&";submovementString = submovementString.replace("&","")}
                     if(submovementString.contains(".")){grouping = ".";submovementString = submovementString.replace(".","")}
                     //move conditions
-                    if(submovementString.contains("i")){condition = "i";submovementString = submovementString.replace("i","")}
-                    if(submovementString.contains("c")){condition = "c";submovementString = submovementString.replace("c","")}
-                    if(submovementString.contains("o")){condition = "o";submovementString = submovementString.replace("o","")}
+                    if(submovementString.contains("i")){conditions.add("i");submovementString = submovementString.replace("i","")}
+                    if(submovementString.contains("c")){conditions.add("c");submovementString = submovementString.replace("c","")}
+                    if(submovementString.contains("o")){conditions.add("o");submovementString = submovementString.replace("o","")}
                     //direction
-                    if(submovementString.contains("*")){direction = "*";submovementString = submovementString.replace("*","")}
-                    if(submovementString.contains("+")){direction = "+";submovementString = submovementString.replace("+","")}
-                    if(submovementString.contains("<>")){direction = "<>";submovementString = submovementString.replace("<>","")}
-                    if(submovementString.contains(">")){direction = ">";submovementString = submovementString.replace(">","")}
-                    if(submovementString.contains("<")){direction = "<";submovementString = submovementString.replace("<","")}
-                    if(submovementString.contains("=")){direction = "=";submovementString = submovementString.replace("=","")}
                     if(submovementString.contains(">=")){direction = ">=";submovementString = submovementString.replace(">=","")}
                     if(submovementString.contains("<=")){direction = "<=";submovementString = submovementString.replace("<=","")}
-                    if(submovementString.contains("X")){direction = "X";submovementString = submovementString.replace("X","")}
+                    if(submovementString.contains("<>")){direction = "<>";submovementString = submovementString.replace("<>","")}
+                    if(submovementString.contains("=")){direction = "=";submovementString = submovementString.replace("=","")}
                     if(submovementString.contains("X>")){direction = "X>";submovementString = submovementString.replace("X>","")}
                     if(submovementString.contains("X<")){direction = "X<";submovementString = submovementString.replace("X<","")}
+                    if(submovementString.contains("X")){direction = "X";submovementString = submovementString.replace("X","")}
+                    if(submovementString.contains(">")){direction = ">";submovementString = submovementString.replace(">","")}
+                    if(submovementString.contains("<")){direction = "<";submovementString = submovementString.replace("<","")}
+                    if(submovementString.contains("+")){direction = "+";submovementString = submovementString.replace("+","")}
+                    if(submovementString.contains("*")){direction = "*";submovementString = submovementString.replace("*","")}
                     //distance
                     if(grouping == ""){
                         if(submovementString.contains("n"))distances.add("n")
@@ -309,7 +339,7 @@ class Chessboard(val context: Context) {
                         distances = submovementString.split("").toMutableList()
                         distances.removeAll(Collections.singleton(""))
                     }
-                    movementList.add(Movement(grouping,condition,movetype,distances.toList(),direction))
+                    movementList.add(MovementNotation(grouping,conditions,movetype,distances.toList(),direction))
                 }
                 return movementList
             }
