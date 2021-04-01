@@ -12,6 +12,9 @@ import emerald.apps.fairychess.view.MainActivity
 
 class MainActivityListener(var mainActivity: MainActivity) : View.OnClickListener {
 
+    companion object {
+        const val gameModeExtra = "game_mode"
+    }
 
     override fun onClick(v: View?) {
         when(v?.id){
@@ -58,7 +61,7 @@ class MainActivityListener(var mainActivity: MainActivity) : View.OnClickListene
     fun start_gameWithParameters(fairyChessGame: FairyChessGame){
         val intent = Intent(mainActivity,ChessActivity::class.java)
         intent.putExtra("mode", fairyChessGame.mode)
-        intent.putExtra("game", fairyChessGame.game)
+        intent.putExtra(gameModeExtra, fairyChessGame.game)
         intent.putExtra("time", fairyChessGame.time)
         mainActivity.startActivity(intent)
         mainActivity.finish()

@@ -1,0 +1,13 @@
+   //one-line comment:
+		//format { [G-file],[F-file]...,[A-file] }
+//file: [figure1,...figure8]
+{
+    [rook,knight,bishop,king,queen,bishop,knight,rook],
+    [berolina,berolina,berolina,berolina,berolina,berolina,berolina,berolina],
+    [,,,,,,,],
+    [,,,,,,,],
+    [,,,,,,,],
+    [,,,,,,,],
+    [berolina,berolina,berolina,berolina,berolina,berolina,berolina,berolina],
+    [rook,knight,bishop,queen,king,bishop,knight,rook],
+}

@@ -1,6 +1,6 @@
-package emerald.apps.fairychess.movementNotation.directionl.pieces
+package emerald.apps.fairychess.model
 
-import emerald.apps.fairychess.model.pieces.Chessboard
+import java.util.*
 
 class ChessPiece(
     var name: String,
@@ -12,7 +12,7 @@ class ChessPiece(
     val moveCounter: Int
 ) {
 
-    var movingPatterns = Chessboard.MovementNotation.parseMovementString(movingPatternString)
+    var movingPatterns = MovementNotation.parseMovementString(movingPatternString)
 
     /** parlett notation: <conditions> <move type> <distance> <direction> <other>
      *
@@ -29,7 +29,7 @@ class ChessPiece(
         return targetCoordinates
     }
 
-    fun generateLeaperMovements(movingPattern: Chessboard.MovementNotation) : List<Movement> {
+    fun generateLeaperMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
         if(movingPattern.grouping == "/" && movingPattern.distances.size == 2){
             //leaper-movements always have 8 sub-moves:
@@ -37,66 +37,82 @@ class ChessPiece(
             val m1 = movingPattern.distances[0].toInt()
             val m2 = movingPattern.distances[1].toInt()
             if(positionFile+m1 in 0..7 && positionRank+m2 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile+m1,
-                    positionRank+m2))
+                    positionRank+m2)
+                )
             }
             if(positionFile-m1 in 0..7 && positionRank+m2 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile-m1,
-                    positionRank+m2))
+                    positionRank+m2)
+                )
             }
             if(positionFile+m1 in 0..7 && positionRank-m2 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile+m1,
-                    positionRank-m2))
+                    positionRank-m2)
+                )
             }
             if(positionFile-m1 in 0..7 && positionRank-m2 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile-m1,
-                    positionRank-m2))
+                    positionRank-m2)
+                )
             }
             if(positionFile+m2 in 0..7 && positionRank+m1 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile+m2,
-                    positionRank+m1))
+                    positionRank+m1)
+                )
             }
             if(positionFile-m2 in 0..7 && positionRank+m1 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile-m2,
-                    positionRank+m1))
+                    positionRank+m1)
+                )
             }
             if(positionFile+m2 in 0..7 && positionRank-m1 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile+m2,
-                    positionRank-m1))
+                    positionRank-m1)
+                )
             }
             if(positionFile-m2 in 0..7 && positionRank-m1 in 0..7){
-                targetSquares.add(Movement(movingPattern,
+                targetSquares.add(
+                    Movement(movingPattern,
                     positionFile,
                     positionRank,
                     positionFile-m2,
-                    positionRank-m1))
+                    positionRank-m1)
+                )
             }
         }
         return targetSquares
     }
 
-    fun generateRiderMovements(movingPattern: Chessboard.MovementNotation) : List<Movement> {
+    fun generateRiderMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
         if(movingPattern.distances.isNotEmpty()){
             when(movingPattern.direction){
@@ -119,7 +135,7 @@ class ChessPiece(
         return targetSquares
     }
 
-    fun generateDiagonalSquares(movementNotation: Chessboard.MovementNotation) : List<Movement>{
+    fun generateDiagonalSquares(movementNotation: MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
         var difRank=0; var difFile=0;
         var distance = 7
@@ -148,11 +164,12 @@ class ChessPiece(
     }
 
     /** right,forward: increase file, increase rank*/
-    fun generateForewardRightSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateForewardRightSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = 1;
         while(positionFile+difFile <= 7 && positionRank+difRank <= 7) {
             if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
-                inputSquares.add(Movement(movementNotation,
+                inputSquares.add(
+                    Movement(movementNotation,
                     positionFile,
                     positionRank,
                     positionFile+difFile,
@@ -166,15 +183,17 @@ class ChessPiece(
     }
 
     /** left,forward: decrease file, increase rank*/
-    fun generateForewardLeftSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateForewardLeftSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = -1; var difRank = 1;
         while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
             if(Math.abs(difFile) <= distance && Math.abs(difRank) <= distance){
-                inputSquares.add(Movement(movementNotation,
+                inputSquares.add(
+                    Movement(movementNotation,
                     positionFile,
                     positionRank,
                     positionFile+difFile,
-                    positionRank+difRank))
+                    positionRank+difRank)
+                )
                 --difFile
                 ++difRank
             } else break
@@ -183,11 +202,12 @@ class ChessPiece(
     }
 
     /** right,backward: increase file, decrease rank*/
-    fun generateBackwardsRightSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateBackwardsRightSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = -1
         while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
             if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
-                inputSquares.add(Movement(movementNotation,
+                inputSquares.add(
+                    Movement(movementNotation,
                     positionFile,
                     positionRank,
                     positionFile+difFile,
@@ -201,11 +221,12 @@ class ChessPiece(
     }
 
     /** left,backward: decrease file, decrease rank*/
-    fun generateBackwardsLeftSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateBackwardsLeftSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difRank = -1; var difFile = -1
         while(positionFile+difFile >= 0 && positionRank+difRank >= 0) {
             if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
-                inputSquares.add(Movement(movementNotation,
+                inputSquares.add(
+                    Movement(movementNotation,
                     positionFile,
                     positionRank,
                     positionFile+difFile,
@@ -218,7 +239,7 @@ class ChessPiece(
         return inputSquares
     }
 
-    fun generateOrthogonalSquares(movementNotation: Chessboard.MovementNotation) : List<Movement>{
+    fun generateOrthogonalSquares(movementNotation: MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
         var distance = 7
         if(movementNotation.distances[0].matches("[1-9]+".toRegex()))distance = movementNotation.distances[0].toInt()
@@ -257,10 +278,11 @@ class ChessPiece(
     }
 
     /** forward: increase rank */
-    fun generateForewardSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateForewardSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         if(movementNotation.direction == "*" || movementNotation.direction == "+" || movementNotation.direction == "<>" || movementNotation.direction == ">=" || movementNotation.direction == ">"){
             for(i in positionRank+1..7){
-                if(Math.abs(positionRank-i) <= distance)inputSquares.add(Movement(movementNotation,
+                if(Math.abs(positionRank-i) <= distance)inputSquares.add(
+                    Movement(movementNotation,
                     positionFile,
                     positionRank,
                     positionFile,
@@ -273,9 +295,10 @@ class ChessPiece(
     }
 
     /** backward: decrease rank */
-    fun generateBackwardsSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateBackwardsSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         for(i in positionRank-1 downTo 0){
-            if(Math.abs(positionRank-i) <= distance)inputSquares.add(Movement(movementNotation,
+            if(Math.abs(positionRank-i) <= distance)inputSquares.add(
+                Movement(movementNotation,
                 positionFile,
                 positionRank,
                 positionFile,
@@ -286,9 +309,10 @@ class ChessPiece(
     }
 
     /** right: increase file */
-    fun generateRightSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateRightSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         for(i in positionFile+1..7){
-            if(Math.abs(positionFile-i) <= distance)inputSquares.add(Movement(movementNotation,
+            if(Math.abs(positionFile-i) <= distance)inputSquares.add(
+                Movement(movementNotation,
                 positionFile,
                 positionRank,
                 i,
@@ -300,9 +324,10 @@ class ChessPiece(
     }
 
     /** left: decrease file */
-    fun generateLeftSquares(inputSquares : MutableList<Movement>, movementNotation: Chessboard.MovementNotation, distance : Int) : List<Movement> {
+    fun generateLeftSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         for(i in positionFile-1 downTo 0){
-            if(Math.abs(positionFile-i) <= distance)inputSquares.add(Movement(movementNotation,
+            if(Math.abs(positionFile-i) <= distance)inputSquares.add(
+                Movement(movementNotation,
                 positionFile,
                 positionRank,
                 i,
@@ -313,9 +338,69 @@ class ChessPiece(
         return inputSquares
     }
 
-    class Movement(val movementNotation : Chessboard.MovementNotation
+    class Movement(val movementNotation : MovementNotation
              , val sourceFile : Int
              , val sourceRank : Int
              , val targetFile : Int
              , val targetRank : Int)
+
+    class TargetSquare(val targetFile: Int, val targetRank: Int)
+    class MovementNotation(val grouping: String, val conditions: List<String>, val movetype: String, val distances: List<String>, val direction: String){
+        companion object {
+            fun parseMovementString(movementString : String) : List<MovementNotation> {
+                if(movementString.isEmpty())return emptyList()
+                val movementList = mutableListOf<MovementNotation>()
+                val movementArray = movementString.split(",")
+                for(submovement in movementArray){
+                    var submovementString = submovement
+                    var grouping = ""
+                    var conditions = mutableListOf<String>()
+                    var movetype = ""
+                    var distances = mutableListOf<String>()
+                    var direction = ""
+                    //move type
+                    if(submovementString.contains("~")){movetype = "~";submovementString = submovementString.replace("~","")}
+                    if(submovementString.contains("^")){movetype = "^";submovementString = submovementString.replace("^","")}
+                    //grouping
+                    if(submovementString.contains("/")){grouping = "/";submovementString = submovementString.replace("/","")}
+                    if(submovementString.contains("&")){grouping = "&";submovementString = submovementString.replace("&","")}
+                    if(submovementString.contains(".")){grouping = ".";submovementString = submovementString.replace(".","")}
+                    //move conditions
+                    if(submovementString.contains("i")){conditions.add("i");submovementString = submovementString.replace("i","")}
+                    if(submovementString.contains("c")){conditions.add("c");submovementString = submovementString.replace("c","")}
+                    if(submovementString.contains("o")){conditions.add("o");submovementString = submovementString.replace("o","")}
+                    //direction
+                    if(submovementString.contains(">=")){direction = ">=";submovementString = submovementString.replace(">=","")}
+                    if(submovementString.contains("<=")){direction = "<=";submovementString = submovementString.replace("<=","")}
+                    if(submovementString.contains("<>")){direction = "<>";submovementString = submovementString.replace("<>","")}
+                    if(submovementString.contains("=")){direction = "=";submovementString = submovementString.replace("=","")}
+                    if(submovementString.contains("X>")){direction = "X>";submovementString = submovementString.replace("X>","")}
+                    if(submovementString.contains("X<")){direction = "X<";submovementString = submovementString.replace("X<","")}
+                    if(submovementString.contains("X")){direction = "X";submovementString = submovementString.replace("X","")}
+                    if(submovementString.contains(">")){direction = ">";submovementString = submovementString.replace(">","")}
+                    if(submovementString.contains("<")){direction = "<";submovementString = submovementString.replace("<","")}
+                    if(submovementString.contains("+")){direction = "+";submovementString = submovementString.replace("+","")}
+                    if(submovementString.contains("*")){direction = "*";submovementString = submovementString.replace("*","")}
+                    //distance
+                    if(grouping == ""){
+                        if(submovementString.contains("n"))distances.add("n")
+                        if(submovementString.contains("[0-9]".toRegex()))distances.add(submovementString.replace("\\D+".toString(),""))
+                    } else {
+                        distances = submovementString.split("").toMutableList()
+                        distances.removeAll(Collections.singleton(""))
+                    }
+                    movementList.add(
+                        MovementNotation(
+                            grouping,
+                            conditions,
+                            movetype,
+                            distances.toList(),
+                            direction
+                        )
+                    )
+                }
+                return movementList
+            }
+        }
+    }
 }

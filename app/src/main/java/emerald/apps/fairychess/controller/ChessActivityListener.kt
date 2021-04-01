@@ -13,6 +13,12 @@ import kotlinx.android.synthetic.main.activity_chess.*
 
 class ChessActivityListener() {
 
+
+    //TODO: Castling: requires history of involved rook and king. Can be accomplished via a hasMovedBefore flag.
+    //TODO: en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure, or retaining the previous board state.
+    //TODO: Fifty move rule: requires history of when the last capture or pawn move. Can be accomplished via a lastPawnMoveOrCapture counter
+    //TODO: Threefold repetition: requires all previous board states since the last castle, pawn move or capture. A list of hashes of previous states may be an option. (Thanks dfeuer)
+
     private lateinit var chessActivity : ChessActivity
     private lateinit var chessboard: Chessboard
 
@@ -39,7 +45,8 @@ class ChessActivityListener() {
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        chessboard = Chessboard(chessActivity)
+        val mode = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
+        chessboard = Chessboard(chessActivity,mode)
         current_color = "white"
 
         initViews()
@@ -139,6 +146,8 @@ class ChessActivityListener() {
             return R.drawable.white_knight
         } else if (color == "white" && type == "rook") {
             return R.drawable.white_rook
+        } else if (color == "white" && type == "berolina") {
+            return R.drawable.white_berolina
         } else if (color == "black" && type == "king") {
             return R.drawable.black_king
         } else if (color == "black" && type == "queen") {
@@ -151,6 +160,8 @@ class ChessActivityListener() {
             return R.drawable.black_knight
         } else if (color == "black" && type == "rook") {
             return R.drawable.black_rook
+        } else if (color == "black" && type == "berolina") {
+            return R.drawable.black_berolina
         } else {
             return android.R.color.transparent
         }

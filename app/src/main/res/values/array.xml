@@ -2,7 +2,7 @@
 <resources>
     <string-array name="gamemodes">
         <item name = "normal">normal chess</item>
-        <item>Berolina chess</item>
+        <item>berolina chess</item>
         <item>grashopper chess</item>
     </string-array>
     <string-array name="timemodes">

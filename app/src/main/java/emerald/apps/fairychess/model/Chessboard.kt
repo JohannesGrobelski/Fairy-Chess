@@ -1,14 +1,13 @@
 package emerald.apps.fairychess.model.pieces
 
 import android.content.Context
-import emerald.apps.fairychess.movementNotation.directionl.pieces.ChessPiece
+import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
-import java.util.*
 import kotlin.math.sign
 
 
-class Chessboard(val context: Context) {
+class Chessboard(val context: Context, val mode : String) {
     /* pieces-array: (file,rank)-coordinates
        (7,0) ... (7,7)
        ...        ...
@@ -21,41 +20,39 @@ class Chessboard(val context: Context) {
 
     fun init(mode: String){
         //hier einen aufstellungsstring übergeben
-        when(mode){
-            "normal" -> {
-                pieces = Array(8) {
-                    Array(8) {
-                        ChessPiece("", -1,-1, 0, "", "", 0)
-                    }
+        if(mode == "normal" || mode == "berolina chess" || mode == "grashopper chess") {
+            pieces = Array(8) {
+                Array(8) {
+                    ChessPiece("", -1,-1, 0, "", "", 0)
                 }
-                val chessFormationArray = ChessFormationParser.parseChessFormation(
-                    context,
-                    "normal"
-                )
-                val figureMap = FigureParser.parseFigureMapFromFile(
-                    context,
-                    "figures"
-                )
-                if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
-                    for (file in 0..7) {
-                        for (rank in 0..7) {
-                            var color = ""
-                            if(rank < 2)color = "white"
-                            if (rank > 5) color = "black"
-                            if(figureMap.containsKey(chessFormationArray[file][rank])){
-                                val movement = figureMap[chessFormationArray[file][rank]]?.movementParlett
-                                val value =  figureMap[chessFormationArray[file][rank]]?.value!!
-                                if(movement != null){
-                                    pieces[file][rank] = ChessPiece(
-                                        chessFormationArray[file][rank],
-                                        file,
-                                        rank,
-                                        value,
-                                        color,
-                                        movement,
-                                        0
-                                    )
-                                }
+            }
+            val chessFormationArray = ChessFormationParser.parseChessFormation(
+                context,
+                mode.toLowerCase().replace(" ","_")
+            )
+            val figureMap = FigureParser.parseFigureMapFromFile(
+                context,
+                "figures"
+            )
+            if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
+                for (file in 0..7) {
+                    for (rank in 0..7) {
+                        var color = ""
+                        if(rank < 2)color = "white"
+                        if (rank > 5) color = "black"
+                        if(figureMap.containsKey(chessFormationArray[file][rank])){
+                            val movement = figureMap[chessFormationArray[file][rank]]?.movementParlett
+                            val value =  figureMap[chessFormationArray[file][rank]]?.value!!
+                            if(movement != null){
+                                pieces[file][rank] = ChessPiece(
+                                    chessFormationArray[file][rank],
+                                    file,
+                                    rank,
+                                    value,
+                                    color,
+                                    movement,
+                                    0
+                                )
                             }
                         }
                     }
@@ -65,7 +62,7 @@ class Chessboard(val context: Context) {
     }
 
     init {
-        init("normal")
+        init(mode)
     }
 
 
@@ -75,7 +72,7 @@ class Chessboard(val context: Context) {
         else if(pieces[sourceFile][sourceRank].color != moveColor)return "wrong player"
         else {
             val targetSquares = getTargetSquares(sourceFile,sourceRank)
-            val destinationSquare = TargetSquare(destinationFile,destinationRank)
+            val destinationSquare = ChessPiece.TargetSquare(destinationFile, destinationRank)
             for(targetSquare in targetSquares){
                 if(targetSquare.targetFile == destinationSquare.targetFile && targetSquare.targetRank == destinationSquare.targetRank){
                     return ""
@@ -85,10 +82,9 @@ class Chessboard(val context: Context) {
         }
     }
 
-    class TargetSquare(val targetFile: Int, val targetRank: Int)
-    fun getTargetSquares(sourceFile:Int,sourceRank:Int) : List<TargetSquare>{
+    fun getTargetSquares(sourceFile:Int,sourceRank:Int) : List<ChessPiece.TargetSquare>{
         val nonRelativeMovements = pieces[sourceFile][sourceRank].generateMovements()
-        val relativeMovements = mutableListOf<TargetSquare>()
+        val relativeMovements = mutableListOf<ChessPiece.TargetSquare>()
         //filter target squares
         for(nonRelativeMovement in nonRelativeMovements){
             if(!(
@@ -97,7 +93,12 @@ class Chessboard(val context: Context) {
                     || pieces[nonRelativeMovement.targetFile][nonRelativeMovement.targetRank].color == pieces[sourceFile][sourceRank].color)
                         && !isShadowedByFigure(sourceFile,sourceRank,nonRelativeMovement.targetFile,nonRelativeMovement.targetRank)
                             && fullfillsCondition(nonRelativeMovement)){
-                relativeMovements.add(TargetSquare(nonRelativeMovement.targetFile,nonRelativeMovement.targetRank))
+                relativeMovements.add(
+                    ChessPiece.TargetSquare(
+                        nonRelativeMovement.targetFile,
+                        nonRelativeMovement.targetRank
+                    )
+                )
             }
         }
         return relativeMovements
@@ -136,20 +137,18 @@ class Chessboard(val context: Context) {
     fun fullfillsCondition(movement : ChessPiece.Movement) : Boolean {
         if(movement.movementNotation.conditions.isEmpty())return true
         var returnValue = true
-        when {
-            movement.movementNotation.conditions.contains("o") -> {//May not be used for a capture (e.g. pawn's forward move)
-                returnValue = returnValue && !(pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
-                        && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
-                        && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
-            }
-            movement.movementNotation.conditions.contains("c") -> {//May only be made on a capture (e.g. pawn's diagonal capture)
-                returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
-                        && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
-                        && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
-            }
-            movement.movementNotation.conditions.contains("i") -> {//May only be made on the initial move (e.g. pawn's 2 moves forward)
-                returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
-            }
+        if(movement.movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
+            returnValue = returnValue && !(pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
+                    && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
+                    && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
+        }
+        if(movement.movementNotation.conditions.contains("c")) {//May only be made on a capture (e.g. pawn's diagonal capture)
+            returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
+                    && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
+                    && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
+        }
+        if(movement.movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
+            returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
         }
         return returnValue
     }
@@ -301,62 +300,6 @@ class Chessboard(val context: Context) {
             moveColor = "black"
         } else if(moveColor == "black"){
             moveColor = "white"
-        }
-    }
-
-
-    fun getType(figure: String) : String{
-        return "Leaper"
-    }
-
-    class MovementNotation(val grouping: String, val conditions: List<String>, val movetype: String, val distances: List<String>, val direction: String){
-        companion object {
-            fun parseMovementString(movementString : String) : List<MovementNotation> {
-                if(movementString.isEmpty())return emptyList()
-                val movementList = mutableListOf<MovementNotation>()
-                val movementArray = movementString.split(",")
-                for(submovement in movementArray){
-                    var submovementString = submovement
-                    var grouping = ""
-                    var conditions = mutableListOf<String>()
-                    var movetype = ""
-                    var distances = mutableListOf<String>()
-                    var direction = ""
-                    //move type
-                    if(submovementString.contains("~")){movetype = "~";submovementString = submovementString.replace("~","")}
-                    if(submovementString.contains("^")){movetype = "^";submovementString = submovementString.replace("^","")}
-                    //grouping
-                    if(submovementString.contains("/")){grouping = "/";submovementString = submovementString.replace("/","")}
-                    if(submovementString.contains("&")){grouping = "&";submovementString = submovementString.replace("&","")}
-                    if(submovementString.contains(".")){grouping = ".";submovementString = submovementString.replace(".","")}
-                    //move conditions
-                    if(submovementString.contains("i")){conditions.add("i");submovementString = submovementString.replace("i","")}
-                    if(submovementString.contains("c")){conditions.add("c");submovementString = submovementString.replace("c","")}
-                    if(submovementString.contains("o")){conditions.add("o");submovementString = submovementString.replace("o","")}
-                    //direction
-                    if(submovementString.contains(">=")){direction = ">=";submovementString = submovementString.replace(">=","")}
-                    if(submovementString.contains("<=")){direction = "<=";submovementString = submovementString.replace("<=","")}
-                    if(submovementString.contains("<>")){direction = "<>";submovementString = submovementString.replace("<>","")}
-                    if(submovementString.contains("=")){direction = "=";submovementString = submovementString.replace("=","")}
-                    if(submovementString.contains("X>")){direction = "X>";submovementString = submovementString.replace("X>","")}
-                    if(submovementString.contains("X<")){direction = "X<";submovementString = submovementString.replace("X<","")}
-                    if(submovementString.contains("X")){direction = "X";submovementString = submovementString.replace("X","")}
-                    if(submovementString.contains(">")){direction = ">";submovementString = submovementString.replace(">","")}
-                    if(submovementString.contains("<")){direction = "<";submovementString = submovementString.replace("<","")}
-                    if(submovementString.contains("+")){direction = "+";submovementString = submovementString.replace("+","")}
-                    if(submovementString.contains("*")){direction = "*";submovementString = submovementString.replace("*","")}
-                    //distance
-                    if(grouping == ""){
-                        if(submovementString.contains("n"))distances.add("n")
-                        if(submovementString.contains("[0-9]".toRegex()))distances.add(submovementString.replace("\\D+".toString(),""))
-                    } else {
-                        distances = submovementString.split("").toMutableList()
-                        distances.removeAll(Collections.singleton(""))
-                    }
-                    movementList.add(MovementNotation(grouping,conditions,movetype,distances.toList(),direction))
-                }
-                return movementList
-            }
         }
     }
 }

@@ -29,6 +29,11 @@
       "name": "knight",
       "value": 3,
       "movement": "~1/2"
+    },
+    {
+      "name": "berolina",
+      "value": 2,
+      "movement": "o1X>,c1>,oi2X>"
     }
   ]
 }
