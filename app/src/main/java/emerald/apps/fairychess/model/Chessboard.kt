@@ -3,6 +3,7 @@ package emerald.apps.fairychess.model.pieces
 import android.content.Context
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
+import java.util.*
 import kotlin.math.sign
 
 class Chessboard(val context: Context) {
@@ -262,5 +263,56 @@ class Chessboard(val context: Context) {
 
     fun getType(figure: String) : String{
         return "Leaper"
+    }
+
+    class Movement(val grouping : String, val conditions : String, val movetype : String, val distances : List<String>, val direction : String){
+        companion object {
+            fun parseMovementString(movementString : String) : List<Movement> {
+                if(movementString.isEmpty())return emptyList()
+                val movementList = mutableListOf<Movement>()
+                val movementArray = movementString.split(",")
+                for(submovement in movementArray){
+                    var submovementString = submovement
+                    var grouping = ""
+                    var condition = ""
+                    var movetype = ""
+                    var distances = mutableListOf<String>()
+                    var direction = ""
+                    //move type
+                    if(submovementString.contains("~")){movetype = "~";submovementString = submovementString.replace("~","")}
+                    if(submovementString.contains("^")){movetype = "^";submovementString = submovementString.replace("^","")}
+                    //grouping
+                    if(submovementString.contains("/")){grouping = "/";submovementString = submovementString.replace("/","")}
+                    if(submovementString.contains("&")){grouping = "&";submovementString = submovementString.replace("&","")}
+                    if(submovementString.contains(".")){grouping = ".";submovementString = submovementString.replace(".","")}
+                    //move conditions
+                    if(submovementString.contains("i")){condition = "i";submovementString = submovementString.replace("i","")}
+                    if(submovementString.contains("c")){condition = "c";submovementString = submovementString.replace("c","")}
+                    if(submovementString.contains("o")){condition = "o";submovementString = submovementString.replace("o","")}
+                    //direction
+                    if(submovementString.contains("*")){direction = "*";submovementString = submovementString.replace("*","")}
+                    if(submovementString.contains("+")){direction = "+";submovementString = submovementString.replace("+","")}
+                    if(submovementString.contains("<>")){direction = "<>";submovementString = submovementString.replace("<>","")}
+                    if(submovementString.contains(">")){direction = ">";submovementString = submovementString.replace(">","")}
+                    if(submovementString.contains("<")){direction = "<";submovementString = submovementString.replace("<","")}
+                    if(submovementString.contains("=")){direction = "=";submovementString = submovementString.replace("=","")}
+                    if(submovementString.contains(">=")){direction = ">=";submovementString = submovementString.replace(">=","")}
+                    if(submovementString.contains("<=")){direction = "<=";submovementString = submovementString.replace("<=","")}
+                    if(submovementString.contains("X")){direction = "X";submovementString = submovementString.replace("X","")}
+                    if(submovementString.contains("X>")){direction = "X>";submovementString = submovementString.replace("X>","")}
+                    if(submovementString.contains("X<")){direction = "X<";submovementString = submovementString.replace("X<","")}
+                    //distance
+                    if(grouping == ""){
+                        if(submovementString.contains("n"))distances.add("n")
+                        if(submovementString.contains("[0-9]".toRegex()))distances.add(submovementString.replace("\\D+".toString(),""))
+                    } else {
+                        distances = submovementString.split("").toMutableList()
+                        distances.removeAll(Collections.singleton(""))
+                    }
+                    movementList.add(Movement(grouping,condition,movetype,distances.toList(),direction))
+                }
+                return movementList
+            }
+        }
     }
 }
