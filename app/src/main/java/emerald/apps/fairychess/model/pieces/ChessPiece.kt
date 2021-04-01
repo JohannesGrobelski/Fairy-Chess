@@ -119,9 +119,6 @@ class ChessPiece(
         return targetSquares
     }
 
-    //überprüfen generate: läufer,turm,dame,könig,bauer
-    //dann überprüfen check
-
     fun generateDiagonalSquares(movementNotation: Chessboard.MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
         var difRank=0; var difFile=0;

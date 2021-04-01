@@ -106,6 +106,15 @@ class Chessboard(val context: Context) {
     fun isShadowedByFigure(sourceFile:Int,sourceRank:Int,targetFile: Int,targetRank: Int) : Boolean{
         for(movement in pieces[sourceFile][sourceRank].movingPatternString.split(",")){
             when {
+                movement.contains(">") -> {
+                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                }
+                movement.contains("<") -> {
+                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                }
+                movement.contains("=") -> {
+                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                }
                 movement.contains("+") -> {
                     return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
                 }
@@ -146,26 +155,26 @@ class Chessboard(val context: Context) {
     }
 
     fun isShadowedByFigureOrthogonal(sourceFile:Int,sourceRank:Int,targetFile:Int,targetRank: Int) : Boolean{
-        if(sourceFile == targetRank && (Math.abs(targetFile-sourceRank) > 1)){//distance > 1 because a figure has to stand between them for shadow
-            //move on file
-            val difFile = sign((targetFile-sourceRank).toDouble()).toInt()
-            var file = sourceRank + difFile
+        if(sourceRank == targetRank && (Math.abs(targetFile-sourceFile) > 1)){//distance > 1 because a figure has to stand between them for shadow
+            //move on file (horizontal)
+            val signDifFile = sign((targetFile-sourceFile).toDouble()).toInt()
+            var file = sourceFile + signDifFile
             while(file != targetFile){
-                if(pieces[sourceFile][file].color != ""){
+                if(pieces[file][sourceRank].color != ""){
                     return true
                 }
-                file += difFile
+                file += signDifFile
             }
         }
-        if(sourceRank == targetFile && (Math.abs(targetRank-sourceFile) > 1)){
-            //move on file
-            val difRank = sign((targetRank-sourceFile).toDouble()).toInt()
-            var rank = sourceFile + difRank
+        if(sourceFile == targetFile && (Math.abs(targetRank-sourceRank) > 1)){
+            //move on rank (vertical)
+            val signDifRank = sign((targetRank-sourceRank).toDouble()).toInt()
+            var rank = sourceRank + signDifRank
             while(rank != targetRank){
-                if(pieces[rank][sourceRank].color != ""){
+                if(pieces[sourceFile][rank].color != ""){
                     return true
                 }
-                rank += difRank
+                rank += signDifRank
             }
         }
         return false
