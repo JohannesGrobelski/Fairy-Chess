@@ -2,14 +2,12 @@ package emerald.apps.fairychess.model.pieces
 
 class ChessPiece(
     var name: String,
-    var position: Array<Int>,
+    var position: Array<Int>, //(rank,file)
     var value: Int,
     var color: String,
     var movingPatternString: String,
     val moveCounter: Int) {
 
-    open fun move(rank : Int, file : Int) : Boolean {return true}
-    open fun getTargetSquares() : List<Array<Int>> {return listOf()}
     var movingPatterns = Chessboard.MovementNotation.parseMovementString(movingPatternString)
 
     /** parlett notation: <conditions> <move type> <distance> <direction> <other>
@@ -58,7 +56,6 @@ class ChessPiece(
                 targetSquares.add(Movement(movingPattern,position[0],position[1],position[0]-m2,position[1]-m1))
             }
         }
-
         return targetSquares
     }
 
@@ -66,17 +63,18 @@ class ChessPiece(
         val targetSquares = mutableListOf<Movement>()
         if(movingPattern.distances.isNotEmpty()){
             when(movingPattern.direction){
-                "+" -> {
-                    targetSquares.addAll(generateOrthogonalSquares(movingPattern))
-                }
-                ">" -> {
-                    targetSquares.addAll(generateOrthogonalSquares(movingPattern))
-                }
+                ">" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
+                "<" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
+                "<>" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
+                "=" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
+                "<=" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
+                ">=" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
+                "+" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
+                "X" -> {targetSquares.addAll(generateDiagonalSquares(movingPattern))}
+                "X>" -> {targetSquares.addAll(generateDiagonalSquares(movingPattern))}
+                "X<" -> {targetSquares.addAll(generateDiagonalSquares(movingPattern))}
                 "*" -> {
                     targetSquares.addAll(generateOrthogonalSquares(movingPattern))
-                    targetSquares.addAll(generateDiagonalSquares(movingPattern))
-                }
-                "X" -> {
                     targetSquares.addAll(generateDiagonalSquares(movingPattern))
                 }
             }
@@ -90,41 +88,46 @@ class ChessPiece(
         if(movementNotation.distances[0].matches("[1-9]+".toRegex())){
             quantityInt = movementNotation.distances[0].toInt()
         }
-        //right,forward
-        var difX = 1; var difY = 1
-        while(position[0]+difX <= 7 && position[1]+difY <= 7) {
-            if(Math.abs(difX) <= quantityInt && Math.abs(difY) <= quantityInt){
-                targetSquares.add(Movement(movementNotation,position[0],position[1],position[0]+difX,position[1]+difY))
-                ++difX
-                ++difY
-            } else break
+        var difRank=0; var difFile=0;
+        if(movementNotation.direction == "X" || movementNotation.direction == "X>"){
+            //right,forward
+            difRank = 1; difFile = 1
+            while(position[0]+difRank <= 7 && position[1]+difFile <= 7) {
+                if(Math.abs(difRank) <= quantityInt && Math.abs(difFile) <= quantityInt){
+                    targetSquares.add(Movement(movementNotation,position[0],position[1],position[0]+difRank,position[1]+difFile))
+                    ++difRank
+                    ++difFile
+                } else break
+            }
+            //left,forward
+            difRank = -1; difFile = 1
+            while(position[0]+difRank >= 0 && position[1]+difFile <= 7) {
+                if(Math.abs(difRank) <= quantityInt && Math.abs(difFile) <= quantityInt){
+                    targetSquares.add(Movement(movementNotation,position[0],position[1],position[0] + difRank, position[1] + difFile))
+                    --difRank
+                    ++difFile
+                } else break
+            }
         }
-        //left,forward
-        difX = -1; difY = 1
-        while(position[0]+difX >= 0 && position[1]+difY <= 7) {
-            if(Math.abs(difX) <= quantityInt && Math.abs(difY) <= quantityInt){
-                targetSquares.add(Movement(movementNotation,position[0],position[1],position[0] + difX, position[1] + difY))
-                --difX
-                ++difY
-            } else break
-        }
-        //right,backwards
-        difX = 1; difY = -1
-        while(position[0]+difX <= 7 && position[1]+difY >= 0) {
-            if(Math.abs(difX) <= quantityInt && Math.abs(difY) <= quantityInt){
-                targetSquares.add(Movement(movementNotation,position[0],position[1],position[0]+difX,position[1]+difY))
-                ++difX
-                --difY
-            } else break
-        }
-        //left,backwards
-        difX = -1; difY = -1
-        while(position[0]+difX >= 0 && position[1]+difY >= 0) {
-            if(Math.abs(difX) <= quantityInt && Math.abs(difY) <= quantityInt){
-                targetSquares.add(Movement(movementNotation,position[0],position[1],position[0]+difX,position[1]+difY))
-                --difX
-                --difY
-            } else break
+        if(movementNotation.direction == "X" || movementNotation.direction == "X<") {
+            //right,backwards
+            difRank = 1; difFile = -1
+            while(position[0]+difRank <= 7 && position[1]+difFile >= 0) {
+                if(Math.abs(difRank) <= quantityInt && Math.abs(difFile) <= quantityInt){
+                    targetSquares.add(Movement(movementNotation,position[0],position[1],position[0]+difRank,position[1]+difFile))
+                    ++difRank
+                    --difFile
+                } else break
+            }
+            //left,backwards
+            difRank = -1; difFile = -1
+            while(position[0]+difRank >= 0 && position[1]+difFile >= 0) {
+                if(Math.abs(difRank) <= quantityInt && Math.abs(difFile) <= quantityInt){
+                    targetSquares.add(Movement(movementNotation,position[0],position[1],position[0]+difRank,position[1]+difFile))
+                    --difRank
+                    --difFile
+                } else break
+            }
         }
         return targetSquares
     }
@@ -137,12 +140,12 @@ class ChessPiece(
         //forward
         if(mode == "*" || mode == "+" || mode == "<>" || mode == ">=" || mode == ">"){
             if(color == "black" && mode == ">"){
-                for(i in position[0] downTo 0){
+                for(i in position[0]-1 downTo 0){
                     if(Math.abs(position[0]-i) <= quantityInt)targetSquares.add(Movement(movementNotation,position[0],position[1],i,position[1]))
                     else break
                 }
             } else {
-                for(i in position[0]..7){
+                for(i in position[0]+1..7){
                     if(Math.abs(position[0]-i) <= quantityInt)targetSquares.add(Movement(movementNotation,position[0],position[1],i,position[1]))
                     else break
                 }
@@ -151,12 +154,12 @@ class ChessPiece(
         //backward
         if(mode == "*" || mode == "+" || mode == "<>" || mode == "<=" || mode == "<") {
             if(color == "black" && mode == "<"){
-                for(i in position[0]..7){
+                for(i in position[0]+1..7){
                     if(Math.abs(position[0]-i) <= quantityInt)targetSquares.add(Movement(movementNotation,position[0],position[1],i,position[1]))
                     else break
                 }
             } else {
-                for(i in position[0] downTo 0){
+                for(i in position[0]-1 downTo 0){
                     if(Math.abs(position[0]-i) <= quantityInt)targetSquares.add(Movement(movementNotation,position[0],position[1],i,position[1]))
                     else break
                 }
@@ -164,21 +167,20 @@ class ChessPiece(
         }
         //right
         if(mode == "*" || mode == "+" || mode == ">=" || mode == "=") {
-            for(i in position[1]..7){
+            for(i in position[1]+1..7){
                 if(Math.abs(position[1]-i) <= quantityInt)targetSquares.add(Movement(movementNotation,position[0],position[1],position[0],i))
                 else break
             }
         }
         //left
         if(mode == "*" || mode == "+" || mode == "<=" || mode == "=") {
-            for(i in position[1] downTo 0){
+            for(i in position[1]-1 downTo 0){
                 if(Math.abs(position[1]-i) <= quantityInt)targetSquares.add(Movement(movementNotation,position[0],position[1],position[0],i))
                 else break
             }
         }
         return targetSquares
     }
-
 
     class Movement(val movementNotation : Chessboard.MovementNotation
                  , val sourceRank : Int
