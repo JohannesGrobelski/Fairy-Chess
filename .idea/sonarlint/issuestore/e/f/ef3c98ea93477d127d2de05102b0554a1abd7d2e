@@ -1,3 +1,5 @@
 
-Vkotlin:S11353"2Complete the task associated to this TODO comment.(ìí„ÿýÿÿÿÿ8ñŒªÅˆ/
-Qkotlin:S14814"-Remove this unused "quantity" local variable.(Ò¬Èòøÿÿÿÿ8ÂÔ©Åˆ/
+Kkotlin:S1481",Remove this unused "difRank" local variable.(ÇÒæÇ8Æ÷ˆñˆ/
+Kkotlin:S1481",Remove this unused "difFile" local variable.(ÇÒæÇ8Æ÷ˆñˆ/
+wkotlin:S3776à"RRefactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed.(Ìî¢âþÿÿÿÿ8ûÌ­ñˆ/
+qkotlin:S3776 "RRefactor this method to reduce its Cognitive Complexity from 26 to the 15 allowed.(Õ”©ä8Æ÷ˆñˆ/

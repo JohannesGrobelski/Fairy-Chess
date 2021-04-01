@@ -1,22 +1,23 @@
 package emerald.apps.fairychess.model.pieces
 
 import android.content.Context
+import emerald.apps.fairychess.movementNotation.directionl.pieces.ChessPiece
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import java.util.*
 import kotlin.math.sign
 
-class Chessboard(val context: Context) {
-    lateinit var pieces: Array<Array<ChessPiece>>
 
-    private enum class Value(val value: Int) {
-        pawn(10), knight(30), bishop(30), rook(50), queen(90), king(1000);
-    }
+class Chessboard(val context: Context) {
+    /* pieces-array: (file,rank)-coordinates
+       (7,0) ... (7,7)
+       ...        ...
+       (0,0) ... (0,7)
+     */
+    lateinit var pieces: Array<Array<ChessPiece>>
 
     private var moveColor = "white"
     private var moveCounter : Int = 0
-    private var lastError = ""
-
 
     fun init(mode: String){
         //hier einen aufstellungsstring übergeben
@@ -24,7 +25,7 @@ class Chessboard(val context: Context) {
             "normal" -> {
                 pieces = Array(8) {
                     Array(8) {
-                        ChessPiece("", arrayOf(-1, -1), 0, "", "", 0)
+                        ChessPiece("", -1,-1, 0, "", "", 0)
                     }
                 }
                 val chessFormationArray = ChessFormationParser.parseChessFormation(
@@ -39,15 +40,16 @@ class Chessboard(val context: Context) {
                     for (file in 0..7) {
                         for (rank in 0..7) {
                             var color = ""
-                            if(file < 2)color = "white"
-                            if (file > 5) color = "black"
+                            if(rank < 2)color = "white"
+                            if (rank > 5) color = "black"
                             if(figureMap.containsKey(chessFormationArray[file][rank])){
                                 val movement = figureMap[chessFormationArray[file][rank]]?.movementParlett
                                 val value =  figureMap[chessFormationArray[file][rank]]?.value!!
                                 if(movement != null){
                                     pieces[file][rank] = ChessPiece(
                                         chessFormationArray[file][rank],
-                                        arrayOf(file,rank),
+                                        file,
+                                        rank,
                                         value,
                                         color,
                                         movement,
@@ -67,15 +69,15 @@ class Chessboard(val context: Context) {
     }
 
 
-    fun checkMovement(sourceRank:Int,sourceFile:Int,destinationRank: Int,destinationFile: Int): String {
-        if(pieces[sourceRank][sourceFile].color == "")return "empty field"
-        else if(pieces[sourceRank][sourceFile].color == pieces[destinationRank][destinationFile].color)return "same color"
-        else if(pieces[sourceRank][sourceFile].color != moveColor)return "wrong player"
+    fun checkMovement(sourceFile:Int,sourceRank:Int,destinationFile: Int,destinationRank: Int): String {
+        if(pieces[sourceFile][sourceRank].color == "")return "empty field"
+        else if(pieces[sourceFile][sourceRank].color == pieces[destinationFile][destinationRank].color)return "same color"
+        else if(pieces[sourceFile][sourceRank].color != moveColor)return "wrong player"
         else {
-            val targetSquares = getTargetSquares(sourceRank,sourceFile)
-            val destinationSquare = arrayOf(destinationRank,destinationFile)
+            val targetSquares = getTargetSquares(sourceFile,sourceRank)
+            val destinationSquare = TargetSquare(destinationFile,destinationRank)
             for(targetSquare in targetSquares){
-                if(targetSquare[0] == destinationSquare[0] && targetSquare[1] == destinationSquare[1]){
+                if(targetSquare.targetFile == destinationSquare.targetFile && targetSquare.targetRank == destinationSquare.targetRank){
                     return ""
                 }
             }
@@ -83,34 +85,36 @@ class Chessboard(val context: Context) {
         }
     }
 
-    fun getTargetSquares(sourceRank:Int,sourceFile:Int) : List<Array<Int>>{
-        val nonRelativeMovements = pieces[sourceRank][sourceFile].generateMovements()
-        val relativeMovements = mutableListOf<Array<Int>>()
+    class TargetSquare(val targetFile: Int, val targetRank: Int)
+    fun getTargetSquares(sourceFile:Int,sourceRank:Int) : List<TargetSquare>{
+        val nonRelativeMovements = pieces[sourceFile][sourceRank].generateMovements()
+        val relativeMovements = mutableListOf<TargetSquare>()
         //filter target squares
         for(nonRelativeMovement in nonRelativeMovements){
             if(!(
-                nonRelativeMovement.sourceRank !in 0..7 || nonRelativeMovement.sourceFile !in 0..7
-                    || pieces[nonRelativeMovement.targetRank][nonRelativeMovement.targetFile].color == pieces[sourceRank][sourceFile].color)
-                        && !isShadowedByFigure(sourceRank,sourceFile,nonRelativeMovement.targetRank,nonRelativeMovement.targetFile)
+                nonRelativeMovement.sourceFile !in 0..7 || nonRelativeMovement.sourceRank !in 0..7
+                || nonRelativeMovement.targetFile !in 0..7 || nonRelativeMovement.targetRank !in 0..7
+                    || pieces[nonRelativeMovement.targetFile][nonRelativeMovement.targetRank].color == pieces[sourceFile][sourceRank].color)
+                        && !isShadowedByFigure(sourceFile,sourceRank,nonRelativeMovement.targetFile,nonRelativeMovement.targetRank)
                             && fullfillsCondition(nonRelativeMovement)){
-                relativeMovements.add(arrayOf(nonRelativeMovement.targetRank,nonRelativeMovement.targetFile))
+                relativeMovements.add(TargetSquare(nonRelativeMovement.targetFile,nonRelativeMovement.targetRank))
             }
         }
         return relativeMovements
     }
 
-    fun isShadowedByFigure(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
-        for(movement in pieces[sourceRank][sourceFile].movingPatternString.split(",")){
+    fun isShadowedByFigure(sourceFile:Int,sourceRank:Int,targetFile: Int,targetRank: Int) : Boolean{
+        for(movement in pieces[sourceFile][sourceRank].movingPatternString.split(",")){
             when {
                 movement.contains("+") -> {
-                    return isShadowedByFigureOrthogonal(sourceRank,sourceFile,targetRank,targetFile)
+                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
                 }
                 movement.contains("X") -> {
-                    return isShadowedByFigureDiagonal(sourceRank,sourceFile,targetRank,targetFile)
+                    return isShadowedByFigureDiagonal(sourceFile,sourceRank,targetFile,targetRank)
                 }
                 movement.contains("*") -> {
-                    return(isShadowedByFigureOrthogonal(sourceRank,sourceFile,targetRank,targetFile)
-                          || isShadowedByFigureDiagonal(sourceRank,sourceFile,targetRank,targetFile))
+                    return(isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                          || isShadowedByFigureDiagonal(sourceFile,sourceRank,targetFile,targetRank))
                 }
             }
         }
@@ -125,40 +129,40 @@ class Chessboard(val context: Context) {
         var returnValue = true
         when {
             movement.movementNotation.conditions.contains("o") -> {//May not be used for a capture (e.g. pawn's forward move)
-                returnValue = returnValue && !(pieces[movement.sourceRank][movement.sourceFile].color != pieces[movement.targetRank][movement.targetFile].color
-                        && pieces[movement.sourceRank][movement.sourceFile].color.isNotEmpty()
-                        && pieces[movement.targetRank][movement.targetFile].color.isNotEmpty())
+                returnValue = returnValue && !(pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
+                        && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
+                        && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
             }
-            movement.movementNotation.conditions.contains("i") -> {//May only be made on a capture (e.g. pawn's diagonal capture)
-                returnValue = returnValue && (pieces[movement.sourceRank][movement.sourceFile].color != pieces[movement.targetRank][movement.targetFile].color
-                        && pieces[movement.sourceRank][movement.sourceFile].color.isNotEmpty()
-                        && pieces[movement.targetRank][movement.targetFile].color.isNotEmpty())
+            movement.movementNotation.conditions.contains("c") -> {//May only be made on a capture (e.g. pawn's diagonal capture)
+                returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
+                        && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
+                        && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
             }
-            movement.movementNotation.conditions.contains("c") -> {//May only be made on the initial move (e.g. pawn's 2 moves forward)
-                returnValue = returnValue && (pieces[movement.sourceRank][movement.sourceFile].moveCounter == 0)
+            movement.movementNotation.conditions.contains("i") -> {//May only be made on the initial move (e.g. pawn's 2 moves forward)
+                returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
             }
         }
         return returnValue
     }
 
-    fun isShadowedByFigureOrthogonal(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
-        if(sourceRank == targetRank && (Math.abs(targetFile-sourceFile) > 1)){//distance > 1 because a figure has to stand between them for shadow
+    fun isShadowedByFigureOrthogonal(sourceFile:Int,sourceRank:Int,targetFile:Int,targetRank: Int) : Boolean{
+        if(sourceFile == targetRank && (Math.abs(targetFile-sourceRank) > 1)){//distance > 1 because a figure has to stand between them for shadow
             //move on file
-            val difFile = sign((targetFile-sourceFile).toDouble()).toInt()
-            var file = sourceFile + difFile
+            val difFile = sign((targetFile-sourceRank).toDouble()).toInt()
+            var file = sourceRank + difFile
             while(file != targetFile){
-                if(pieces[sourceRank][file].color != ""){
+                if(pieces[sourceFile][file].color != ""){
                     return true
                 }
                 file += difFile
             }
         }
-        if(sourceFile == targetFile && (Math.abs(targetRank-sourceRank) > 1)){
+        if(sourceRank == targetFile && (Math.abs(targetRank-sourceFile) > 1)){
             //move on file
-            val difRank = sign((targetRank-sourceRank).toDouble()).toInt()
-            var rank = sourceRank + difRank
+            val difRank = sign((targetRank-sourceFile).toDouble()).toInt()
+            var rank = sourceFile + difRank
             while(rank != targetRank){
-                if(pieces[rank][sourceFile].color != ""){
+                if(pieces[rank][sourceRank].color != ""){
                     return true
                 }
                 rank += difRank
@@ -167,16 +171,16 @@ class Chessboard(val context: Context) {
         return false
     }
 
-    fun isShadowedByFigureDiagonal(sourceRank:Int,sourceFile:Int,targetRank:Int,targetFile:Int) : Boolean{
-        if(Math.abs(targetRank-sourceRank)>1 && Math.abs(targetRank-sourceRank)>1){
+    fun isShadowedByFigureDiagonal(sourceFile:Int,sourceRank:Int,targetFile:Int,targetRank: Int) : Boolean{
+        if(Math.abs(targetRank-sourceRank)>1 && Math.abs(targetFile-sourceFile)>1){
             val difRank = sign((targetRank-sourceRank).toDouble()).toInt()
             val difFile = sign((targetFile-sourceFile).toDouble()).toInt()
-            if(Math.abs(targetFile-sourceFile) - Math.abs(targetRank-sourceRank) == 0){
+            if(Math.abs(targetRank-sourceRank) - Math.abs(targetFile-sourceFile) == 0){
                 for(i in 1..Math.abs(targetFile-sourceFile)){
                     val rank = sourceRank+(difRank*i)
                     val file = sourceFile+(difFile*i)
                     if(rank in 0..7 && file in 0..7){
-                        if(pieces[rank][file].color != ""){
+                        if(pieces[file][rank].color != ""){
                             if(rank != targetRank && file != targetFile){
                                 return true
                             }
@@ -215,20 +219,22 @@ class Chessboard(val context: Context) {
         return "remis"
     }
 
-    fun move(sourceRank: Int, sourceFile: Int, destinationRank: Int, destinationFile: Int) : String{
-        val check = checkMovement(sourceRank,sourceFile,destinationRank,destinationFile)
+    fun move(sourceFile: Int, sourceRank: Int, destinationFile: Int, destinationRank: Int) : String{
+        val check = checkMovement(sourceFile,sourceRank,destinationFile,destinationRank)
         if(check.isEmpty()){
-            pieces[destinationRank][destinationFile] = ChessPiece(
-                pieces[sourceRank][sourceFile].name,
-                arrayOf(destinationRank,destinationFile),
-                pieces[sourceRank][sourceFile].value,
-                pieces[sourceRank][sourceFile].color,
-                pieces[sourceRank][sourceFile].movingPatternString,
-                pieces[sourceRank][sourceFile].moveCounter+1,
+            pieces[destinationFile][destinationRank] = ChessPiece(
+                pieces[sourceFile][sourceRank].name,
+                destinationFile,
+                destinationRank,
+                pieces[sourceFile][sourceRank].value,
+                pieces[sourceFile][sourceRank].color,
+                pieces[sourceFile][sourceRank].movingPatternString,
+                pieces[sourceFile][sourceRank].moveCounter+1,
             )
-            pieces[sourceRank][sourceFile] = ChessPiece(
+            pieces[sourceFile][sourceRank] = ChessPiece(
                 "",
-                arrayOf(sourceFile,sourceRank),
+                sourceFile,
+                sourceRank,
                 0,
                 "",
                 "",
@@ -276,10 +282,9 @@ class Chessboard(val context: Context) {
     }
 
     // do something with the data coming from the AlertDialog
-    private fun promote(figure: String, position: Array<Int>?) {
-        if (position == null) return
-        val color: String = pieces[position[1]][position[0]].color
-        pieces[position[1]][position[0]] = ChessPiece(figure, position, 10, color, "", 0)
+    private fun promote(figure: String, file:Int, rank: Int) {
+        val color: String = pieces[file][rank].color
+        pieces[file][rank] = ChessPiece(figure, file, rank, 10, color, "", 0)
     }
 
     fun switchColors(){

@@ -4,8 +4,6 @@ import android.content.Context
 import android.util.Log
 import java.io.IOException
 import java.io.InputStream
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 
 class ChessFormationParser {
@@ -34,18 +32,31 @@ class ChessFormationParser {
                         fileName,
                         "raw", context.packageName
                     )
-                );
-
-                "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\$fileName"
-                return parseChessFormationString(
-                    convertStreamToString(
-                        inputStream
+                )
+                return invert2DArray(
+                    parseChessFormationString(
+                        convertStreamToString(
+                            inputStream
+                        )
                     )
                 )
             } catch (e: Exception){
                 println(e.message.toString())
             }
             return arrayOf()
+        }
+
+        fun invert2DArray(inputArray: Array<Array<String>>) : Array<Array<String>>{
+           //create empty array
+           var outputArray = arrayOf<Array<String>>()
+           for (i in 0..inputArray.size-1) {
+                var array = arrayOf<String>()
+                for (j in 0..inputArray[i].size-1) {
+                    array += inputArray[j][i]
+                }
+                outputArray += array
+           }
+           return outputArray
         }
 
         fun convertStreamToString(inputStream: InputStream): String {

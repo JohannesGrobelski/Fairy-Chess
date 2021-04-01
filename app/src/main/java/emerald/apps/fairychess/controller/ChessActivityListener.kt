@@ -25,12 +25,17 @@ class ChessActivityListener() {
     var color_ai: String? = null
 
     var selectionName = ""
-    var selectionRank = -1
     var selectionFile = -1
+    var selectionRank = -1
 
     //Views
     var elterLayout: LinearLayout? = null
-    private lateinit var imageViews: Array<Array<ImageView>> //imageViews[rank][file]
+    /* pieces-array: (file,rank)-coordinates
+       (7,0) ... (7,7)      (A,8) ... (H,8)
+       ...        ...    =   ...        ...
+       (0,0) ... (0,7)      (A,1) ... (G,1)
+     */
+    private lateinit var imageViews: Array<Array<ImageView>> //imageViews[file][rank]
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
@@ -45,12 +50,11 @@ class ChessActivityListener() {
     fun player_action(v: View){
         val fullName: String = chessActivity.resources.getResourceName(v.id)
         val name: String = fullName.substring(fullName.lastIndexOf("/") + 1)
-        val fileRank = nameToIndex(name)
-        val destinationFile = fileRank!![1]
-        val destinationRank = fileRank!![0]
+        val destinationFile = nameToFile(name)
+        val destinationRank = nameToRank(name)
         if(selectionRank != -1 && selectionFile != -1
             && destinationFile != -1 && destinationRank != -1){
-            val moveResult = chessboard.move(selectionRank,selectionFile,destinationRank,destinationFile)
+            val moveResult = chessboard.move(selectionFile,selectionRank,destinationFile,destinationRank)
             displayFigures()
             if(moveResult.isNotEmpty()){
                 Toast.makeText(chessActivity,moveResult,Toast.LENGTH_LONG).show()
@@ -58,10 +62,12 @@ class ChessActivityListener() {
         }
         markFigure(v)
         if(selectionRank != -1 && selectionFile != -1){
+            Toast.makeText(chessActivity,
+                "file: "+chessboard.pieces[selectionFile][selectionRank].positionFile
+                        +", rank: "+chessboard.pieces[selectionFile][selectionRank].positionRank,Toast.LENGTH_SHORT).show()
             displayTargetSquares()
         }
     }
-
 
     private fun displayFigures() {
         for (file in 0..7) {
@@ -76,9 +82,9 @@ class ChessActivityListener() {
     }
 
     private fun displayTargetSquares() {
-        val targetSquares = chessboard.getTargetSquares(selectionRank,selectionFile)
+        val targetSquares = chessboard.getTargetSquares(selectionFile,selectionRank)
         for (targetSquare in targetSquares){
-            markSquare(targetSquare[0],targetSquare[1])
+            markSquare(targetSquare.targetFile,targetSquare.targetRank)
         }
     }
 
@@ -86,37 +92,37 @@ class ChessActivityListener() {
         elterLayout = chessActivity.findViewById<LinearLayout>(R.id.elterLayout)
         imageViews = arrayOf(
             arrayOf(
-                chessActivity.A1, chessActivity.B1, chessActivity.C1, chessActivity.D1,
-                chessActivity.E1, chessActivity.F1, chessActivity.G1, chessActivity.H1
+                chessActivity.A1, chessActivity.A2, chessActivity.A3, chessActivity.A4,
+                chessActivity.A5, chessActivity.A6, chessActivity.A7, chessActivity.A8
             ),
             arrayOf(
-                chessActivity.A2, chessActivity.B2, chessActivity.C2, chessActivity.D2,
-                chessActivity.E2, chessActivity.F2, chessActivity.G2, chessActivity.H2
+                chessActivity.B1, chessActivity.B2, chessActivity.B3, chessActivity.B4,
+                chessActivity.B5, chessActivity.B6, chessActivity.B7, chessActivity.B8
             ),
             arrayOf(
-                chessActivity.A3, chessActivity.B3, chessActivity.C3, chessActivity.D3,
-                chessActivity.E3, chessActivity.F3, chessActivity.G3, chessActivity.H3
+                chessActivity.C1, chessActivity.C2, chessActivity.C3, chessActivity.C4,
+                chessActivity.C5, chessActivity.C6, chessActivity.C7, chessActivity.C8
             ),
             arrayOf(
-                chessActivity.A4, chessActivity.B4, chessActivity.C4, chessActivity.D4,
-                chessActivity.E4, chessActivity.F4, chessActivity.G4, chessActivity.H4
+                chessActivity.D1, chessActivity.D2, chessActivity.D3, chessActivity.D4,
+                chessActivity.D5, chessActivity.D6, chessActivity.D7, chessActivity.D8
             ),
             arrayOf(
-                chessActivity.A5, chessActivity.B5, chessActivity.C5, chessActivity.D5,
-                chessActivity.E5, chessActivity.F5, chessActivity.G5, chessActivity.H5
+                chessActivity.E1, chessActivity.E2, chessActivity.E3, chessActivity.E4,
+                chessActivity.E5, chessActivity.E6, chessActivity.E7, chessActivity.E8
             ),
             arrayOf(
-                chessActivity.A6, chessActivity.B6, chessActivity.C6, chessActivity.D6,
-                chessActivity.E6, chessActivity.F6, chessActivity.G6, chessActivity.H6
+                chessActivity.F1, chessActivity.F2, chessActivity.F3, chessActivity.F4,
+                chessActivity.F5, chessActivity.F6, chessActivity.F7, chessActivity.F8
             ),
             arrayOf(
-                chessActivity.A7, chessActivity.B7, chessActivity.C7, chessActivity.D7,
-                chessActivity.E7, chessActivity.F7, chessActivity.G7, chessActivity.H7
+                chessActivity.G1, chessActivity.G2, chessActivity.G3, chessActivity.G4,
+                chessActivity.G5, chessActivity.G6, chessActivity.G7, chessActivity.G8
             ),
             arrayOf(
-                chessActivity.A8, chessActivity.B8, chessActivity.C8, chessActivity.D8,
-                chessActivity.E8, chessActivity.F8, chessActivity.G8, chessActivity.H8
-            )
+                chessActivity.H1, chessActivity.H2, chessActivity.H3, chessActivity.H4,
+                chessActivity.H5, chessActivity.H6, chessActivity.H7, chessActivity.H8
+            ),
         )
     }
 
@@ -153,15 +159,14 @@ class ChessActivityListener() {
     fun markFigure(v: View) {
         val fullName: String = chessActivity.getResources().getResourceName(v.getId())
         val name: String = fullName.substring(fullName.lastIndexOf("/") + 1)
-        val fileRank = nameToIndex(name)
-        val file = fileRank!![1]
-        val rank = fileRank!![0]
+        val file = nameToFile(name)
+        val rank = nameToRank(name)
         resetFieldColor()
         if(selectionFile != -1 && selectionRank != -1){ //unselect
             selectionFile = -1
             selectionRank = -1
         } else {
-            imageViews[rank][file].setBackgroundColor(
+            imageViews[file][rank].setBackgroundColor(
                 getMixedColor(file, rank, Color.RED)
             )
             selectionFile = file
@@ -169,8 +174,8 @@ class ChessActivityListener() {
         }
     }
 
-    fun markSquare(rank : Int, file : Int) {
-        imageViews[rank][file].setBackgroundColor(
+    fun markSquare(file : Int, rank : Int) {
+        imageViews[file][rank].setBackgroundColor(
             getMixedColor(file, rank, Color.YELLOW)
         )
     }
@@ -178,12 +183,12 @@ class ChessActivityListener() {
     private fun resetFieldColor() {
         for(rank in 0..7){
             for(file in 0..7){
-                if ((rank + file) % 2 != 0) imageViews[rank][file].setBackgroundColor(
+                if ((rank + file) % 2 != 0) imageViews[file][rank].setBackgroundColor(
                     chessActivity.resources.getColor(
                         R.color.colorWhite
                     )
                 )
-                if ((rank + file) % 2 == 0) imageViews[rank][file].setBackgroundColor(
+                if ((rank + file) % 2 == 0) imageViews[file][rank].setBackgroundColor(
                     chessActivity.resources.getColor(
                         R.color.colorBlack
                     )
@@ -205,11 +210,12 @@ class ChessActivityListener() {
         )
     }
 
-    private fun nameToIndex(name: String): IntArray? {
-        val result = intArrayOf(0, 0)
-        result[0] = Integer.valueOf(name.substring(1, 2)) - 1
-        result[1] = name.toLowerCase()[0] - 'a'
-        return result
+    private fun nameToRank(name: String): Int {
+        return Integer.valueOf(name.substring(1, 2)) - 1
+    }
+
+    private fun nameToFile(name: String): Int {
+        return name.toLowerCase()[0] - 'a'
     }
 
 }
