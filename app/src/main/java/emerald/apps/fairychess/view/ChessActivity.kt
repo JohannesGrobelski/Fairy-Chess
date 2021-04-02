@@ -16,8 +16,8 @@ class ChessActivity : AppCompatActivity() {
         chessActivityListener = ChessActivityListener(this)
     }
 
-    fun player_action(v: View){
-        chessActivityListener.player_action(v)
+    fun onClickSquare(v: View){
+        chessActivityListener.clickSquare(v)
     }
 
 

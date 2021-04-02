@@ -7,28 +7,22 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
-import emerald.apps.fairychess.model.pieces.Chessboard
+import emerald.apps.fairychess.model.ChessPiece
+import emerald.apps.fairychess.model.Chessgame
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.android.synthetic.main.activity_chess.*
 
 class ChessActivityListener() {
-
-
     //TODO: Castling: requires history of involved rook and king. Can be accomplished via a hasMovedBefore flag.
     //TODO: en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure, or retaining the previous board state.
     //TODO: Fifty move rule: requires history of when the last capture or pawn move. Can be accomplished via a lastPawnMoveOrCapture counter
     //TODO: Threefold repetition: requires all previous board states since the last castle, pawn move or capture. A list of hashes of previous states may be an option. (Thanks dfeuer)
 
     private lateinit var chessActivity : ChessActivity
-    private lateinit var chessboard: Chessboard
+    private lateinit var chessgame: Chessgame
 
-    //Variables für KI
-    var game_mode_ai = true
-    var hints = false
 
-    var current_color: String? = null
-    var color_human: String? = null
-    var color_ai: String? = null
+
 
     var selectionName = ""
     var selectionFile = -1
@@ -45,43 +39,50 @@ class ChessActivityListener() {
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        val mode = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
-        chessboard = Chessboard(chessActivity,mode)
-        current_color = "white"
+        val game = chessActivity.intent.getStringExtra(MainActivityListener.gameExtra)!!
+        val mode = chessActivity.intent.getStringExtra(MainActivityListener.modeExtra)!!
+        val time = chessActivity.intent.getStringExtra(MainActivityListener.timeExtra)!!
+        val playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+        chessgame = Chessgame(chessActivity,game,mode,time,playerColor)
 
         initViews()
         displayFigures()
     }
 
+    /** select, unselect and move figure */
+    fun clickSquare(clickedView: View){
+        //get file and rank of clicked view
+        val clickedviewFullname: String = chessActivity.resources.getResourceName(clickedView.id)
+        val clickedViewName: String = clickedviewFullname.substring(clickedviewFullname.lastIndexOf("/") + 1)
+        if(clickedViewName.matches("[A-Z][0-9]+".toRegex())){
+            //calculate clickedFile and clickedRank
+            val clickedFile = nameToFile(clickedViewName)
+            val clickedRank = nameToRank(clickedViewName)
+            //if a file and rank was selected => move from selected square to
+            if(selectionRank != -1 && selectionFile != -1
+                && clickedFile != -1 && clickedRank != -1){
+                val moveResult = chessgame.movePlayer(ChessPiece.Movement(sourceFile = selectionFile,sourceRank = selectionRank,targetFile = clickedFile,targetRank = clickedRank))
 
-    fun player_action(v: View){
-        val fullName: String = chessActivity.resources.getResourceName(v.id)
-        val name: String = fullName.substring(fullName.lastIndexOf("/") + 1)
-        val destinationFile = nameToFile(name)
-        val destinationRank = nameToRank(name)
-        if(selectionRank != -1 && selectionFile != -1
-            && destinationFile != -1 && destinationRank != -1){
-            val moveResult = chessboard.move(selectionFile,selectionRank,destinationFile,destinationRank)
-            displayFigures()
-            if(moveResult.isNotEmpty()){
-                Toast.makeText(chessActivity,moveResult,Toast.LENGTH_LONG).show()
+                displayFigures()
+                if(moveResult.isNotEmpty()){
+                    Toast.makeText(chessActivity,moveResult,Toast.LENGTH_LONG).show()
+                }
+            }
+            //mark the clicked view
+            markFigure(clickedView)
+            if(selectionRank != -1 && selectionFile != -1){
+                displayTargetMovements()
             }
         }
-        markFigure(v)
-        if(selectionRank != -1 && selectionFile != -1){
-            Toast.makeText(chessActivity,
-                "file: "+chessboard.pieces[selectionFile][selectionRank].positionFile
-                        +", rank: "+chessboard.pieces[selectionFile][selectionRank].positionRank,Toast.LENGTH_SHORT).show()
-            displayTargetMovements()
-        }
+
     }
 
     private fun displayFigures() {
         for (file in 0..7) {
             for (rank in 0..7) {
                 val x: Int = getDrawableFromName(
-                    chessboard.pieces[file][rank].name,
-                    chessboard.pieces[file][rank].color
+                    chessgame.getPieceName(file,rank),
+                    chessgame.getPieceColor(file,rank)
                 )
                 if (x != -1) imageViews[file][rank].setImageResource(x)
             }
@@ -89,7 +90,7 @@ class ChessActivityListener() {
     }
 
     private fun displayTargetMovements() {
-        val targetMovements = chessboard.getTargetMovements(selectionFile,selectionRank)
+        val targetMovements = chessgame.getTargetMovements(selectionFile,selectionRank)
         for (targetMovement in targetMovements){
             markSquare(targetMovement.targetFile,targetMovement.targetRank)
         }

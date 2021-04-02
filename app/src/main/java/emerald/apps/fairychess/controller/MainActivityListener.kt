@@ -13,7 +13,10 @@ import emerald.apps.fairychess.view.MainActivity
 class MainActivityListener(var mainActivity: MainActivity) : View.OnClickListener {
 
     companion object {
-        const val gameModeExtra = "game_mode"
+        const val gameExtra = "game"
+        const val modeExtra = "mode"
+        const val timeExtra = "time"
+        const val playerColorExtra = "playerColor"
     }
 
     override fun onClick(v: View?) {
@@ -48,7 +51,9 @@ class MainActivityListener(var mainActivity: MainActivity) : View.OnClickListene
             run {
                 start_gameWithParameters(FairyChessGame(mode,
                     spinner_gamemode.selectedItem.toString(),
-                    spinner_timemode.selectedItem.toString()))
+                    spinner_timemode.selectedItem.toString(),
+                    "white")
+                )
                 dialog.dismiss()
                 Toast.makeText(mainActivity, "started game search: ${spinner_gamemode.selectedItem.toString()} ${spinner_timemode.selectedItem.toString()}",Toast.LENGTH_SHORT).show()
             }
@@ -60,13 +65,14 @@ class MainActivityListener(var mainActivity: MainActivity) : View.OnClickListene
 
     fun start_gameWithParameters(fairyChessGame: FairyChessGame){
         val intent = Intent(mainActivity,ChessActivity::class.java)
-        intent.putExtra("mode", fairyChessGame.mode)
-        intent.putExtra(gameModeExtra, fairyChessGame.game)
-        intent.putExtra("time", fairyChessGame.time)
+        intent.putExtra(modeExtra, fairyChessGame.mode)
+        intent.putExtra(gameExtra, fairyChessGame.game)
+        intent.putExtra(timeExtra, fairyChessGame.time)
+        intent.putExtra(playerColorExtra, fairyChessGame.playerColor)
         mainActivity.startActivity(intent)
         mainActivity.finish()
     }
 
 
-    data class FairyChessGame(val mode:String, val game:String, val time:String)
+    data class FairyChessGame(val mode:String, val game:String, val time:String, val playerColor:String)
 }

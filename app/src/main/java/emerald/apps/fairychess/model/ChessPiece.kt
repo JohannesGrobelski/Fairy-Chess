@@ -307,11 +307,22 @@ class ChessPiece(
         return inputSquares
     }
 
-    class Movement(val movementNotation : MovementNotation
+    class Movement(val movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")
              , val sourceFile : Int
              , val sourceRank : Int
              , val targetFile : Int
-             , val targetRank : Int)
+             , val targetRank : Int) {
+        companion object{
+            fun toString(movement: Movement) : String {
+                return movement.sourceFile.toString()+"_"+movement.sourceRank+"->"+movement.targetFile.toString()+"_"+movement.targetRank+"->"
+            }
+
+            fun fromString() : Movement {
+                
+            }
+        }
+
+    }
 
     class MovementNotation(val grouping: String, val conditions: List<String>, val movetype: String, val distances: List<String>, val direction: String){
         companion object {

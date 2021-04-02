@@ -7,7 +7,7 @@ import emerald.apps.fairychess.utility.FigureParser
 import kotlin.math.sign
 
 
-class Chessboard(val context: Context, val mode : String) {
+data class Chessboard(val context: Context, val mode : String) {
     /* pieces-array: (file,rank)-coordinates
        (7,0) ... (7,7)
        ...        ...
@@ -15,8 +15,8 @@ class Chessboard(val context: Context, val mode : String) {
      */
     lateinit var pieces: Array<Array<ChessPiece>>
 
-    private var moveColor = "white"
-    private var moveCounter : Int = 0
+    var moveColor = "white"
+    var moveCounter : Int = 0
 
     fun init(mode: String){
         //hier einen aufstellungsstring übergeben
@@ -81,6 +81,18 @@ class Chessboard(val context: Context, val mode : String) {
             }
         }
         return relativeMovements
+    }
+
+    fun getAllPossibleMoves(color : String) : List<ChessPiece.Movement>{
+        var allPossibleMoves = mutableListOf<ChessPiece.Movement>()
+        for(file in 0..7){
+            for(rank in 0..7){
+                if(pieces[file][rank].color == color){
+                    allPossibleMoves.addAll(getTargetMovements(file,rank))
+                }
+            }
+        }
+        return allPossibleMoves
     }
 
     fun isShadowedByFigure(sourceFile:Int,sourceRank:Int,targetFile: Int,targetRank: Int) : Boolean{
@@ -212,16 +224,17 @@ class Chessboard(val context: Context, val mode : String) {
         return "remis"
     }
 
-    fun move(sourceFile: Int, sourceRank: Int, destinationFile: Int, destinationRank: Int) : String{
+    fun move(color: String, movement: ChessPiece.Movement) : String{
+        if(color != moveColor)return "wrong player"
         //check movement
         var userMovement : ChessPiece.Movement? = null
-        if(pieces[sourceFile][sourceRank].color == "")return "empty field"
-        else if(pieces[sourceFile][sourceRank].color == pieces[destinationFile][destinationRank].color)return "same color"
-        else if(pieces[sourceFile][sourceRank].color != moveColor)return "wrong player"
+        if(pieces[movement.sourceFile][movement.sourceRank].color == "")return "empty field"
+        else if(pieces[movement.sourceFile][movement.sourceRank].color == pieces[movement.targetFile][movement.targetRank].color)return "same color"
+        else if(pieces[movement.sourceFile][movement.sourceRank].color != moveColor)return "wrong figure"
         else {
-            val targetMovements = getTargetMovements(sourceFile,sourceRank)
+            val targetMovements = getTargetMovements(movement.sourceFile,movement.sourceRank)
             for(targetMovement in targetMovements){
-                if(targetMovement.targetFile == destinationFile && targetMovement.targetRank == destinationRank){
+                if(targetMovement.targetFile == movement.targetFile && targetMovement.targetRank == movement.targetRank){
                     userMovement = targetMovement
                 }
             }
@@ -230,6 +243,7 @@ class Chessboard(val context: Context, val mode : String) {
 
         //valid movement
         if (userMovement.movementNotation.movetype == "g") {
+            //capture the piece hopped over
             val signFile = sign((userMovement.targetFile - userMovement.sourceFile).toDouble()).toInt()
             val signRank = sign((userMovement.targetRank - userMovement.sourceRank).toDouble()).toInt()
             val captureFile = userMovement.targetFile-signFile
@@ -237,8 +251,8 @@ class Chessboard(val context: Context, val mode : String) {
             if(pieces[captureFile][captureRank].color != moveColor){
                 pieces[captureFile][captureRank] = ChessPiece(
                     "",
-                    sourceFile,
-                    sourceRank,
+                    movement.sourceFile,
+                    movement.sourceRank,
                     0,
                     "",
                     "",
@@ -246,25 +260,24 @@ class Chessboard(val context: Context, val mode : String) {
                 )
             }
         }
-        pieces[destinationFile][destinationRank] = ChessPiece(
-            pieces[sourceFile][sourceRank].name,
-            destinationFile,
-            destinationRank,
-            pieces[sourceFile][sourceRank].value,
-            pieces[sourceFile][sourceRank].color,
-            pieces[sourceFile][sourceRank].movingPatternString,
-            pieces[sourceFile][sourceRank].moveCounter+1,
+        pieces[movement.targetFile][movement.targetRank] = ChessPiece(
+            pieces[movement.sourceFile][movement.sourceRank].name,
+            movement.targetFile,
+            movement.targetRank,
+            pieces[movement.sourceFile][movement.sourceRank].value,
+            pieces[movement.sourceFile][movement.sourceRank].color,
+            pieces[movement.sourceFile][movement.sourceRank].movingPatternString,
+            pieces[movement.sourceFile][movement.sourceRank].moveCounter+1,
         )
-        pieces[sourceFile][sourceRank] = ChessPiece(
+        pieces[movement.sourceFile][movement.sourceRank] = ChessPiece(
             "",
-            sourceFile,
-            sourceRank,
+            movement.sourceFile,
+            movement.sourceRank,
             0,
             "",
             "",
             0,
         )
-
 
         ++moveCounter
         switchColors()
@@ -311,10 +324,20 @@ class Chessboard(val context: Context, val mode : String) {
     }
 
     fun switchColors(){
-        if(moveColor == "white"){
-            moveColor = "black"
-        } else if(moveColor == "black"){
-            moveColor = "white"
+        moveColor = oppositeColor(moveColor)
+    }
+
+    fun oppositeColor(color : String) : String {
+        return if(color == "white"){
+            "black"
+        } else if(color == "black"){
+            "white"
+        } else {
+            ""
         }
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
     }
 }

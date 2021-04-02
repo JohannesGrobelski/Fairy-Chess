@@ -47,7 +47,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/A7"
@@ -55,7 +55,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/A6"
@@ -63,7 +63,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/A5"
@@ -71,7 +71,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/A4"
@@ -79,7 +79,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/A3"
@@ -87,7 +87,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/A2"
@@ -95,7 +95,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/A1"
@@ -103,14 +103,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:onClick="player_action"
+            android:onClick="onClickSquare"
             android:orientation="vertical"
             android:visibility="visible"
             tools:layout_editor_absoluteX="16dp"
@@ -123,7 +123,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/B7"
@@ -131,7 +131,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/B6"
@@ -139,7 +139,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/B5"
@@ -147,7 +147,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/B4"
@@ -155,7 +155,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/B3"
@@ -163,7 +163,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/B2"
@@ -171,7 +171,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/B1"
@@ -179,14 +179,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:onClick="player_action"
+            android:onClick="onClickSquare"
             android:orientation="vertical"
             android:visibility="visible"
             tools:visibility="visible">
@@ -197,7 +197,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/C7"
@@ -205,7 +205,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/C6"
@@ -213,7 +213,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/C5"
@@ -221,7 +221,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/C4"
@@ -229,7 +229,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/C3"
@@ -237,7 +237,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/C2"
@@ -245,7 +245,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/C1"
@@ -253,14 +253,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:onClick="player_action"
+            android:onClick="onClickSquare"
             android:orientation="vertical"
             android:visibility="visible"
             tools:visibility="visible">
@@ -271,7 +271,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/D7"
@@ -279,7 +279,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/D6"
@@ -287,7 +287,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/D5"
@@ -295,7 +295,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/D4"
@@ -303,7 +303,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/D3"
@@ -311,7 +311,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/D2"
@@ -319,7 +319,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/D1"
@@ -327,14 +327,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:onClick="player_action"
+            android:onClick="onClickSquare"
             android:orientation="vertical"
             android:visibility="visible"
             tools:visibility="visible">
@@ -345,7 +345,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/E7"
@@ -353,7 +353,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/E6"
@@ -361,7 +361,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/E5"
@@ -369,7 +369,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/E4"
@@ -377,7 +377,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/E3"
@@ -385,7 +385,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/E2"
@@ -393,7 +393,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/E1"
@@ -401,14 +401,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:onClick="player_action"
+            android:onClick="onClickSquare"
             android:orientation="vertical"
             android:visibility="visible"
             tools:visibility="visible">
@@ -419,7 +419,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/F7"
@@ -427,7 +427,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/F6"
@@ -435,7 +435,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/F5"
@@ -443,7 +443,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/F4"
@@ -451,7 +451,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/F3"
@@ -459,7 +459,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/F2"
@@ -467,7 +467,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/F1"
@@ -475,14 +475,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:onClick="player_action"
+            android:onClick="onClickSquare"
             android:orientation="vertical"
             android:visibility="visible"
             tools:visibility="visible">
@@ -493,7 +493,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/G7"
@@ -501,7 +501,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/G6"
@@ -509,7 +509,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/G5"
@@ -517,7 +517,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/G4"
@@ -525,7 +525,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/G3"
@@ -533,7 +533,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/G2"
@@ -541,7 +541,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/G1"
@@ -549,14 +549,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:onClick="player_action"
+            android:onClick="onClickSquare"
             android:orientation="vertical"
             android:visibility="visible"
             tools:visibility="visible">
@@ -567,7 +567,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/H7"
@@ -575,7 +575,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/H6"
@@ -583,7 +583,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/H5"
@@ -591,7 +591,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/H4"
@@ -599,7 +599,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/H3"
@@ -607,7 +607,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/H2"
@@ -615,7 +615,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorBlack"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
 
             <ImageView
                 android:id="@+id/H1"
@@ -623,7 +623,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/colorWhite"
-                android:onClick="player_action" />
+                android:onClick="onClickSquare" />
         </LinearLayout>
 
     </LinearLayout>
