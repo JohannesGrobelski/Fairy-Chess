@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "251227922815",
+    "project_id": "fairychessdatabase",
+    "storage_bucket": "fairychessdatabase.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:251227922815:android:70b95c58f245e811dbfa4a",
+        "android_client_info": {
+          "package_name": "emerald.apps.fairychess"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "251227922815-8i8l8g0krrh8tbgrr35e26go3vdr2d0q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFHBzdP1HECQbN3z8kXwnOXYXZ1hSGcK0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "251227922815-8i8l8g0krrh8tbgrr35e26go3vdr2d0q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

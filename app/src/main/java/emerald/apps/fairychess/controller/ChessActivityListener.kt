@@ -22,8 +22,6 @@ class ChessActivityListener() {
     private lateinit var chessgame: Chessgame
 
 
-
-
     var selectionName = ""
     var selectionFile = -1
     var selectionRank = -1
@@ -39,11 +37,11 @@ class ChessActivityListener() {
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        val game = chessActivity.intent.getStringExtra(MainActivityListener.gameExtra)!!
-        val mode = chessActivity.intent.getStringExtra(MainActivityListener.modeExtra)!!
+        val gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameExtra)!!
+        val modeName = chessActivity.intent.getStringExtra(MainActivityListener.modeExtra)!!
         val time = chessActivity.intent.getStringExtra(MainActivityListener.timeExtra)!!
         val playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
-        chessgame = Chessgame(chessActivity,game,mode,time,playerColor)
+        chessgame = Chessgame(chessActivity,gameName,Chessgame.testPlayerName,"",modeName,time,playerColor)
 
         initViews()
         displayFigures()

@@ -1,5 +1,6 @@
 package emerald.apps.fairychess.model
 
+import java.lang.StringBuilder
 import java.util.*
 
 class ChessPiece(
@@ -313,12 +314,39 @@ class ChessPiece(
              , val targetFile : Int
              , val targetRank : Int) {
         companion object{
-            fun toString(movement: Movement) : String {
-                return movement.sourceFile.toString()+"_"+movement.sourceRank+"->"+movement.targetFile.toString()+"_"+movement.targetRank+"->"
+            fun fromMovementToString(movement: Movement) : String {
+                return movement.sourceFile.toString()+"_"+movement.sourceRank+"_"+movement.targetFile.toString()+"_"+movement.targetRank
             }
 
-            fun fromString() : Movement {
-                
+            fun fromStringToMovement(string: String) : Movement {
+                val sourceFile = string.split("_")[0].toInt()
+                val sourceRank = string.split("_")[0].toInt()
+                val targetFile = string.split("_")[0].toInt()
+                val targetRank = string.split("_")[0].toInt()
+                return Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank)
+            }
+
+            fun fromMovementListToString(movements: List<Movement>) : String {
+                val returnString = StringBuilder("")
+                for(movement in movements){
+                    returnString.append(
+                        movement.sourceFile.toString()+"_"+movement.sourceRank
+                                +"_"+movement.targetFile.toString()+"_"+movement.targetRank)
+                    if(movement != movements.last())returnString.append(";")
+                }
+                return returnString.toString()
+            }
+
+            fun fromStringToMovementList(string: String) : List<Movement> {
+                val movementList = mutableListOf<Movement>()
+                for(substring in string.split(";")){
+                    val sourceFile = string.split("_")[0].toInt()
+                    val sourceRank = string.split("_")[0].toInt()
+                    val targetFile = string.split("_")[0].toInt()
+                    val targetRank = string.split("_")[0].toInt()
+                    movementList.add(Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank))
+                }
+                return movementList
             }
         }
 
