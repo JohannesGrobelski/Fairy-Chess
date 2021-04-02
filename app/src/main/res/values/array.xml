@@ -3,7 +3,7 @@
     <string-array name="gamemodes">
         <item name = "normal">normal chess</item>
         <item>berolina chess</item>
-        <item>grashopper chess</item>
+        <item>grasshopper chess</item>
     </string-array>
     <string-array name="timemodes">
         <item>bullet (2 minutes)</item>

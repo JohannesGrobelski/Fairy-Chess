@@ -20,7 +20,7 @@ class Chessboard(val context: Context, val mode : String) {
 
     fun init(mode: String){
         //hier einen aufstellungsstring übergeben
-        if(mode == "normal" || mode == "berolina chess" || mode == "grashopper chess") {
+        if(mode == "normal chess" || mode == "berolina chess" || mode == "grasshopper chess") {
             pieces = Array(8) {
                 Array(8) {
                     ChessPiece("", -1,-1, 0, "", "", 0)
@@ -38,8 +38,8 @@ class Chessboard(val context: Context, val mode : String) {
                 for (file in 0..7) {
                     for (rank in 0..7) {
                         var color = ""
-                        if(rank < 2)color = "white"
-                        if (rank > 5) color = "black"
+                        if(rank <= 4 && chessFormationArray[file][rank].isNotEmpty())color = "white"
+                        if (rank > 4 && chessFormationArray[file][rank].isNotEmpty()) color = "black"
                         if(figureMap.containsKey(chessFormationArray[file][rank])){
                             val movement = figureMap[chessFormationArray[file][rank]]?.movementParlett
                             val value =  figureMap[chessFormationArray[file][rank]]?.value!!
@@ -66,25 +66,9 @@ class Chessboard(val context: Context, val mode : String) {
     }
 
 
-    fun checkMovement(sourceFile:Int,sourceRank:Int,destinationFile: Int,destinationRank: Int): String {
-        if(pieces[sourceFile][sourceRank].color == "")return "empty field"
-        else if(pieces[sourceFile][sourceRank].color == pieces[destinationFile][destinationRank].color)return "same color"
-        else if(pieces[sourceFile][sourceRank].color != moveColor)return "wrong player"
-        else {
-            val targetSquares = getTargetSquares(sourceFile,sourceRank)
-            val destinationSquare = ChessPiece.TargetSquare(destinationFile, destinationRank)
-            for(targetSquare in targetSquares){
-                if(targetSquare.targetFile == destinationSquare.targetFile && targetSquare.targetRank == destinationSquare.targetRank){
-                    return ""
-                }
-            }
-            return "cannot move there"
-        }
-    }
-
-    fun getTargetSquares(sourceFile:Int,sourceRank:Int) : List<ChessPiece.TargetSquare>{
+    fun getTargetMovements(sourceFile:Int, sourceRank:Int) : List<ChessPiece.Movement>{
         val nonRelativeMovements = pieces[sourceFile][sourceRank].generateMovements()
-        val relativeMovements = mutableListOf<ChessPiece.TargetSquare>()
+        val relativeMovements = mutableListOf<ChessPiece.Movement>()
         //filter target squares
         for(nonRelativeMovement in nonRelativeMovements){
             if(!(
@@ -93,12 +77,7 @@ class Chessboard(val context: Context, val mode : String) {
                     || pieces[nonRelativeMovement.targetFile][nonRelativeMovement.targetRank].color == pieces[sourceFile][sourceRank].color)
                         && !isShadowedByFigure(sourceFile,sourceRank,nonRelativeMovement.targetFile,nonRelativeMovement.targetRank)
                             && fullfillsCondition(nonRelativeMovement)){
-                relativeMovements.add(
-                    ChessPiece.TargetSquare(
-                        nonRelativeMovement.targetFile,
-                        nonRelativeMovement.targetRank
-                    )
-                )
+                relativeMovements.add(nonRelativeMovement)
             }
         }
         return relativeMovements
@@ -135,7 +114,6 @@ class Chessboard(val context: Context, val mode : String) {
      * does the movement fullfil condition in Movement.MovementNotation.Condition?
      */
     fun fullfillsCondition(movement : ChessPiece.Movement) : Boolean {
-        if(movement.movementNotation.conditions.isEmpty())return true
         var returnValue = true
         if(movement.movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
             returnValue = returnValue && !(pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
@@ -149,6 +127,13 @@ class Chessboard(val context: Context, val mode : String) {
         }
         if(movement.movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
             returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
+        }
+        if(movement.movementNotation.movetype == "g") {//moves by leaping over piece to an empty square (if leaped over enemy => capture)
+            val signFile = sign((movement.targetFile - movement.sourceFile).toDouble()).toInt()
+            val signRank = sign((movement.targetRank - movement.sourceRank).toDouble()).toInt()
+            returnValue = pieces[movement.targetFile][movement.targetRank].color.isEmpty()
+                    && pieces[movement.targetFile-signFile][movement.targetRank-signRank].color.isNotEmpty()
+                    && (Math.abs(movement.targetFile-movement.sourceFile) > 1 || Math.abs(movement.targetRank-movement.sourceRank) > 1)
         }
         return returnValue
     }
@@ -228,32 +213,62 @@ class Chessboard(val context: Context, val mode : String) {
     }
 
     fun move(sourceFile: Int, sourceRank: Int, destinationFile: Int, destinationRank: Int) : String{
-        val check = checkMovement(sourceFile,sourceRank,destinationFile,destinationRank)
-        if(check.isEmpty()){
-            pieces[destinationFile][destinationRank] = ChessPiece(
-                pieces[sourceFile][sourceRank].name,
-                destinationFile,
-                destinationRank,
-                pieces[sourceFile][sourceRank].value,
-                pieces[sourceFile][sourceRank].color,
-                pieces[sourceFile][sourceRank].movingPatternString,
-                pieces[sourceFile][sourceRank].moveCounter+1,
-            )
-            pieces[sourceFile][sourceRank] = ChessPiece(
-                "",
-                sourceFile,
-                sourceRank,
-                0,
-                "",
-                "",
-                0,
-            )
-            ++moveCounter
-            switchColors()
-            return ""
-        } else {
-            return check
+        //check movement
+        var userMovement : ChessPiece.Movement? = null
+        if(pieces[sourceFile][sourceRank].color == "")return "empty field"
+        else if(pieces[sourceFile][sourceRank].color == pieces[destinationFile][destinationRank].color)return "same color"
+        else if(pieces[sourceFile][sourceRank].color != moveColor)return "wrong player"
+        else {
+            val targetMovements = getTargetMovements(sourceFile,sourceRank)
+            for(targetMovement in targetMovements){
+                if(targetMovement.targetFile == destinationFile && targetMovement.targetRank == destinationRank){
+                    userMovement = targetMovement
+                }
+            }
+            if(userMovement == null)return "cannot move there"
         }
+
+        //valid movement
+        if (userMovement.movementNotation.movetype == "g") {
+            val signFile = sign((userMovement.targetFile - userMovement.sourceFile).toDouble()).toInt()
+            val signRank = sign((userMovement.targetRank - userMovement.sourceRank).toDouble()).toInt()
+            val captureFile = userMovement.targetFile-signFile
+            val captureRank = userMovement.targetRank-signRank
+            if(pieces[captureFile][captureRank].color != moveColor){
+                pieces[captureFile][captureRank] = ChessPiece(
+                    "",
+                    sourceFile,
+                    sourceRank,
+                    0,
+                    "",
+                    "",
+                    0,
+                )
+            }
+        }
+        pieces[destinationFile][destinationRank] = ChessPiece(
+            pieces[sourceFile][sourceRank].name,
+            destinationFile,
+            destinationRank,
+            pieces[sourceFile][sourceRank].value,
+            pieces[sourceFile][sourceRank].color,
+            pieces[sourceFile][sourceRank].movingPatternString,
+            pieces[sourceFile][sourceRank].moveCounter+1,
+        )
+        pieces[sourceFile][sourceRank] = ChessPiece(
+            "",
+            sourceFile,
+            sourceRank,
+            0,
+            "",
+            "",
+            0,
+        )
+
+
+        ++moveCounter
+        switchColors()
+        return ""
     }
 
     fun checkForPawnPromotion(): Array<Int>? {

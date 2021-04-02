@@ -34,6 +34,11 @@
       "name": "berolina",
       "value": 2,
       "movement": "o1X>,c1>,oi2X>"
+    },
+    {
+      "name": "grasshopper",
+      "value": 3,
+      "movement": "gx/x"
     }
   ]
 }

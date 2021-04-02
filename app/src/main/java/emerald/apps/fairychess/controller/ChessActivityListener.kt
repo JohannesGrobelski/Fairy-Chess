@@ -72,7 +72,7 @@ class ChessActivityListener() {
             Toast.makeText(chessActivity,
                 "file: "+chessboard.pieces[selectionFile][selectionRank].positionFile
                         +", rank: "+chessboard.pieces[selectionFile][selectionRank].positionRank,Toast.LENGTH_SHORT).show()
-            displayTargetSquares()
+            displayTargetMovements()
         }
     }
 
@@ -88,10 +88,10 @@ class ChessActivityListener() {
         }
     }
 
-    private fun displayTargetSquares() {
-        val targetSquares = chessboard.getTargetSquares(selectionFile,selectionRank)
-        for (targetSquare in targetSquares){
-            markSquare(targetSquare.targetFile,targetSquare.targetRank)
+    private fun displayTargetMovements() {
+        val targetMovements = chessboard.getTargetMovements(selectionFile,selectionRank)
+        for (targetMovement in targetMovements){
+            markSquare(targetMovement.targetFile,targetMovement.targetRank)
         }
     }
 
@@ -148,6 +148,8 @@ class ChessActivityListener() {
             return R.drawable.white_rook
         } else if (color == "white" && type == "berolina") {
             return R.drawable.white_berolina
+        } else if (color == "white" && type == "grasshopper") {
+            return R.drawable.white_grasshopper
         } else if (color == "black" && type == "king") {
             return R.drawable.black_king
         } else if (color == "black" && type == "queen") {
@@ -162,6 +164,8 @@ class ChessActivityListener() {
             return R.drawable.black_rook
         } else if (color == "black" && type == "berolina") {
             return R.drawable.black_berolina
+        } else if (color == "black" && type == "grasshopper") {
+            return R.drawable.black_grasshopper
         } else {
             return android.R.color.transparent
         }

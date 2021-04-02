@@ -20,7 +20,7 @@ class ChessPiece(
     fun generateMovements() : List<Movement>{
         val targetCoordinates = mutableListOf<Movement>()
         for(movingPattern in movingPatterns){
-            if(movingPattern.movetype == "~"){
+            if(movingPattern.movetype == "~" || movingPattern.movetype == "^" || movingPattern.movetype == "g"){
                 targetCoordinates.addAll(generateLeaperMovements(movingPattern))
             } else {
                 targetCoordinates.addAll(generateRiderMovements(movingPattern))
@@ -34,83 +34,52 @@ class ChessPiece(
         if(movingPattern.grouping == "/" && movingPattern.distances.size == 2){
             //leaper-movements always have 8 sub-moves:
             //(2: increase/decrease)*(2: value1/value2)*(2: on File / on Rank) = 8 permutations
-            val m1 = movingPattern.distances[0].toInt()
-            val m2 = movingPattern.distances[1].toInt()
-            if(positionFile+m1 in 0..7 && positionRank+m2 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile+m1,
-                    positionRank+m2)
-                )
-            }
-            if(positionFile-m1 in 0..7 && positionRank+m2 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile-m1,
-                    positionRank+m2)
-                )
-            }
-            if(positionFile+m1 in 0..7 && positionRank-m2 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile+m1,
-                    positionRank-m2)
-                )
-            }
-            if(positionFile-m1 in 0..7 && positionRank-m2 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile-m1,
-                    positionRank-m2)
-                )
-            }
-            if(positionFile+m2 in 0..7 && positionRank+m1 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile+m2,
-                    positionRank+m1)
-                )
-            }
-            if(positionFile-m2 in 0..7 && positionRank+m1 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile-m2,
-                    positionRank+m1)
-                )
-            }
-            if(positionFile+m2 in 0..7 && positionRank-m1 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile+m2,
-                    positionRank-m1)
-                )
-            }
-            if(positionFile-m2 in 0..7 && positionRank-m1 in 0..7){
-                targetSquares.add(
-                    Movement(movingPattern,
-                    positionFile,
-                    positionRank,
-                    positionFile-m2,
-                    positionRank-m1)
-                )
+            val m1 = movingPattern.distances[0]
+            val m2 = movingPattern.distances[1]
+            if(m1.matches("[0-9]".toRegex()) && m2.matches("[0-9]".toRegex())){
+                generate8LeaperMovements(movingPattern,targetSquares,m1.toInt(), m2.toInt())
+            } else {
+                if(m1 == "x" && m2 == "x"){//only in pairs (x,x): any distance in the given direction equal to its twin or zero
+                    for(a in -7..7){
+                        //orthogonal
+                        generateLeaperMovement(movingPattern,targetSquares,0, a)
+                        generateLeaperMovement(movingPattern,targetSquares,a, 0)
+                        //diagonal
+                        generateLeaperMovement(movingPattern,targetSquares,a, a)
+                        generateLeaperMovement(movingPattern,targetSquares,-a, a)
+                        generateLeaperMovement(movingPattern,targetSquares,a, -a)
+                        generateLeaperMovement(movingPattern,targetSquares,-a, -a)
+                    }
+                }
             }
         }
         return targetSquares
     }
+
+    fun generate8LeaperMovements(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, m1: Int, m2: Int) {
+        generateLeaperMovement(movingPattern,targetSquares,m1,m2)
+        generateLeaperMovement(movingPattern,targetSquares,-m1,m2)
+        generateLeaperMovement(movingPattern,targetSquares,m1,-m2)
+        generateLeaperMovement(movingPattern,targetSquares,-m1,-m2)
+        generateLeaperMovement(movingPattern,targetSquares,m2,m1)
+        generateLeaperMovement(movingPattern,targetSquares,-m2,m1)
+        generateLeaperMovement(movingPattern,targetSquares,m2,-m1)
+        generateLeaperMovement(movingPattern,targetSquares,-m2,-m1)
+    }
+
+    fun generateLeaperMovement(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, m1: Int, m2: Int) {
+        if(positionFile+m1 in 0..7 && positionRank+m2 in 0..7){
+            targetSquares.add(
+                Movement(movingPattern,
+                    positionFile,
+                    positionRank,
+                    positionFile+m1,
+                    positionRank+m2)
+            )
+        }
+    }
+
+
 
     fun generateRiderMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
@@ -344,7 +313,6 @@ class ChessPiece(
              , val targetFile : Int
              , val targetRank : Int)
 
-    class TargetSquare(val targetFile: Int, val targetRank: Int)
     class MovementNotation(val grouping: String, val conditions: List<String>, val movetype: String, val distances: List<String>, val direction: String){
         companion object {
             fun parseMovementString(movementString : String) : List<MovementNotation> {
@@ -361,6 +329,7 @@ class ChessPiece(
                     //move type
                     if(submovementString.contains("~")){movetype = "~";submovementString = submovementString.replace("~","")}
                     if(submovementString.contains("^")){movetype = "^";submovementString = submovementString.replace("^","")}
+                    if(submovementString.contains("g")){movetype = "g";submovementString = submovementString.replace("g","")}
                     //grouping
                     if(submovementString.contains("/")){grouping = "/";submovementString = submovementString.replace("/","")}
                     if(submovementString.contains("&")){grouping = "&";submovementString = submovementString.replace("&","")}
