@@ -11,11 +11,9 @@ class Chessgame() : OpponentMover {
     }
 
     private lateinit var chessboard: Chessboard
-    private lateinit var context : Context
     lateinit var gameMode : String
     private lateinit var gameTime : String
 
-    lateinit var multiplayerDB: MultiplayerDB
 
     //Variables für KI
     var game_mode_ai = true
@@ -30,7 +28,6 @@ class Chessgame() : OpponentMover {
     var gameFinished : Boolean = false
     lateinit var player1Name : String
     lateinit var player2Name : String
-    var moves = mutableListOf<ChessPiece.Movement>()
 
     constructor(chessActivity : ChessActivity, gameId: String, gameName: String, player1Name:String, player2Name: String, mode: String, time: String, playerColor: String) : this() {
         chessboard = Chessboard(chessActivity, gameName)
@@ -43,7 +40,6 @@ class Chessgame() : OpponentMover {
         this.playerColor = playerColor
         this.gameFinished = false
         this.opponentColor = chessboard.oppositeColor(playerColor)
-
     }
 
     fun movePlayer(movement: ChessPiece.Movement): String {
@@ -89,9 +85,7 @@ class Chessgame() : OpponentMover {
 
     fun makeMove(movement: ChessPiece.Movement){
         chessboard.move(chessboard.moveColor, movement)
+        gameFinished = chessboard.gameFinished
     }
-
-
-
 }
 

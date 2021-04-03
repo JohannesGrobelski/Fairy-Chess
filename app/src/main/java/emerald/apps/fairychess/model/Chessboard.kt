@@ -18,6 +18,7 @@ data class Chessboard(val context: Context, val mode : String) {
     var moveColor = "white"
     var moveCounter : Int = 0
     var gameFinished = false
+    var gameWinner = ""
 
     fun init(mode: String){
         //hier einen aufstellungsstring übergeben
@@ -250,6 +251,7 @@ data class Chessboard(val context: Context, val mode : String) {
             val captureFile = userMovement.targetFile-signFile
             val captureRank = userMovement.targetRank-signRank
             if(pieces[captureFile][captureRank].color != moveColor){
+                checkForGameEndByCapture(captureFile,captureRank)
                 pieces[captureFile][captureRank] = ChessPiece(
                     "",
                     movement.sourceFile,
@@ -261,6 +263,7 @@ data class Chessboard(val context: Context, val mode : String) {
                 )
             }
         }
+        checkForGameEndByCapture(movement.targetFile,movement.targetRank)
         pieces[movement.targetFile][movement.targetRank] = ChessPiece(
             pieces[movement.sourceFile][movement.sourceRank].name,
             movement.targetFile,
@@ -279,24 +282,33 @@ data class Chessboard(val context: Context, val mode : String) {
             "",
             0,
         )
-
-        ++moveCounter
-        switchColors()
+        if(!gameFinished){
+            ++moveCounter
+            switchColors()
+        }
         return ""
     }
 
+    fun checkForGameEndByCapture(captureFile : Int, captureRank : Int){
+        if(mode == "normal chess" || mode == "berolina chess" || mode == "grasshopper chess") {
+            if(pieces[captureFile][captureRank].name == "king"){
+                if(pieces[captureFile][captureRank].color == "white"){
+                    gameWinner = "black"
+                } else {
+                    gameWinner = "white"
+                }
+                gameFinished = true
+            }
+        }
+    }
+
     fun checkForPawnPromotion(): Array<Int>? {
-        for (j in pieces!!.indices) {
-            if (pieces!![j][0].name == "PawnPromotion") return arrayOf(0, j)
-            if (pieces!![j][7].name == "PawnPromotion") return arrayOf(7, j)
+        for (j in pieces.indices) {
+            if (pieces[j][0].name == "PawnPromotion") return arrayOf(0, j)
+            if (pieces[j][7].name == "PawnPromotion") return arrayOf(7, j)
         }
         return null
     }
-
-    fun checkForGameEnd(){
-        
-    }
-
 
     fun points_black(): Int {
         var punkte = 0

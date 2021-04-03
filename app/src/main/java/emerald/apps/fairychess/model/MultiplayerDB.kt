@@ -244,7 +244,7 @@ class MultiplayerDB {
             }
     }
 
-    fun finishGame(gameId: String) {
+    fun finishGame(gameId: String, cause: String) {
         db.collection(GAMECOLLECTIONPATH)
             .document(gameId)
             .update(
@@ -252,7 +252,7 @@ class MultiplayerDB {
                     "finished" to true
                 )
             )
-            .addOnSuccessListener { multiplayerDBGameInterface?.onFinishGame(gameId,"self")}
+            .addOnSuccessListener { multiplayerDBGameInterface?.onFinishGame(gameId,cause)}
     }
 
     fun readGameState(gameId: String) {

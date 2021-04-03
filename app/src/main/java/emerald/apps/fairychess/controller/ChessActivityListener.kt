@@ -12,7 +12,7 @@ import emerald.apps.fairychess.model.Chessgame
 import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDBGameInterface
 import emerald.apps.fairychess.view.ChessActivity
-import kotlinx.android.synthetic.main.activity_chess.*
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
 
 class ChessActivityListener() : MultiplayerDBGameInterface {
     //TODO: Castling: requires history of involved rook and king. Can be accomplished via a hasMovedBefore flag.
@@ -30,7 +30,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     private lateinit var time : String
     private lateinit var playerColor : String
 
-    var selectionName = ""
     var selectionFile = -1
     var selectionRank = -1
 
@@ -93,7 +92,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
                 displayTargetMovements()
             }
         }
-
     }
 
     private fun displayFigures() {
@@ -254,18 +252,18 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     }
 
     fun onDestroy() {
-        finishGame()
+        finishGame("$playerColor left the game")
     }
 
-    fun finishGame(){
+    fun finishGame(cause: String){
         if(chessgame.gameMode=="human"){
-            multiplayerDB.finishGame(chessgame.gameId)
+            multiplayerDB.finishGame(chessgame.gameId, cause)
         }
     }
 
     override fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState) {
         if(gameState.gameFinished){
-            Toast.makeText(chessActivity,"left game",Toast.LENGTH_LONG).show()
+            Toast.makeText(chessActivity,"opponent left game",Toast.LENGTH_LONG).show()
             onFinishGame(gameId,"opponent left game")
         } else {
             if(gameState.moves.isNotEmpty()){
@@ -273,6 +271,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
                     || playerColor == "black" && gameState.moves.size%2==1){
                         chessgame.addMove(gameState.moves[gameState.moves.lastIndex])
                         displayFigures()
+                        if(chessgame.gameFinished){
+                            finishGame("$playerColor won")
+                        }
                 }
             }
         }
@@ -280,7 +281,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
 
 
     override fun onFinishGame(gameId: String, cause : String) {
-        Toast.makeText(chessActivity,"left game",Toast.LENGTH_LONG).show()
+        Toast.makeText(chessActivity,cause,Toast.LENGTH_LONG).show()
         chessActivity.finishActivity(0)
     }
 
