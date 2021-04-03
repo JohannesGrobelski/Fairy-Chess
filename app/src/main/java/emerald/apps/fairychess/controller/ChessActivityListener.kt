@@ -37,10 +37,12 @@ class ChessActivityListener() {
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        val gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameExtra)!!
-        val modeName = chessActivity.intent.getStringExtra(MainActivityListener.modeExtra)!!
-        val time = chessActivity.intent.getStringExtra(MainActivityListener.timeExtra)!!
+        val gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
+        val modeName = chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!
+        val time = chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
         val playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+
+
         chessgame = Chessgame(chessActivity,gameName,Chessgame.testPlayerName,"",modeName,time,playerColor)
 
         initViews()

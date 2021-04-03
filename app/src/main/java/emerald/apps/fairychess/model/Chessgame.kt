@@ -42,8 +42,7 @@ class Chessgame() : OpponentMover{
         this.gameFinished = false
         this.opponentColor = chessboard.oppositeColor(playerColor)
         if(mode == "human"){
-            multiplayerDB = MultiplayerDB(chessActivity,this,this)
-            multiplayerDB.createGame(this)
+            multiplayerDB = MultiplayerDB(this,this)
         }
     }
 
@@ -66,7 +65,6 @@ class Chessgame() : OpponentMover{
     override fun onOpponentMove(movement: ChessPiece.Movement) {
         chessboard.move(opponentColor,movement)
     }
-
 
     fun getTargetMovements(sourceFile: Int, sourceRank: Int): List<ChessPiece.Movement> {
         return chessboard.getTargetMovements(sourceFile, sourceRank)

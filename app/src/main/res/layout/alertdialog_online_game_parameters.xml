@@ -5,7 +5,7 @@
     android:orientation="vertical">
 
     <Spinner
-        android:id="@+id/spinner_gamemode"
+        android:id="@+id/spinner_gameName"
         android:layout_width="match_parent"
         android:layout_height="100dp" />
 

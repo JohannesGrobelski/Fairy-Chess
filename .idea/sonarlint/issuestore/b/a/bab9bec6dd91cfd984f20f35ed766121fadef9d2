@@ -1,0 +1,11 @@
+
+ukotlin:S117”"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(È¼Ã·8Î Ú”‰/
+wkotlin:S100‰"SRename function "alpha_beta" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(¼¾ÑÜşÿÿÿÿ8Î Ú”‰/
+wkotlin:S3776‰"RRefactor this method to reduce its Cognitive Complexity from 20 to the 15 allowed.(¼¾ÑÜşÿÿÿÿ8Î Ú”‰/
+tkotlin:S117R"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(È¼Ã·8çê”‰/
+Skotlin:S1481Y"/Remove this unused "geschlagen" local variable.(¸¥’çøÿÿÿÿ8İ¹ı•‰/
+qkotlin:S3776B"RRefactor this method to reduce its Cognitive Complexity from 30 to the 15 allowed.(ÄÓ²’8Î Ú”‰/
+Tkotlin:S1481"/Remove this unused "geschlagen" local variable.(¸¥’çøÿÿÿÿ8ƒäı•‰/
+Skotlin:S1481n"/Remove this unused "geschlagen" local variable.(¸¥’çøÿÿÿÿ8İ¹ı•‰/
+wkotlin:S100B"YRename function "alpha_beta_trans" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(ÄÓ²’8Î Ú”‰/
+Tkotlin:S1481³"/Remove this unused "geschlagen" local variable.(¸¥’çøÿÿÿÿ8ƒäı•‰/

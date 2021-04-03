@@ -1,9 +1,9 @@
 
-Qkotlin:S1144",Remove this unused private "promote" method.(ûİ÷šşÿÿÿÿ8ŒŞĞ½ˆ/
-Nkotlin:S1066·".Merge this "if" statement with the nested one.(§‚äŠ8¹Š±ïˆ/
-vkotlin:S3776"RRefactor this method to reduce its Cognitive Complexity from 32 to the 15 allowed.(òıÌÌûÿÿÿÿ8ãï˜½ˆ/
-Skotlin:S1066¶".Merge this "if" statement with the nested one.(‰¿œ‡øÿÿÿÿ8¹Š±ïˆ/
-ykotlin:S100"URename function "points_white" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(¶Íé²şÿÿÿÿ8ııîì‡/
-wkotlin:S3776®"RRefactor this method to reduce its Cognitive Complexity from 24 to the 15 allowed.(¦ã«èÿÿÿÿÿ8¹Š±ïˆ/
-ykotlin:S100„"URename function "points_black" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(ı™ŠŠÿÿÿÿÿ8ııîì‡/
-wkotlin:S3776±"RRefactor this method to reduce its Cognitive Complexity from 49 to the 15 allowed.(¦ÔÚ÷ùÿÿÿÿ8 úÛæˆ/
+ykotlin:S100´"URename function "points_white" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(¶Íé²şÿÿÿÿ8ııîì‡/
+Skotlin:S1066»".Merge this "if" statement with the nested one.(‰¿œ‡øÿÿÿÿ8¹Š±ïˆ/
+vkotlin:S3776"RRefactor this method to reduce its Cognitive Complexity from 35 to the 15 allowed.(òıÌÌûÿÿÿÿ8ãï˜½ˆ/
+Qkotlin:S1144Á",Remove this unused private "promote" method.(ûİ÷šşÿÿÿÿ8ŒŞĞ½ˆ/
+wkotlin:S3776ã"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(µ†Ãçÿÿÿÿÿ8Í™¬”‰/
+ykotlin:S100¨"URename function "points_black" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(ı™ŠŠÿÿÿÿÿ8ııîì‡/
+wkotlin:S3776³"RRefactor this method to reduce its Cognitive Complexity from 24 to the 15 allowed.(¦ã«èÿÿÿÿÿ8¹Š±ïˆ/
+Nkotlin:S1066¼".Merge this "if" statement with the nested one.(§‚äŠ8¹Š±ïˆ/
