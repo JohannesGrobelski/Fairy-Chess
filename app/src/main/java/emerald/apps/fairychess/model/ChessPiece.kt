@@ -319,11 +319,15 @@ class ChessPiece(
             }
 
             fun fromStringToMovement(string: String) : Movement {
-                val sourceFile = string.split("_")[0].toInt()
-                val sourceRank = string.split("_")[0].toInt()
-                val targetFile = string.split("_")[0].toInt()
-                val targetRank = string.split("_")[0].toInt()
-                return Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank)
+                val coordinates = string.split("_")
+                if(coordinates.size == 4){
+                    val sourceFile = coordinates[0].toInt()
+                    val sourceRank = coordinates[1].toInt()
+                    val targetFile = coordinates[2].toInt()
+                    val targetRank = coordinates[3].toInt()
+                    return Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank)
+                }
+                return Movement(sourceFile = -1,sourceRank = -1,targetFile = -1,targetRank = -1)
             }
 
             fun fromMovementListToString(movements: List<Movement>) : String {

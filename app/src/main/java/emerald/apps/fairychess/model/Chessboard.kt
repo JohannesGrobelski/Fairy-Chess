@@ -17,6 +17,7 @@ data class Chessboard(val context: Context, val mode : String) {
 
     var moveColor = "white"
     var moveCounter : Int = 0
+    var gameFinished = false
 
     fun init(mode: String){
         //hier einen aufstellungsstring übergeben
@@ -292,6 +293,10 @@ data class Chessboard(val context: Context, val mode : String) {
         return null
     }
 
+    fun checkForGameEnd(){
+        
+    }
+
 
     fun points_black(): Int {
         var punkte = 0
@@ -340,4 +345,6 @@ data class Chessboard(val context: Context, val mode : String) {
     override fun hashCode(): Int {
         return super.hashCode()
     }
+
+
 }

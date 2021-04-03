@@ -4,7 +4,7 @@ import android.content.Context
 import emerald.apps.fairychess.model.pieces.Chessboard
 import emerald.apps.fairychess.view.ChessActivity
 
-class Chessgame() : OpponentMover, MultiplayerDBGameInterface {
+class Chessgame() : OpponentMover {
 
     companion object {
         const val testPlayerName = "testPlayerName"
@@ -15,7 +15,7 @@ class Chessgame() : OpponentMover, MultiplayerDBGameInterface {
     lateinit var gameMode : String
     private lateinit var gameTime : String
 
-    private lateinit var multiplayerDB: MultiplayerDB
+    lateinit var multiplayerDB: MultiplayerDB
 
     //Variables für KI
     var game_mode_ai = true
@@ -25,14 +25,16 @@ class Chessgame() : OpponentMover, MultiplayerDBGameInterface {
     lateinit var opponentColor: String
 
     //db variables
+    lateinit var gameId : String
     lateinit var gameName : String
     var gameFinished : Boolean = false
     lateinit var player1Name : String
     lateinit var player2Name : String
-    var moves = listOf<ChessPiece.Movement>()
+    var moves = mutableListOf<ChessPiece.Movement>()
 
-    constructor(chessActivity : ChessActivity, gameName: String, player1Name:String, player2Name: String, mode: String, time: String, playerColor: String) : this() {
+    constructor(chessActivity : ChessActivity, gameId: String, gameName: String, player1Name:String, player2Name: String, mode: String, time: String, playerColor: String) : this() {
         chessboard = Chessboard(chessActivity, gameName)
+        this.gameId = gameId
         this.gameName = gameName
         this.player1Name = player1Name
         this.player2Name = player2Name
@@ -41,9 +43,7 @@ class Chessgame() : OpponentMover, MultiplayerDBGameInterface {
         this.playerColor = playerColor
         this.gameFinished = false
         this.opponentColor = chessboard.oppositeColor(playerColor)
-        if(mode == "human"){
-            multiplayerDB = MultiplayerDB(this,this,this)
-        }
+
     }
 
     fun movePlayer(movement: ChessPiece.Movement): String {
@@ -55,7 +55,7 @@ class Chessgame() : OpponentMover, MultiplayerDBGameInterface {
                     ai.moveFigure(this)
                 }
                 "human" -> {
-                    multiplayerDB.writePlayerMovement(movement)
+
                 }
             }
         }
@@ -80,6 +80,15 @@ class Chessgame() : OpponentMover, MultiplayerDBGameInterface {
 
     fun getChessboard() : Chessboard{
         return chessboard
+    }
+
+    fun addMove(moveString:  String) {
+        val movement = ChessPiece.Movement.fromStringToMovement(moveString)
+        makeMove(movement)
+    }
+
+    fun makeMove(movement: ChessPiece.Movement){
+        chessboard.move(chessboard.moveColor, movement)
     }
 
 

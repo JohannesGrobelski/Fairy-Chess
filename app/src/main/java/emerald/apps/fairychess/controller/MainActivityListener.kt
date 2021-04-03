@@ -24,6 +24,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     private lateinit var mainActivity : MainActivity
     private lateinit var multiplayerDB: MultiplayerDB
 
+    private var launchedGamesMap = mutableMapOf<String,Boolean>()
+
     constructor(mainActivity: MainActivity) : this(){
         this.mainActivity = mainActivity
         loadOrCreateUserName()
@@ -100,7 +102,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     }
 
     fun searchForGames(gameName: String, timeMode: String){
-        multiplayerDB.searchGames(gameName, timeMode)
+        multiplayerDB.searchForOpenGames(gameName, timeMode)
         this.gameSearchParameterGameName = gameName
         this.gameSearchParameterTime = timeMode
     }
@@ -162,7 +164,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         userNameDialog.show()
     }
 
-    override fun onCreatePlayer(playerName: String) {
+    override fun onCreatePlayer(playerID: String) {
         //save username
         val sharedPrefsEditor = mainActivity.getSharedPreferences(
             "FairyChess",
@@ -173,22 +175,22 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         userNameDialog.dismiss()
         Toast.makeText(
             mainActivity,
-            "user created $playerName",
+            "user created $playerID",
             Toast.LENGTH_SHORT
         ).show()
     }
 
-    override fun onPlayerNameSearchComplete(playerName: String, occurences: Int) {
+    override fun onPlayerNameSearchComplete(playerID: String, occurences: Int) {
         if(occurences==0){
             multiplayerDB.createPlayer(userName)
         } else {
             userNameDialog.setMessage("user name already taken")
             Toast.makeText(
                 mainActivity,
-                "user name already taken$playerName",
+                "user name already taken$playerID",
                 Toast.LENGTH_SHORT
             ).show()
-            //openCreateUserNameDialog(playerName)
+            //openCreateUserNameDialog(playerID)
         }
     }
 
@@ -212,22 +214,27 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     }
 
     override fun onJoinGame(gameID: String) {
-        Log.d(TAG, "$userName joined gameMode: $gameSearchParameterGameName")
-        println("$userName joined gameMode: $gameSearchParameterGameName")
-        Toast.makeText(
-            mainActivity,
-            "$userName joined gameMode: $gameSearchParameterGameName",
-            Toast.LENGTH_SHORT
-        ).show()
-        start_gameWithParameters(
-            FairyChessGame(
-                gameID,
-                gameSearchParameterGameName,
-                "human",
-                gameSearchParameterTime,
-                gameSearchParameterPlayerColor
+        if(!multiplayerDB.gameLaunched && !launchedGamesMap.containsKey(gameID)){
+            multiplayerDB.gameLaunched = true
+            Log.d(TAG, "$userName joined gameMode: $gameSearchParameterGameName")
+            println("$userName joined gameMode: $gameSearchParameterGameName")
+            Toast.makeText(
+                mainActivity,
+                "$userName joined gameMode: $gameSearchParameterGameName",
+                Toast.LENGTH_SHORT
+            ).show()
+            launchedGamesMap[gameID] = true
+            start_gameWithParameters(
+                FairyChessGame(
+                    gameID,
+                    gameSearchParameterGameName,
+                    "human",
+                    gameSearchParameterTime,
+                    gameSearchParameterPlayerColor
+                )
             )
-        )
+        }
+
     }
 
     override fun onCreateGame(gameName: String, gameID: String, playerColor : String) {
@@ -238,30 +245,35 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             "created gameMode: $gameName",
             Toast.LENGTH_SHORT
         ).show()
-        multiplayerDB.listenToGame(gameID)
+        multiplayerDB.listenToGameSearch(gameID)
         this.gameSearchParameterPlayerColor = playerColor
     }
 
     override fun onGameChanged(gameId: String) {
-        multiplayerDB.hasSecondPlayerJoined(gameId)
+        if(!launchedGamesMap.containsKey(gameId)){
+            multiplayerDB.hasSecondPlayerJoined(gameId)
+        }
     }
 
     override fun onSecondPlayerJoined(gameId: String) {
-        Log.d(TAG,"second player joined!")
-        println("second player joined!")
-        Toast.makeText(
-            mainActivity,
-            "second player joined: $gameId",
-            Toast.LENGTH_SHORT
-        ).show()
-        start_gameWithParameters(
-            FairyChessGame(
-                gameId,
-                gameSearchParameterGameName,
-                "human",
-                gameSearchParameterTime,
-                gameSearchParameterPlayerColor
+        if(!multiplayerDB.gameLaunched && !launchedGamesMap.containsKey(gameId)) {
+            multiplayerDB.gameLaunched = true
+            Log.d(TAG,"second player joined!")
+            println("second player joined!")
+            Toast.makeText(
+                mainActivity,
+                "second player joined: $gameId",
+                Toast.LENGTH_SHORT
+            ).show()
+            start_gameWithParameters(
+                FairyChessGame(
+                    gameId,
+                    gameSearchParameterGameName,
+                    "human",
+                    gameSearchParameterTime,
+                    gameSearchParameterPlayerColor
+                )
             )
-        )
+        }
     }
 }

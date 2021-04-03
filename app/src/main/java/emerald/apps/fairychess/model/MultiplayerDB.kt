@@ -1,6 +1,7 @@
 package emerald.apps.fairychess.model
 
 import android.util.Log
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -31,14 +32,14 @@ class MultiplayerDB {
         const val PLAYERCOLLECTIONPATH = "test_players"
     }
 
-    private lateinit var multiplayerDBSearchInterface : MultiplayerDBSearchInterface
-    private lateinit var multiplayerDBGameInterface : MultiplayerDBGameInterface
-    private lateinit var opponentMover : OpponentMover
+    private var multiplayerDBSearchInterface : MultiplayerDBSearchInterface? = null
+    private var multiplayerDBGameInterface : MultiplayerDBGameInterface? = null
     private var db : FirebaseFirestore
     private lateinit var chessGame : Chessgame
 
-    constructor(multiplayerDBGameInterface: MultiplayerDBGameInterface, chessgame: Chessgame, opponentMover: OpponentMover) {
-        this.opponentMover = opponentMover
+    var gameLaunched = false
+
+    constructor(multiplayerDBGameInterface: MultiplayerDBGameInterface, chessgame: Chessgame) {
         this.chessGame = chessgame
         // Access a Cloud Firestore instance from your Activity
         db = Firebase.firestore
@@ -50,14 +51,19 @@ class MultiplayerDB {
         this.multiplayerDBSearchInterface = multiplayerDBSearchInterface
     }
 
-    fun writePlayerMovement(movement: ChessPiece.Movement){
-        val movementString = movement.toString()
+    fun writePlayerMovement(gameId: String, movement: ChessPiece.Movement){
+        var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
+        // Atomically add a new region to the "regions" array field.
+        gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(movement)));
     }
 
-    fun searchGames(gameName: String,timeMode: String) {
+    fun searchForOpenGames(gameName: String, timeMode: String) {
         val resultList = mutableListOf<String>()
         db.collection(GAMECOLLECTIONPATH)
             .whereEqualTo("finished",false)
+            .whereEqualTo("gameName",gameName)
+            .whereNotEqualTo("player1ID","")
+            .whereEqualTo("player2ID","")
             .get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -65,7 +71,7 @@ class MultiplayerDB {
                         Log.d(TAG, document.id + " => " + document.data)
                         resultList.add(document.id)
                     }
-                    multiplayerDBSearchInterface.onGameSearchComplete(resultList)
+                    multiplayerDBSearchInterface?.onGameSearchComplete(resultList)
                 } else {
                     Log.w(TAG, "Error getting documents.", task.exception)
                 }
@@ -74,7 +80,6 @@ class MultiplayerDB {
 
     fun checkGameForSecondPlayer(gameID: String): Boolean{
         var isNotEmpty = false
-
         db.collection(GAMECOLLECTIONPATH)
             .document("$GAMECOLLECTIONPATH/$gameID")
             .get()
@@ -101,7 +106,7 @@ class MultiplayerDB {
             "finished" to false,
             "player1ID" to player1Name,
             "player2ID" to "",
-            "movements" to listOf<String>()
+            "moves" to listOf<String>()
         )
         var document_id = ""
 
@@ -112,7 +117,7 @@ class MultiplayerDB {
                 run {
                     Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
                     document_id = documentReference.id
-                    multiplayerDBSearchInterface.onCreateGame(gameName,document_id, "white")
+                    multiplayerDBSearchInterface?.onCreateGame(gameName,document_id, "white")
                 }
             }
             .addOnFailureListener { e ->
@@ -135,17 +140,12 @@ class MultiplayerDB {
                         Log.d(TAG, document.id + " => " + document.data)
                         resultList.add(document.id)
                     }
-                    multiplayerDBSearchInterface.onPlayerNameSearchComplete(userName,resultList.size)
+                    multiplayerDBSearchInterface?.onPlayerNameSearchComplete(userName,resultList.size)
                 } else {
                     Log.w(TAG, "Error getting documents.", task.exception)
                 }
             }
 
-    }
-
-
-    fun moveOpponent(movementString: String){
-        opponentMover.onOpponentMove(ChessPiece.Movement.fromStringToMovement(movementString))
     }
 
     fun joinGame(gameID: String, userName: String) {
@@ -156,13 +156,13 @@ class MultiplayerDB {
                     "player2ID" to userName
                 )
             )
-            .addOnSuccessListener { multiplayerDBSearchInterface.onJoinGame(gameID)}
+            .addOnSuccessListener { multiplayerDBSearchInterface?.onJoinGame(gameID)}
     }
 
-    fun createPlayer(playerName: String) {
+    fun createPlayer(playerID: String) {
         // Create a new gameMode hashmap
         val playerHash = hashMapOf(
-            "name" to playerName
+            "name" to playerID
         )
         var document_id = ""
 
@@ -173,7 +173,7 @@ class MultiplayerDB {
                 run {
                     Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
                     document_id = documentReference.id
-                    multiplayerDBSearchInterface.onCreatePlayer(playerName)
+                    multiplayerDBSearchInterface?.onCreatePlayer(playerID)
                 }
             }
             .addOnFailureListener { e ->
@@ -184,7 +184,9 @@ class MultiplayerDB {
             }
     }
 
-    fun listenToGame(gameId: String) {
+    class GameState(val gameFinished : Boolean, val moves : List<String>)
+
+    fun listenToGameSearch(gameId: String) {
         val docRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
         docRef.addSnapshotListener { snapshot, e ->
             if (e != null) {
@@ -194,7 +196,26 @@ class MultiplayerDB {
 
             if (snapshot != null && snapshot.exists()) {
                 Log.d(TAG, "Current data: ${snapshot.data}")
-                multiplayerDBSearchInterface.onGameChanged(snapshot.id)
+                if(!gameLaunched){
+                    multiplayerDBSearchInterface?.onGameChanged(snapshot.id)
+                }
+            } else {
+                Log.d(TAG, "Current data: null")
+            }
+        }
+    }
+
+    fun listenToGameIngame(gameId: String) {
+        val docRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
+        docRef.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e)
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                Log.d(TAG, "Current data: ${snapshot.data}")
+                readGameState(gameId)
             } else {
                 Log.d(TAG, "Current data: null")
             }
@@ -202,14 +223,20 @@ class MultiplayerDB {
     }
 
     fun hasSecondPlayerJoined(gameId: String) {
-        // Add a new document with a generated ID
         db.collection(GAMECOLLECTIONPATH)
-            .whereNotEqualTo("player2ID","")
+            .document(gameId)
             .get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    if(!task.result!!.isEmpty){
-                        multiplayerDBSearchInterface.onSecondPlayerJoined(gameId)
+                    if(task.result!!.exists()){
+                        val document = task.result!!
+                        if(document.exists()){
+                            val player1ID : String = document.getString("player1ID")!!
+                            val player2ID : String = document.getString("player2ID")!!
+                            if(player1ID.isNotEmpty() && player2ID.isNotEmpty()){
+                                multiplayerDBSearchInterface?.onSecondPlayerJoined(gameId)
+                            }
+                        }
                     }
                 } else {
                     Log.w(TAG, "Error getting documents.", task.exception)
@@ -217,12 +244,40 @@ class MultiplayerDB {
             }
     }
 
+    fun finishGame(gameId: String) {
+        db.collection(GAMECOLLECTIONPATH)
+            .document(gameId)
+            .update(
+                mapOf(
+                    "finished" to true
+                )
+            )
+            .addOnSuccessListener { multiplayerDBGameInterface?.onFinishGame(gameId,"self")}
+    }
 
+    fun readGameState(gameId: String) {
+        db.collection(GAMECOLLECTIONPATH)
+            .document(gameId)
+            .get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    if(task.result!!.exists()){
+                        val document = task.result!!
+                        val finished : Boolean = document!!.getBoolean("finished")!!
+                        val moves : List<String> = document!!.get("moves") as List<String>
+                        val gameState = GameState(finished,moves)
+                        multiplayerDBGameInterface?.onGameChanged(gameId,gameState)
+                    }
+                } else {
+                    Log.w(TAG, "Error getting documents.", task.exception)
+                }
+            }
+    }
 }
 
 public interface MultiplayerDBSearchInterface {
-    fun onCreatePlayer(playerName: String)
-    fun onPlayerNameSearchComplete(playerNamer: String, occurences: Int)
+    fun onCreatePlayer(playerID: String)
+    fun onPlayerNameSearchComplete(playerIDr: String, occurences: Int)
     fun onGameSearchComplete(gameIDList: List<String>)
     fun onJoinGame(gameID: String)
     fun onCreateGame(gameName: String, gameID: String, player1Color : String)
@@ -231,7 +286,8 @@ public interface MultiplayerDBSearchInterface {
 }
 
 public interface MultiplayerDBGameInterface {
-
+    fun onFinishGame(gameId: String, cause : String)
+    fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState)
 }
 
 public interface OpponentMover{

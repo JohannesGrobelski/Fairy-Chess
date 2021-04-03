@@ -9,10 +9,12 @@ import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.model.Chessgame
+import emerald.apps.fairychess.model.MultiplayerDB
+import emerald.apps.fairychess.model.MultiplayerDBGameInterface
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.android.synthetic.main.activity_chess.*
 
-class ChessActivityListener() {
+class ChessActivityListener() : MultiplayerDBGameInterface {
     //TODO: Castling: requires history of involved rook and king. Can be accomplished via a hasMovedBefore flag.
     //TODO: en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure, or retaining the previous board state.
     //TODO: Fifty move rule: requires history of when the last capture or pawn move. Can be accomplished via a lastPawnMoveOrCapture counter
@@ -20,7 +22,13 @@ class ChessActivityListener() {
 
     private lateinit var chessActivity : ChessActivity
     private lateinit var chessgame: Chessgame
+    private lateinit var multiplayerDB: MultiplayerDB
 
+    private lateinit var gameId : String
+    private lateinit var gameMode : String
+    private lateinit var gameName : String
+    private lateinit var time : String
+    private lateinit var playerColor : String
 
     var selectionName = ""
     var selectionFile = -1
@@ -28,7 +36,8 @@ class ChessActivityListener() {
 
     //Views
     var elterLayout: LinearLayout? = null
-    /* pieces-array: (file,rank)-coordinates
+    /*
+       pieces-array: (file,rank)-coordinates
        (7,0) ... (7,7)      (A,8) ... (H,8)
        ...        ...    =   ...        ...
        (0,0) ... (0,7)      (A,1) ... (G,1)
@@ -37,15 +46,21 @@ class ChessActivityListener() {
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        val gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!
-        val gameMode = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
-        val time = chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
-        val playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+        gameId = chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!
+        gameMode = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
+        gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!
+        time = chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
+        playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
 
-        chessgame = Chessgame(chessActivity,gameName,Chessgame.testPlayerName,"",gameMode,time,playerColor)
-
+        chessgame = Chessgame(chessActivity,gameId,gameName,Chessgame.testPlayerName,"",gameMode,time,playerColor)
+        this.gameMode = gameMode
         initViews()
         displayFigures()
+
+        if(gameMode == "human"){
+            multiplayerDB = MultiplayerDB(this,chessgame)
+            multiplayerDB.listenToGameIngame(gameId)
+        }
     }
 
     /** select, unselect and move figure */
@@ -60,8 +75,13 @@ class ChessActivityListener() {
             //if a file and rank was selected => move from selected square to
             if(selectionRank != -1 && selectionFile != -1
                 && clickedFile != -1 && clickedRank != -1){
-                val moveResult = chessgame.movePlayer(ChessPiece.Movement(sourceFile = selectionFile,sourceRank = selectionRank,targetFile = clickedFile,targetRank = clickedRank))
-
+                val movement = ChessPiece.Movement(sourceFile = selectionFile,sourceRank = selectionRank,targetFile = clickedFile,targetRank = clickedRank)
+                val moveResult = chessgame.movePlayer(movement)
+                if(gameMode=="human"){
+                    if(moveResult==""){
+                        multiplayerDB.writePlayerMovement(gameId,movement)
+                    }
+                }
                 displayFigures()
                 if(moveResult.isNotEmpty()){
                     Toast.makeText(chessActivity,moveResult,Toast.LENGTH_LONG).show()
@@ -234,7 +254,35 @@ class ChessActivityListener() {
     }
 
     fun onDestroy() {
-        TODO("Not yet implemented")
+        finishGame()
     }
+
+    fun finishGame(){
+        if(chessgame.gameMode=="human"){
+            multiplayerDB.finishGame(chessgame.gameId)
+        }
+    }
+
+    override fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState) {
+        if(gameState.gameFinished){
+            Toast.makeText(chessActivity,"left game",Toast.LENGTH_LONG).show()
+            onFinishGame(gameId,"opponent left game")
+        } else {
+            if(gameState.moves.isNotEmpty()){
+                if(playerColor == "white" && gameState.moves.size%2==0
+                    || playerColor == "black" && gameState.moves.size%2==1){
+                        chessgame.addMove(gameState.moves[gameState.moves.lastIndex])
+                        displayFigures()
+                }
+            }
+        }
+    }
+
+
+    override fun onFinishGame(gameId: String, cause : String) {
+        Toast.makeText(chessActivity,"left game",Toast.LENGTH_LONG).show()
+        chessActivity.finishActivity(0)
+    }
+
 
 }
