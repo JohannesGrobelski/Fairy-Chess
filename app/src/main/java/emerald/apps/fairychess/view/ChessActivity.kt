@@ -20,6 +20,10 @@ class ChessActivity : AppCompatActivity() {
         chessActivityListener.clickSquare(v)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        chessActivityListener.onDestroy()
+    }
 
 
 }

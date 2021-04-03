@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.DialogInterface.OnShowListener
 import android.content.Intent
 import android.text.InputType
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
@@ -30,6 +31,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     }
 
     companion object {
+        const val TAG = "MainActivityListener"
         const val userNamePref = "userNamePref"
         const val gameIdExtra = "gameId"
         const val gameModeExtra = "gameMode"
@@ -37,6 +39,11 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         const val gameTimeExtra = "gameTime"
         const val playerColorExtra = "playerColor"
     }
+
+    private lateinit var gameSearchParameterGameName : String
+    private lateinit var gameSearchParameterTime : String
+    private var gameSearchParameterPlayerColor = ""
+
 
     override fun onClick(v: View?) {
         when(v?.id){
@@ -94,13 +101,15 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     fun searchForGames(gameName: String, timeMode: String){
         multiplayerDB.searchGames(gameName, timeMode)
+        this.gameSearchParameterGameName = gameName
+        this.gameSearchParameterTime = timeMode
     }
 
     fun start_gameWithParameters(fairyChessGame: FairyChessGame){
         val intent = Intent(mainActivity, ChessActivity::class.java)
         intent.putExtra(gameIdExtra, fairyChessGame.gameId)
         intent.putExtra(gameNameExtra, fairyChessGame.gameName)
-        intent.putExtra(gameModeExtra, fairyChessGame.game)
+        intent.putExtra(gameModeExtra, fairyChessGame.gameMode)
         intent.putExtra(gameTimeExtra, fairyChessGame.time)
         intent.putExtra(playerColorExtra, fairyChessGame.playerColor)
         mainActivity.startActivity(intent)
@@ -111,7 +120,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     data class FairyChessGame(
         val gameId: String,
         val gameName: String,
-        val game: String,
+        val gameMode: String,
         val time: String,
         val playerColor: String
     )
@@ -183,48 +192,76 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         }
     }
 
-    override fun onGameSearchComplete(gameName: String, timeMode: String, gameIDList: List<String>) {
+    override fun onGameSearchComplete(gameIDList: List<String>) {
         if(gameIDList.isNotEmpty()){ //no matching games found
-            //join first game
-            run {
-                Toast.makeText(
-                    mainActivity,
-                    "found game: " + gameIDList[0],
-                    Toast.LENGTH_SHORT
-                ).show()
-                multiplayerDB.joinGame(gameIDList[0], timeMode, gameName, userName)
-            }
-        } else {
+            Log.d(TAG,"gameMode found => join gameMode")
+            println("gameMode found => join gameMode")
+            //join first gameMode
             Toast.makeText(
                 mainActivity,
-                "created game: $gameName",
+                "found gameMode: " + gameIDList[0],
                 Toast.LENGTH_SHORT
             ).show()
-            /*val gameId = multiplayerDB.createGame(gameName,userName)
-            searchGameJob = CoroutineScope(Dispatchers.Default).launch {
-                while(true){//search all ten seconds for a
-                    if(MultiplayerDB().checkGameForSecondPlayer(gameId)){
-                        start_gameWithParameters(FairyChessGame(gameId,gameName,"human",timeMode,"white"))
-                    }
-                    delay(10000)
-                }
-            }*/
+            gameSearchParameterPlayerColor = "black"
+            multiplayerDB.joinGame(gameIDList[0], userName)
+        } else {
+            Log.d(TAG,"no gameMode found => create gameMode")
+            println("no gameMode found => create gameMode")
+            multiplayerDB.createGame(gameSearchParameterGameName,userName)
         }
     }
 
-    override fun onJoinGame(gameID: String, timeMode: String, gameName: String) {
+    override fun onJoinGame(gameID: String) {
+        Log.d(TAG, "$userName joined gameMode: $gameSearchParameterGameName")
+        println("$userName joined gameMode: $gameSearchParameterGameName")
+        Toast.makeText(
+            mainActivity,
+            "$userName joined gameMode: $gameSearchParameterGameName",
+            Toast.LENGTH_SHORT
+        ).show()
         start_gameWithParameters(
             FairyChessGame(
                 gameID,
-                gameName,
+                gameSearchParameterGameName,
                 "human",
-                timeMode,
-                "black"
+                gameSearchParameterTime,
+                gameSearchParameterPlayerColor
             )
         )
     }
 
-    override fun onCreateGame(gameName: String, gameID: String) {
-        TODO("Not yet implemented")
+    override fun onCreateGame(gameName: String, gameID: String, playerColor : String) {
+        Log.d(TAG,"gameMode created")
+        println("gameMode created")
+        Toast.makeText(
+            mainActivity,
+            "created gameMode: $gameName",
+            Toast.LENGTH_SHORT
+        ).show()
+        multiplayerDB.listenToGame(gameID)
+        this.gameSearchParameterPlayerColor = playerColor
+    }
+
+    override fun onGameChanged(gameId: String) {
+        multiplayerDB.hasSecondPlayerJoined(gameId)
+    }
+
+    override fun onSecondPlayerJoined(gameId: String) {
+        Log.d(TAG,"second player joined!")
+        println("second player joined!")
+        Toast.makeText(
+            mainActivity,
+            "second player joined: $gameId",
+            Toast.LENGTH_SHORT
+        ).show()
+        start_gameWithParameters(
+            FairyChessGame(
+                gameId,
+                gameSearchParameterGameName,
+                "human",
+                gameSearchParameterTime,
+                gameSearchParameterPlayerColor
+            )
+        )
     }
 }

@@ -4,7 +4,7 @@ import android.content.Context
 import emerald.apps.fairychess.model.pieces.Chessboard
 import emerald.apps.fairychess.view.ChessActivity
 
-class Chessgame() : OpponentMover{
+class Chessgame() : OpponentMover, MultiplayerDBGameInterface {
 
     companion object {
         const val testPlayerName = "testPlayerName"
@@ -42,7 +42,7 @@ class Chessgame() : OpponentMover{
         this.gameFinished = false
         this.opponentColor = chessboard.oppositeColor(playerColor)
         if(mode == "human"){
-            multiplayerDB = MultiplayerDB(this,this)
+            multiplayerDB = MultiplayerDB(this,this,this)
         }
     }
 

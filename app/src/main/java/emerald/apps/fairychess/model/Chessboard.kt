@@ -20,12 +20,12 @@ data class Chessboard(val context: Context, val mode : String) {
 
     fun init(mode: String){
         //hier einen aufstellungsstring übergeben
-        if(mode == "normal chess" || mode == "berolina chess" || mode == "grasshopper chess") {
-            pieces = Array(8) {
-                Array(8) {
-                    ChessPiece("", -1,-1, 0, "", "", 0)
-                }
+        pieces = Array(8) {
+            Array(8) {
+                ChessPiece("", -1,-1, 0, "", "", 0)
             }
+        }
+        if(mode == "normal chess" || mode == "berolina chess" || mode == "grasshopper chess") {
             val chessFormationArray = ChessFormationParser.parseChessFormation(
                 context,
                 mode.toLowerCase().replace(" ","_")

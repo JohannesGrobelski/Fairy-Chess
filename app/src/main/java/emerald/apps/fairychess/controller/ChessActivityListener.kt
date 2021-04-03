@@ -37,13 +37,12 @@ class ChessActivityListener() {
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        val gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
-        val modeName = chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!
+        val gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!
+        val gameMode = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
         val time = chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
         val playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
 
-
-        chessgame = Chessgame(chessActivity,gameName,Chessgame.testPlayerName,"",modeName,time,playerColor)
+        chessgame = Chessgame(chessActivity,gameName,Chessgame.testPlayerName,"",gameMode,time,playerColor)
 
         initViews()
         displayFigures()
@@ -232,6 +231,10 @@ class ChessActivityListener() {
 
     private fun nameToFile(name: String): Int {
         return name.toLowerCase()[0] - 'a'
+    }
+
+    fun onDestroy() {
+        TODO("Not yet implemented")
     }
 
 }
