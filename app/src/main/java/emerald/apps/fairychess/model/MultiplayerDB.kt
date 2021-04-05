@@ -156,7 +156,31 @@ class MultiplayerDB {
                     "player2ID" to userName
                 )
             )
-            .addOnSuccessListener { multiplayerDBSearchInterface?.onJoinGame(gameID)}
+            .addOnSuccessListener {
+                getGameDataAndJoinGame(gameID,userName)
+            }
+    }
+
+
+    class GameData(val gameId: String, val playerID: String, val opponentID: String)
+    fun getGameDataAndJoinGame(gameId: String,userName: String){
+        db.collection(GAMECOLLECTIONPATH)
+            .document(gameId)
+            .get()
+            .addOnSuccessListener { docRef ->
+                run {
+                    val player1ID = docRef.getString("player1ID")!!
+                    val player2ID = docRef.getString("player2ID")!!
+                    var opponentID = player1ID
+                    if(opponentID == userName)opponentID = player2ID
+                    multiplayerDBSearchInterface?.onJoinGame(GameData(gameId,userName,opponentID))
+                }
+            }
+            .addOnFailureListener { e ->
+                run {
+                    Log.w(TAG, "Error adding document", e)
+                }
+            }
     }
 
     fun createPlayer(playerID: String) {
@@ -234,7 +258,7 @@ class MultiplayerDB {
                             val player1ID : String = document.getString("player1ID")!!
                             val player2ID : String = document.getString("player2ID")!!
                             if(player1ID.isNotEmpty() && player2ID.isNotEmpty()){
-                                multiplayerDBSearchInterface?.onSecondPlayerJoined(gameId)
+                                getGameDataAndJoinGame(gameId,player1ID)
                             }
                         }
                     }
@@ -263,8 +287,8 @@ class MultiplayerDB {
                 if (task.isSuccessful) {
                     if(task.result!!.exists()){
                         val document = task.result!!
-                        val finished : Boolean = document!!.getBoolean("finished")!!
-                        val moves : List<String> = document!!.get("moves") as List<String>
+                        val finished : Boolean = document.getBoolean("finished")!!
+                        val moves : List<String> = document.get("moves") as List<String>
                         val gameState = GameState(finished,moves)
                         multiplayerDBGameInterface?.onGameChanged(gameId,gameState)
                     }
@@ -279,10 +303,9 @@ public interface MultiplayerDBSearchInterface {
     fun onCreatePlayer(playerID: String)
     fun onPlayerNameSearchComplete(playerIDr: String, occurences: Int)
     fun onGameSearchComplete(gameIDList: List<String>)
-    fun onJoinGame(gameID: String)
+    fun onJoinGame(gameData: MultiplayerDB.GameData)
     fun onCreateGame(gameName: String, gameID: String, player1Color : String)
     fun onGameChanged(gameId : String)
-    fun onSecondPlayerJoined(gameId : String)
 }
 
 public interface MultiplayerDBGameInterface {

@@ -25,6 +25,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     private lateinit var multiplayerDB: MultiplayerDB
 
     private lateinit var gameId : String
+    private lateinit var playerName : String
+    private lateinit var opponentName : String
     private lateinit var gameMode : String
     private lateinit var gameName : String
     private lateinit var time : String
@@ -46,12 +48,16 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
         gameId = chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!
+        playerName = chessActivity.intent.getStringExtra(MainActivityListener.gamePlayerNameExtra)!!
+        opponentName = chessActivity.intent.getStringExtra(MainActivityListener.gameOpponentNameExtra)!!
         gameMode = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
         gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!
         time = chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
         playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
 
-        chessgame = Chessgame(chessActivity,gameId,gameName,Chessgame.testPlayerName,"",gameMode,time,playerColor)
+        chessgame = Chessgame(chessActivity,gameId,gameName,playerName,opponentName,gameMode,time,playerColor)
+        chessActivity.tv_playername.text = playerName
+        chessActivity.tv_opponentname.text = opponentName
         this.gameMode = gameMode
         initViews()
         displayFigures()

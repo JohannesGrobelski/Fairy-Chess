@@ -19,8 +19,8 @@ import kotlinx.coroutines.*
 
 class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface {
     lateinit var userNameDialog : AlertDialog
-    var searchGameJob : Job? = null
     var userName = ""
+    var opponentName = ""
     private lateinit var mainActivity : MainActivity
     private lateinit var multiplayerDB: MultiplayerDB
 
@@ -36,6 +36,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         const val TAG = "MainActivityListener"
         const val userNamePref = "userNamePref"
         const val gameIdExtra = "gameId"
+        const val gamePlayerNameExtra = "playerNameExtra"
+        const val gameOpponentNameExtra = "opponentNameExtra"
         const val gameModeExtra = "gameMode"
         const val gameNameExtra = "gameName"
         const val gameTimeExtra = "gameTime"
@@ -109,7 +111,9 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     fun start_gameWithParameters(fairyChessGame: FairyChessGame){
         val intent = Intent(mainActivity, ChessActivity::class.java)
-        intent.putExtra(gameIdExtra, fairyChessGame.gameId)
+        intent.putExtra(gameIdExtra, fairyChessGame.gameData.gameId)
+        intent.putExtra(gamePlayerNameExtra, fairyChessGame.gameData.playerID)
+        intent.putExtra(gameOpponentNameExtra, fairyChessGame.gameData.opponentID)
         intent.putExtra(gameNameExtra, fairyChessGame.gameName)
         intent.putExtra(gameModeExtra, fairyChessGame.gameMode)
         intent.putExtra(gameTimeExtra, fairyChessGame.time)
@@ -120,7 +124,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
 
     data class FairyChessGame(
-        val gameId: String,
+        val gameData: MultiplayerDB.GameData,
         val gameName: String,
         val gameMode: String,
         val time: String,
@@ -213,29 +217,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         }
     }
 
-    override fun onJoinGame(gameID: String) {
-        if(!multiplayerDB.gameLaunched && !launchedGamesMap.containsKey(gameID)){
-            multiplayerDB.gameLaunched = true
-            Log.d(TAG, "$userName joined gameMode: $gameSearchParameterGameName")
-            println("$userName joined gameMode: $gameSearchParameterGameName")
-            Toast.makeText(
-                mainActivity,
-                "$userName joined gameMode: $gameSearchParameterGameName",
-                Toast.LENGTH_SHORT
-            ).show()
-            launchedGamesMap[gameID] = true
-            start_gameWithParameters(
-                FairyChessGame(
-                    gameID,
-                    gameSearchParameterGameName,
-                    "human",
-                    gameSearchParameterTime,
-                    gameSearchParameterPlayerColor
-                )
-            )
-        }
 
-    }
 
     override fun onCreateGame(gameName: String, gameID: String, playerColor : String) {
         Log.d(TAG,"gameMode created")
@@ -255,19 +237,20 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         }
     }
 
-    override fun onSecondPlayerJoined(gameId: String) {
-        if(!multiplayerDB.gameLaunched && !launchedGamesMap.containsKey(gameId)) {
+    override fun onJoinGame(gameData: MultiplayerDB.GameData) {
+        if(!multiplayerDB.gameLaunched && !launchedGamesMap.containsKey(gameData.gameId)){
             multiplayerDB.gameLaunched = true
-            Log.d(TAG,"second player joined!")
-            println("second player joined!")
+            Log.d(TAG, "$userName joined gameMode: $gameSearchParameterGameName")
+            println("$userName joined gameMode: $gameSearchParameterGameName")
             Toast.makeText(
                 mainActivity,
-                "second player joined: $gameId",
+                "$userName joined gameMode: $gameSearchParameterGameName",
                 Toast.LENGTH_SHORT
             ).show()
+            launchedGamesMap[gameData.gameId] = true
             start_gameWithParameters(
                 FairyChessGame(
-                    gameId,
+                    gameData,
                     gameSearchParameterGameName,
                     "human",
                     gameSearchParameterTime,
