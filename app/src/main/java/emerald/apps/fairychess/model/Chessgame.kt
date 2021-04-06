@@ -2,6 +2,8 @@ package emerald.apps.fairychess.model
 
 import android.content.Context
 import emerald.apps.fairychess.model.pieces.Chessboard
+import emerald.apps.fairychess.utility.ChessFormationParser
+import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
 
 class Chessgame() : OpponentMover {
@@ -30,7 +32,10 @@ class Chessgame() : OpponentMover {
     lateinit var player2Name : String
 
     constructor(chessActivity : ChessActivity, gameId: String, gameName: String, player1Name:String, player2Name: String, mode: String, time: String, playerColor: String) : this() {
-        chessboard = Chessboard(chessActivity, gameName)
+        val chessFormationArray: Array<Array<String>> = ChessFormationParser.parseChessFormation(chessActivity,gameName.replace(" ","_"))
+        val figureMap : Map<String, FigureParser.Figure> = FigureParser.parseFigureMapFromFile(chessActivity)
+
+        chessboard = Chessboard(chessFormationArray,figureMap)
         this.gameId = gameId
         this.gameName = gameName
         this.player1Name = player1Name
@@ -47,8 +52,25 @@ class Chessgame() : OpponentMover {
         if(returnValue == ""){
             when(gameMode){
                 "ai" -> {
-                    val ai = StubChessAI(opponentColor,this)
-                    ai.moveFigure(this)
+                    /*val ai = StubChessAI(opponentColor,this)
+                    ai.moveFigure(this)*/
+                }
+                "human" -> {
+
+                }
+            }
+        }
+        return returnValue
+    }
+
+    fun movePlayer(movement: ChessPiece.Movement, color:String): String {
+        val returnValue =  chessboard.move(color, movement)
+        gameFinished = chessboard.gameFinished
+        if(returnValue == ""){
+            when(gameMode){
+                "ai" -> {
+                    /*val ai = StubChessAI(opponentColor,this)
+                    ai.moveFigure(this)*/
                 }
                 "human" -> {
 

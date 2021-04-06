@@ -2,7 +2,7 @@
 		//format { [G-file],[F-file]...,[A-file] }
 //file: [figure1,...figure8]
 {
-    [rook,knight,bishop,king,queen,bishop,knight,rook],
+    [rook,knight,bishop,queen,king,bishop,knight,rook],
     [pawn,pawn,pawn,pawn,pawn,pawn,pawn,pawn],
     [,,,,,,,],
     [,,,,,,,],

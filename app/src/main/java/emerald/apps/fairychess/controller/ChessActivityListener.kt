@@ -12,7 +12,73 @@ import emerald.apps.fairychess.model.Chessgame
 import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDBGameInterface
 import emerald.apps.fairychess.view.ChessActivity
+import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.A8
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.B8
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.C8
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.D8
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.E8
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.F8
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.G8
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H1
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H2
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H3
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H4
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H5
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H6
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H7
+import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
+
 
 class ChessActivityListener() : MultiplayerDBGameInterface {
     //TODO: Castling: requires history of involved rook and king. Can be accomplished via a hasMovedBefore flag.
@@ -56,8 +122,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
         playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
 
         chessgame = Chessgame(chessActivity,gameId,gameName,playerName,opponentName,gameMode,time,playerColor)
-        chessActivity.tv_playername.text = playerName
-        chessActivity.tv_opponentname.text = opponentName
+        if(playerColor=="white"){
+            chessActivity.tv_playernameW.text = playerName
+            chessActivity.tv_opponentnameW.text = opponentName
+        }
+        if(playerColor=="black"){
+            chessActivity.tv_playernameB.text = playerName
+            chessActivity.tv_opponentnameB.text = opponentName
+        }
         this.gameMode = gameMode
         initViews()
         displayFigures()
@@ -81,11 +153,15 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
             if(selectionRank != -1 && selectionFile != -1
                 && clickedFile != -1 && clickedRank != -1){
                 val movement = ChessPiece.Movement(sourceFile = selectionFile,sourceRank = selectionRank,targetFile = clickedFile,targetRank = clickedRank)
-                val moveResult = chessgame.movePlayer(movement)
-                if(gameMode=="human"){
-                    if(moveResult==""){
-                        multiplayerDB.writePlayerMovement(gameId,movement)
-                    }
+                var moveResult:String
+                if(gameMode=="ai"){
+                    moveResult = chessgame.movePlayer(movement,chessgame.getChessboard().moveColor)
+                    if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won")
+                } else {
+                    moveResult = chessgame.movePlayer(movement)
+                }
+                if(gameMode=="human" && moveResult==""){
+                    multiplayerDB.writePlayerMovement(gameId,movement)
                 }
                 displayFigures()
                 if(moveResult.isNotEmpty()){
@@ -110,6 +186,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
                 if (x != -1) imageViews[file][rank].setImageResource(x)
             }
         }
+        //display captures
+        chessActivity.drawCapturedPiecesDrawable("white",chessgame.getChessboard().blackCapturedPieces)
+        chessActivity.drawCapturedPiecesDrawable("black",chessgame.getChessboard().whiteCapturedPieces)
+        chessActivity.highlightActivePlayer(chessgame.getChessboard().moveColor)
     }
 
     private fun displayTargetMovements() {
@@ -264,6 +344,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     fun finishGame(cause: String){
         if(chessgame.gameMode=="human"){
             multiplayerDB.finishGame(chessgame.gameId, cause)
+        } else {
+            onFinishGame("",cause)
         }
     }
 
@@ -288,7 +370,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
 
     override fun onFinishGame(gameId: String, cause : String) {
         Toast.makeText(chessActivity,cause,Toast.LENGTH_LONG).show()
-        chessActivity.finishActivity(0)
+        chessActivity.finish()
     }
 
 

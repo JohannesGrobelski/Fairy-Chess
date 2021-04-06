@@ -96,7 +96,19 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                     spinner_timemode.selectedItem.toString()
                 )
             } else {
-
+                gameSearchParameterGameName = spinner_gameName.selectedItem.toString()
+                gameSearchParameterTime = spinner_timemode.selectedItem.toString()
+                gameSearchParameterPlayerColor = "white"
+                val gameData = MultiplayerDB.GameData("",userName,"ai")
+                start_gameWithParameters(
+                    FairyChessGame(
+                        gameData,
+                        gameSearchParameterGameName,
+                        "ai",
+                        gameSearchParameterTime,
+                        gameSearchParameterPlayerColor
+                    )
+                )
             }
             dialog.dismiss()
         }
@@ -118,8 +130,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         intent.putExtra(gameModeExtra, fairyChessGame.gameMode)
         intent.putExtra(gameTimeExtra, fairyChessGame.time)
         intent.putExtra(playerColorExtra, fairyChessGame.playerColor)
-        mainActivity.startActivity(intent)
-        mainActivity.finish()
+        mainActivity.startActivityForResult(intent,7777)
+       // mainActivity.finish()
     }
 
 

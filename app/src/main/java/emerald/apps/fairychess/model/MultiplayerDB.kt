@@ -183,27 +183,26 @@ class MultiplayerDB {
             }
     }
 
-    fun createPlayer(playerID: String) {
-        // Create a new gameMode hashmap
-        val playerHash = hashMapOf(
-            "name" to playerID
-        )
-        var document_id = ""
 
+    fun createPlayer(playerID: String) {
+        val playerHash = hashMapOf(
+            "name" to playerID,
+            "wins" to 0,
+            "losses" to 0,
+            "played_games" to 0
+        )
         // Add a new document with a generated ID
         db.collection(PLAYERCOLLECTIONPATH)
             .add(playerHash)
             .addOnSuccessListener { documentReference ->
                 run {
                     Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-                    document_id = documentReference.id
                     multiplayerDBSearchInterface?.onCreatePlayer(playerID)
                 }
             }
             .addOnFailureListener { e ->
                 run {
                     Log.w(TAG, "Error adding document", e)
-                    document_id =  ""
                 }
             }
     }

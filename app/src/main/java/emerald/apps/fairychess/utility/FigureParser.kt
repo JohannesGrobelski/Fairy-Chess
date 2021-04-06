@@ -12,15 +12,15 @@ class FigureParser {
         private val TAG: String = "FigureParser"
 
 
-        fun parseFigureMapFromFile(context: Context, fileName: String) : Map<String,Figure> {
+        fun parseFigureMapFromFile(context: Context) : Map<String,Figure> {
             try {
                 val inputStream = context.resources.openRawResource(
                     context.resources.getIdentifier(
-                        fileName,
+                        "figures",
                         "raw", context.packageName
                     )
-                );
-                "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\$fileName"
+                )
+                "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\figures"
                 return parseFigureMapFromJSONString(
                     ChessFormationParser.convertStreamToString(
                         inputStream

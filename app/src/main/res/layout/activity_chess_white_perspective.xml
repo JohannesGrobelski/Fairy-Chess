@@ -23,7 +23,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tv_opponentname"
+                android:id="@+id/tv_opponentnameW"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
@@ -43,16 +43,16 @@
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/iv_captPiecesOpponentLine1"
+            android:id="@+id/iv_captPiecesOpponentLine1W"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 
         <ImageView
-            android:id="@+id/iv_captPiecesOpponentLine2"
+            android:id="@+id/iv_captPiecesOpponentLine2W"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 
@@ -674,7 +674,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tv_playername"
+                android:id="@+id/tv_playernameW"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
@@ -694,16 +694,16 @@
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/iv_captPiecesPlayerLine1"
+            android:id="@+id/iv_captPiecesPlayerLine1W"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 
         <ImageView
-            android:id="@+id/iv_captPiecesPlayerLine2"
+            android:id="@+id/iv_captPiecesPlayerLine2W"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 

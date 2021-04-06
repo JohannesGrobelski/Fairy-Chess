@@ -4,67 +4,58 @@ import android.content.Context
 import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
+import java.lang.StringBuilder
 import kotlin.math.sign
 
 
-data class Chessboard(val context: Context, val mode : String) {
+data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMap : Map<String, FigureParser.Figure> ) {
     /* pieces-array: (file,rank)-coordinates
        (7,0) ... (7,7)
        ...        ...
        (0,0) ... (0,7)
      */
-    lateinit var pieces: Array<Array<ChessPiece>>
+
+
+    var pieces: Array<Array<ChessPiece>> = Array(8) {
+        Array(8) {
+            ChessPiece("", -1,-1, 0, "", "", 0)
+        }
+    }
 
     var moveColor = "white"
     var moveCounter : Int = 0
     var gameFinished = false
     var gameWinner = ""
 
-    fun init(mode: String){
+    var whiteCapturedPieces = mutableListOf<ChessPiece>()
+    var blackCapturedPieces = mutableListOf<ChessPiece>()
+
+    init {
         //hier einen aufstellungsstring übergeben
-        pieces = Array(8) {
-            Array(8) {
-                ChessPiece("", -1,-1, 0, "", "", 0)
-            }
-        }
-        if(mode == "normal chess" || mode == "berolina chess" || mode == "grasshopper chess") {
-            val chessFormationArray = ChessFormationParser.parseChessFormation(
-                context,
-                mode.toLowerCase().replace(" ","_")
-            )
-            val figureMap = FigureParser.parseFigureMapFromFile(
-                context,
-                "figures"
-            )
-            if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
-                for (file in 0..7) {
-                    for (rank in 0..7) {
-                        var color = ""
-                        if(rank <= 4 && chessFormationArray[file][rank].isNotEmpty())color = "white"
-                        if (rank > 4 && chessFormationArray[file][rank].isNotEmpty()) color = "black"
-                        if(figureMap.containsKey(chessFormationArray[file][rank])){
-                            val movement = figureMap[chessFormationArray[file][rank]]?.movementParlett
-                            val value =  figureMap[chessFormationArray[file][rank]]?.value!!
-                            if(movement != null){
-                                pieces[file][rank] = ChessPiece(
-                                    chessFormationArray[file][rank],
-                                    file,
-                                    rank,
-                                    value,
-                                    color,
-                                    movement,
-                                    0
-                                )
-                            }
+        if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
+            for (file in 0..7) {
+                for (rank in 0..7) {
+                    var color = ""
+                    if(rank <= 4 && chessFormationArray[file][rank].isNotEmpty())color = "white"
+                    if (rank > 4 && chessFormationArray[file][rank].isNotEmpty()) color = "black"
+                    if(figureMap.containsKey(chessFormationArray[file][rank])){
+                        val movement = figureMap[chessFormationArray[file][rank]]?.movementParlett
+                        val value =  figureMap[chessFormationArray[file][rank]]?.value!!
+                        if(movement != null){
+                            pieces[file][rank] = ChessPiece(
+                                chessFormationArray[file][rank],
+                                file,
+                                rank,
+                                value,
+                                color,
+                                movement,
+                                0
+                            )
                         }
                     }
                 }
             }
         }
-    }
-
-    init {
-        init(mode)
     }
 
 
@@ -199,31 +190,26 @@ data class Chessboard(val context: Context, val mode : String) {
         return false
     }
 
-
-    fun gameOver(): Boolean {
-        var cntKing = 0
-        for (i in pieces!!.indices) {
-            for (j in pieces!!.indices) {
-                if (pieces!![i][j]?.name == "king") ++cntKing
-                if (cntKing == 2) return false
-            }
-        }
-        return true
-    }
-
-    fun getWinner(): String? {
-        for (i in pieces!!.indices) {
-            for (j in pieces!!.indices) {
-                if (pieces!![i][j]?.name == "king") {
-                    return if (pieces!![i][j]?.color.equals("white")) {
-                        "white"
+    fun getWinner() {
+        var blackKing = 0
+        var whiteKing = 0
+        //count kings
+        for (i in pieces.indices) {
+            for (j in pieces.indices) {
+                if (pieces[i][j].name == "king") {
+                    if (pieces[i][j].color == "white") {
+                        ++whiteKing
                     } else {
-                        "black"
+                        ++blackKing
                     }
                 }
             }
         }
-        return "remis"
+        //calculate winner based on counts
+        gameWinner = if(whiteKing == 0 && blackKing > 0) "black"
+        else if(whiteKing > 0 && blackKing == 0) "white"
+        else ""
+        gameFinished = (whiteKing*blackKing) == 0
     }
 
     fun move(color: String, movement: ChessPiece.Movement) : String{
@@ -251,7 +237,11 @@ data class Chessboard(val context: Context, val mode : String) {
             val captureFile = userMovement.targetFile-signFile
             val captureRank = userMovement.targetRank-signRank
             if(pieces[captureFile][captureRank].color != moveColor){
-                checkForGameEndByCapture(captureFile,captureRank)
+                if(pieces[captureFile][captureRank].color == "white"){
+                    whiteCapturedPieces.add(pieces[captureFile][captureRank])
+                } else if(pieces[captureFile][captureRank].color == "black"){
+                    blackCapturedPieces.add(pieces[captureFile][captureRank])
+                }
                 pieces[captureFile][captureRank] = ChessPiece(
                     "",
                     movement.sourceFile,
@@ -263,7 +253,13 @@ data class Chessboard(val context: Context, val mode : String) {
                 )
             }
         }
-        checkForGameEndByCapture(movement.targetFile,movement.targetRank)
+        //if target is nonempty, add to captured pieces
+        if(pieces[movement.targetFile][movement.targetRank].color == "white"){
+            whiteCapturedPieces.add(pieces[movement.targetFile][movement.targetRank])
+        } else if(pieces[movement.targetFile][movement.targetRank].color == "black"){
+            blackCapturedPieces.add(pieces[movement.targetFile][movement.targetRank])
+        }
+        //move piece and replace target
         pieces[movement.targetFile][movement.targetRank] = ChessPiece(
             pieces[movement.sourceFile][movement.sourceRank].name,
             movement.targetFile,
@@ -282,24 +278,12 @@ data class Chessboard(val context: Context, val mode : String) {
             "",
             0,
         )
+        getWinner()
         if(!gameFinished){
             ++moveCounter
             switchColors()
         }
         return ""
-    }
-
-    fun checkForGameEndByCapture(captureFile : Int, captureRank : Int){
-        if(mode == "normal chess" || mode == "berolina chess" || mode == "grasshopper chess") {
-            if(pieces[captureFile][captureRank].name == "king"){
-                if(pieces[captureFile][captureRank].color == "white"){
-                    gameWinner = "black"
-                } else {
-                    gameWinner = "white"
-                }
-                gameFinished = true
-            }
-        }
     }
 
     fun checkForPawnPromotion(): Array<Int>? {
@@ -356,6 +340,21 @@ data class Chessboard(val context: Context, val mode : String) {
 
     override fun hashCode(): Int {
         return super.hashCode()
+    }
+
+
+    override fun toString(): String {
+        var cStringBuilder = StringBuilder("")
+        for(file in pieces.indices){
+            for(rank in pieces[0].indices){
+                val f = pieces[file][rank].name
+                if(f.isEmpty())cStringBuilder.append(" ")
+                else cStringBuilder.append(f[0])
+                if(rank < pieces[0].size-1)cStringBuilder.append(" | ")
+            }
+            if(file < pieces.size-1)cStringBuilder.append("\n")
+        }
+        return cStringBuilder.toString()
     }
 
 

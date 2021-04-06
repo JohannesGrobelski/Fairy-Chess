@@ -23,7 +23,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tv_opponentname"
+                android:id="@+id/tv_opponentnameB"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
@@ -45,14 +45,14 @@
         <ImageView
             android:id="@+id/iv_captPiecesOpponentLine1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 
         <ImageView
             android:id="@+id/iv_captPiecesOpponentLine2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 
@@ -682,7 +682,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tv_playername"
+                android:id="@+id/tv_playernameB"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
@@ -704,14 +704,14 @@
         <ImageView
             android:id="@+id/iv_captPiecesPlayerLine1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 
         <ImageView
             android:id="@+id/iv_captPiecesPlayerLine2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             tools:srcCompat="@drawable/black_grasshopper" />
 

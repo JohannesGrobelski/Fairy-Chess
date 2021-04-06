@@ -35,3 +35,5 @@ l
 <app/src/main/java/emerald/apps/fairychess/model/Chessgame.kt,b\1\b1f4a37e964ab7e7ea7112c5ba7b377cc256e10e
 p
 @app/src/main/java/emerald/apps/fairychess/model/MultiplayerDB.kt,c\4\c421be921e078205f69464fdc1cea22393260b44
+o
+?app/src/test/java/emerald/apps/fairychess/ChessboardUnitTest.kt,c\f\cf1681b4bc352c30950c54dc45e5ad54650a82ae

@@ -9,7 +9,7 @@ import java.io.InputStream
 class ChessFormationParser {
     companion object {
         private val TAG: String = "ChessFormationParser"
-        private fun parseChessFormationString(chessFormation: String) : Array<Array<String>> {
+        fun parseChessFormationString(chessFormation: String) : Array<Array<String>> {
             var fileList = mutableListOf<Array<String>>()
 
             var chessFormationWOC = chessFormation.replace("[\\s]*\\/\\/[^\\n]*".toRegex(), "")
