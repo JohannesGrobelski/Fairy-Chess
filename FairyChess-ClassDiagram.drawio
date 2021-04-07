@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-04-07T12:28:42.643Z" agent="5.0 (Windows)" etag="yZPyShhvC6kbqlUm6wME" version="14.3.1" type="github">
+<mxfile host="app.diagrams.net" modified="2021-04-07T12:49:24.946Z" agent="5.0 (Windows)" etag="nAnUQ9Ju8NVPew1ITLu6" version="14.3.1" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="2852" dy="1122" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="419" dy="809" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -381,43 +381,43 @@
         <mxCell id="rWxJQ23QcNX7koDT0tqL-147" value="generate8LeaperMovements(movingPattern: MovementNotation, targetSquares : MutableList&lt;Movement&gt;, m1: Int, m2: Int)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="294" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-148" value="generate8LeaperMovements(movingPattern: MovementNotation, targetSquares : MutableList&lt;Movement&gt;, m1: Int, m2: Int)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-149" value="generateLeaperMovement(movingPattern: MovementNotation, targetSquares : MutableList&lt;Movement&gt;, m1: Int, m2: Int)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="320" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-149" value="generateLeaperMovement(movingPattern: MovementNotation, targetSquares : MutableList&lt;Movement&gt;, m1: Int, m2: Int)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-150" value="generateRiderMovements(movingPattern: MovementNotation) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="346" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-150" value="generateRiderMovements(movingPattern: MovementNotation) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-151" value="generateDiagonalRiderMovement(movementNotation: MovementNotation) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="372" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-151" value="generateDiagonalSquares(movementNotation: MovementNotation) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-152" value="generateNorthEastDiagonalMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="398" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-152" value="generateForewardRightSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-153" value="generateForewardLeftSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="424" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-153" value="generateForewardLeftSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-154" value="generateNorthWestDiagonalMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="450" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-154" value="generateBackwardsRightSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-155" value="generateSouthEastDiagonalMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="476" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-155" value="generateBackwardsLeftSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-156" value="generateSouthWestDiagonalMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="502" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-156" value="generateOrthogonalSquares(movementNotation: MovementNotation) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-157" value="generateOrthogonalMovement(movementNotation: MovementNotation) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="528" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-157" value=" generateForewardSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-158" value="generateNorthMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="554" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-158" value="generateBackwardsSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-159" value="generateSouthMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="580" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-159" value="generateRightSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-160" value="generateEastMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="606" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-160" value="generateLeftSquares(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
+        <mxCell id="oQgX0Iph7d_uSSMEyYxh-38" value="generateWestMovement(inputSquares : MutableList&lt;Movement&gt;, movementNotation: MovementNotation, distance : Int) : List&lt;Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-136">
           <mxGeometry y="632" width="440" height="26" as="geometry" />
         </mxCell>
         <mxCell id="rWxJQ23QcNX7koDT0tqL-163" value="Movement" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
