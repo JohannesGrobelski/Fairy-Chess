@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-04-07T12:11:55.042Z" agent="5.0 (Windows)" etag="7CEP7NHmQUZKXM6OdEw7" version="14.3.1" type="github">
+<mxfile host="app.diagrams.net" modified="2021-04-07T12:17:22.933Z" agent="5.0 (Windows)" etag="amHqS1uX6PZ-RbsG83uN" version="14.3.1" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1583" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="3165" dy="3600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -205,54 +205,84 @@
           <mxGeometry y="78" width="240" height="26" as="geometry" />
         </mxCell>
         <mxCell id="rWxJQ23QcNX7koDT0tqL-68" value="MultiplayerDB" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="50" y="1900" width="440" height="398" as="geometry">
+          <mxGeometry x="130" y="1790" width="440" height="640" as="geometry">
             <mxRectangle x="230" y="140" width="160" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-69" value="chessboard:Chessboard" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-69" value="TAG : String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
           <mxGeometry y="26" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-94" value="gameFinished : Boolean = false" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-184" value="GAMECOLLECTIONPATH : String&#xa;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
           <mxGeometry y="52" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-93" value="opponentColor: String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-183" value="PLAYERCOLLECTIONPATH : String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
           <mxGeometry y="78" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-92" value="gameParameters: MainActivityListener.GameParameters" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="104" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-182" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="104" width="440" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-91" value="gameData: MultiplayerDB.GameData" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="130" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-94" value="multiplayerDBSearchInterface : MultiplayerDBSearchInterface? " style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="112" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-70" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="156" width="440" height="8" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-93" value="multiplayerDBGameInterface : MultiplayerDBGameInterface?" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="138" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-95" value="constructor(chessActivity : ChessActivity, gameData: MultiplayerDB.GameData, gameParameters: MainActivityListener.GameParameters)&#xa;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-92" value="db : FirebaseFirestore" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
           <mxGeometry y="164" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-96" value="movePlayer(movement: ChessPiece.Movement): String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-185" value="chessGame : Chessgame" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
           <mxGeometry y="190" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-97" value="movePlayer(movement: ChessPiece.Movement, color:String): String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-91" value="gameLaunched = false" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
           <mxGeometry y="216" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-98" value="getTargetMovements(sourceFile: Int, sourceRank: Int): List&lt;ChessPiece.Movement&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="242" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-70" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="242" width="440" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-99" value="getPieceName(file:Int,rank:Int) : String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="268" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-95" value="constructor(multiplayerDBGameInterface: MultiplayerDBGameInterface, chessgame: Chessgame)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="250" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-100" value="getPieceColor(file:Int,rank:Int) : String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="294" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-96" value="constructor(multiplayerDBSearchInterface: MultiplayerDBSearchInterface)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="276" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-101" value="getChessboard() : Chessboard" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="320" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-97" value="writePlayerMovement(gameId: String, movement: ChessPiece.Movement)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="302" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-102" value="addMove(moveString:  String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="346" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-98" value="searchForOpenGames(gameName: String, timeMode: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="328" width="440" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="rWxJQ23QcNX7koDT0tqL-103" value="makeMove(movement: ChessPiece.Movement)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
-          <mxGeometry y="372" width="440" height="26" as="geometry" />
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-99" value="checkGameForSecondPlayer(gameID: String): Boolean" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="354" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-100" value="createGame(gameName: String, player1Name: String) : String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="380" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-101" value="searchUsers(userName: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="406" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-102" value="joinGame(gameID: String, userName: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="432" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-103" value="getGameDataAndJoinGame(gameId: String,userName: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="458" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-186" value="createPlayer(playerID: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="484" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-187" value="listenToGameSearch(gameId: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="510" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-188" value="listenToGameIngame(gameId: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="536" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-189" value="hasSecondPlayerJoined(gameId: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="562" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-190" value="finishGame(gameId: String, cause: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="588" width="440" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-191" value="readGameState(gameId: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-68">
+          <mxGeometry y="614" width="440" height="26" as="geometry" />
         </mxCell>
         <mxCell id="rWxJQ23QcNX7koDT0tqL-76" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="rWxJQ23QcNX7koDT0tqL-5" target="rWxJQ23QcNX7koDT0tqL-0">
           <mxGeometry relative="1" as="geometry" />
@@ -477,6 +507,40 @@
         </mxCell>
         <mxCell id="rWxJQ23QcNX7koDT0tqL-181" value="parseMovementString(movementString : String) : List&lt;MovementNotation&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-168">
           <mxGeometry y="164" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-194" value="MultiplayerDBSearchInterface" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="120" y="2490" width="240" height="182" as="geometry">
+            <mxRectangle x="230" y="140" width="160" height="26" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-195" value="onCreatePlayer(playerID: String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-194">
+          <mxGeometry y="26" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-196" value="onPlayerNameSearchComplete(playerIDr: String, occurences: Int)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-194">
+          <mxGeometry y="52" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-197" value="onGameSearchComplete(gameIDList: List&lt;String&gt;)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-194">
+          <mxGeometry y="78" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-198" value="onJoinGame(gameData: MultiplayerDB.GameData)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-194">
+          <mxGeometry y="104" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-199" value="onCreateGame(gameName: String, gameID: String, player1Color : String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-194">
+          <mxGeometry y="130" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-207" value="onGameChanged(gameId : String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-194">
+          <mxGeometry y="156" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-208" value="MultiplayerDBGameInterface" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="400" y="2490" width="240" height="80" as="geometry">
+            <mxRectangle x="230" y="140" width="160" height="26" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-209" value="onFinishGame(gameId: String, cause : String)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-208">
+          <mxGeometry y="26" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="rWxJQ23QcNX7koDT0tqL-210" value="onGameChanged(gameId: String, gameState: MultiplayerDB.GameState)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="rWxJQ23QcNX7koDT0tqL-208">
+          <mxGeometry y="52" width="240" height="26" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
