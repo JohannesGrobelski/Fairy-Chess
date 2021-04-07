@@ -30,6 +30,7 @@ class ChessPiece(
         return targetCoordinates
     }
 
+    /** generate a list of movement matching the movingPattern (Leaper) */
     fun generateLeaperMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
         if(movingPattern.grouping == "/" && movingPattern.distances.size == 2){
@@ -57,6 +58,7 @@ class ChessPiece(
         return targetSquares
     }
 
+    /** generate all (8) leaper movements matching movingPattern (Leaper) */
     fun generate8LeaperMovements(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, m1: Int, m2: Int) {
         generateLeaperMovement(movingPattern,targetSquares,m1,m2)
         generateLeaperMovement(movingPattern,targetSquares,-m1,m2)
@@ -68,44 +70,45 @@ class ChessPiece(
         generateLeaperMovement(movingPattern,targetSquares,-m2,-m1)
     }
 
-    fun generateLeaperMovement(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, m1: Int, m2: Int) {
-        if(positionFile+m1 in 0..7 && positionRank+m2 in 0..7){
+    /** add a leaper movement to targetSquares defined by an delta (fileDif,rankDif) */
+    fun generateLeaperMovement(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, fileDif: Int, rankDif: Int) {
+        if(positionFile+fileDif in 0..7 && positionRank+rankDif in 0..7){
             targetSquares.add(
                 Movement(movingPattern,
                     positionFile,
                     positionRank,
-                    positionFile+m1,
-                    positionRank+m2)
+                    positionFile+fileDif,
+                    positionRank+rankDif)
             )
         }
     }
 
-
-
+    /** generate a list of rider-movements matching the movingPattern (rider) */
     fun generateRiderMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
         if(movingPattern.distances.isNotEmpty()){
             when(movingPattern.direction){
-                ">" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
-                "<" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
-                "<>" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
-                "=" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
-                "<=" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
-                ">=" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
-                "+" -> {targetSquares.addAll(generateOrthogonalSquares(movingPattern))}
-                "X" -> {targetSquares.addAll(generateDiagonalSquares(movingPattern))}
-                "X>" -> {targetSquares.addAll(generateDiagonalSquares(movingPattern))}
-                "X<" -> {targetSquares.addAll(generateDiagonalSquares(movingPattern))}
+                ">" -> {targetSquares.addAll(generateOrthogonalMovement(movingPattern))}
+                "<" -> {targetSquares.addAll(generateOrthogonalMovement(movingPattern))}
+                "<>" -> {targetSquares.addAll(generateOrthogonalMovement(movingPattern))}
+                "=" -> {targetSquares.addAll(generateOrthogonalMovement(movingPattern))}
+                "<=" -> {targetSquares.addAll(generateOrthogonalMovement(movingPattern))}
+                ">=" -> {targetSquares.addAll(generateOrthogonalMovement(movingPattern))}
+                "+" -> {targetSquares.addAll(generateOrthogonalMovement(movingPattern))}
+                "X" -> {targetSquares.addAll(generateDiagonalRiderMovement(movingPattern))}
+                "X>" -> {targetSquares.addAll(generateDiagonalRiderMovement(movingPattern))}
+                "X<" -> {targetSquares.addAll(generateDiagonalRiderMovement(movingPattern))}
                 "*" -> {
-                    targetSquares.addAll(generateOrthogonalSquares(movingPattern))
-                    targetSquares.addAll(generateDiagonalSquares(movingPattern))
+                    targetSquares.addAll(generateOrthogonalMovement(movingPattern))
+                    targetSquares.addAll(generateDiagonalRiderMovement(movingPattern))
                 }
             }
         }
         return targetSquares
     }
 
-    fun generateDiagonalSquares(movementNotation: MovementNotation) : List<Movement>{
+    /** generate a  */
+    fun generateDiagonalRiderMovement(movementNotation: MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
         var difRank=0; var difFile=0;
         var distance = 7
@@ -114,27 +117,27 @@ class ChessPiece(
         }
         if(movementNotation.direction == "*" || movementNotation.direction == "X" || movementNotation.direction == "X>"){
             if (color == "black" && movementNotation.direction == "X>"){
-                generateBackwardsRightSquares(targetSquares,movementNotation,distance)
-                generateBackwardsLeftSquares(targetSquares,movementNotation,distance)
+                generateSouthEastDiagonalMovement(targetSquares,movementNotation,distance)
+                generateSouthWestDiagonalMovement(targetSquares,movementNotation,distance)
             } else {
-                generateForewardRightSquares(targetSquares,movementNotation,distance)
-                generateForewardLeftSquares(targetSquares,movementNotation,distance)
+                generateNorthEastDiagonalMovement(targetSquares,movementNotation,distance)
+                generateNorthWestDiagonalMovement(targetSquares,movementNotation,distance)
             }
         }
         if(movementNotation.direction == "*" || movementNotation.direction == "X" || movementNotation.direction == "X<") {
             if (color == "black" && movementNotation.direction == "X>"){
-                generateForewardRightSquares(targetSquares,movementNotation,distance)
-                generateForewardLeftSquares(targetSquares,movementNotation,distance)
+                generateNorthEastDiagonalMovement(targetSquares,movementNotation,distance)
+                generateNorthWestDiagonalMovement(targetSquares,movementNotation,distance)
             } else {
-                generateBackwardsRightSquares(targetSquares,movementNotation,distance)
-                generateBackwardsLeftSquares(targetSquares,movementNotation,distance)
+                generateSouthEastDiagonalMovement(targetSquares,movementNotation,distance)
+                generateSouthWestDiagonalMovement(targetSquares,movementNotation,distance)
             }
         }
         return targetSquares
     }
 
     /** right,forward: increase file, increase rank*/
-    fun generateForewardRightSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateNorthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = 1;
         while(positionFile+difFile <= 7 && positionRank+difRank <= 7) {
             if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
@@ -153,7 +156,7 @@ class ChessPiece(
     }
 
     /** left,forward: decrease file, increase rank*/
-    fun generateForewardLeftSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateNorthWestDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = -1; var difRank = 1;
         while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
             if(Math.abs(difFile) <= distance && Math.abs(difRank) <= distance){
@@ -172,7 +175,7 @@ class ChessPiece(
     }
 
     /** right,backward: increase file, decrease rank*/
-    fun generateBackwardsRightSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateSouthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = -1
         while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
             if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
@@ -191,7 +194,7 @@ class ChessPiece(
     }
 
     /** left,backward: decrease file, decrease rank*/
-    fun generateBackwardsLeftSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateSouthWestDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difRank = -1; var difFile = -1
         while(positionFile+difFile >= 0 && positionRank+difRank >= 0) {
             if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
@@ -209,15 +212,15 @@ class ChessPiece(
         return inputSquares
     }
 
-    fun generateOrthogonalSquares(movementNotation: MovementNotation) : List<Movement>{
+    fun generateOrthogonalMovement(movementNotation: MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
         var distance = 7
         if(movementNotation.distances[0].matches("[1-9]+".toRegex()))distance = movementNotation.distances[0].toInt()
 
         //color-independent movements
         if(movementNotation.direction.contains("=") || movementNotation.direction == "+" || movementNotation.direction == "*") {
-            generateLeftSquares(targetSquares,movementNotation,distance)
-            generateRightSquares(targetSquares,movementNotation,distance)
+            generateWestMovement(targetSquares,movementNotation,distance)
+            generateEastMovement(targetSquares,movementNotation,distance)
         }
 
         if(movementNotation.direction == "+" || movementNotation.direction == "*" || movementNotation.direction == "<>"
@@ -226,20 +229,20 @@ class ChessPiece(
                 if(movementNotation.direction.contains(">") && !movementNotation.direction.contains("<")){
                     //forwards but not backwards
                     if(color == "black"){
-                        generateBackwardsSquares(targetSquares,movementNotation,distance)
+                        generateSouthMovement(targetSquares,movementNotation,distance)
                     } else {
-                        generateForewardSquares(targetSquares,movementNotation,distance)
+                        generateNorthMovement(targetSquares,movementNotation,distance)
                     }
                 } else if(movementNotation.direction.contains("<") && !movementNotation.direction.contains(">")){
                     //backwards but not forwards
                     if(color == "black"){
-                        generateForewardSquares(targetSquares,movementNotation,distance)
+                        generateNorthMovement(targetSquares,movementNotation,distance)
                     } else {
-                        generateBackwardsSquares(targetSquares,movementNotation,distance)
+                        generateSouthMovement(targetSquares,movementNotation,distance)
                     }
                 } else { //color-independent movements
-                    generateForewardSquares(targetSquares,movementNotation,distance)
-                    generateBackwardsSquares(targetSquares,movementNotation,distance)
+                    generateNorthMovement(targetSquares,movementNotation,distance)
+                    generateSouthMovement(targetSquares,movementNotation,distance)
                 }
 
         }
@@ -248,7 +251,7 @@ class ChessPiece(
     }
 
     /** forward: increase rank */
-    fun generateForewardSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateNorthMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         if(movementNotation.direction == "*" || movementNotation.direction == "+" || movementNotation.direction == "<>" || movementNotation.direction == ">=" || movementNotation.direction == ">"){
             for(i in positionRank+1..7){
                 if(Math.abs(positionRank-i) <= distance)inputSquares.add(
@@ -265,7 +268,7 @@ class ChessPiece(
     }
 
     /** backward: decrease rank */
-    fun generateBackwardsSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateSouthMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         for(i in positionRank-1 downTo 0){
             if(Math.abs(positionRank-i) <= distance)inputSquares.add(
                 Movement(movementNotation,
@@ -279,7 +282,7 @@ class ChessPiece(
     }
 
     /** right: increase file */
-    fun generateRightSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateEastMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         for(i in positionFile+1..7){
             if(Math.abs(positionFile-i) <= distance)inputSquares.add(
                 Movement(movementNotation,
@@ -294,7 +297,7 @@ class ChessPiece(
     }
 
     /** left: decrease file */
-    fun generateLeftSquares(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+    fun generateWestMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         for(i in positionFile-1 downTo 0){
             if(Math.abs(positionFile-i) <= distance)inputSquares.add(
                 Movement(movementNotation,

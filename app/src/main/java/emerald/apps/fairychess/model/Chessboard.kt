@@ -1,10 +1,6 @@
-package emerald.apps.fairychess.model.pieces
+package emerald.apps.fairychess.model
 
-import android.content.Context
-import emerald.apps.fairychess.model.ChessPiece
-import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
-import java.lang.StringBuilder
 import kotlin.math.sign
 
 
@@ -58,7 +54,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         }
     }
 
-
+    /** return a list of possible movements of the figure at (sourceFile,sourceRank)*/
     fun getTargetMovements(sourceFile:Int, sourceRank:Int) : List<ChessPiece.Movement>{
         val nonRelativeMovements = pieces[sourceFile][sourceRank].generateMovements()
         val relativeMovements = mutableListOf<ChessPiece.Movement>()
@@ -76,6 +72,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return relativeMovements
     }
 
+    /** return a list of all posible moves for player of @color*/
     fun getAllPossibleMoves(color : String) : List<ChessPiece.Movement>{
         var allPossibleMoves = mutableListOf<ChessPiece.Movement>()
         for(file in 0..7){
@@ -88,6 +85,8 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return allPossibleMoves
     }
 
+    /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) or not
+     * (is shadowed by a figure between both of them)*/
     fun isShadowedByFigure(sourceFile:Int,sourceRank:Int,targetFile: Int,targetRank: Int) : Boolean{
         for(movement in pieces[sourceFile][sourceRank].movingPatternString.split(",")){
             when {
@@ -143,6 +142,8 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return returnValue
     }
 
+    /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) with a orthogonal movement
+     * or not (is shadowed by a figure between both of them)*/
     fun isShadowedByFigureOrthogonal(sourceFile:Int,sourceRank:Int,targetFile:Int,targetRank: Int) : Boolean{
         if(sourceRank == targetRank && (Math.abs(targetFile-sourceFile) > 1)){//distance > 1 because a figure has to stand between them for shadow
             //move on file (horizontal)
@@ -169,6 +170,8 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return false
     }
 
+    /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) with a diagonal movement
+     * or not (is shadowed by a figure between both of them)*/
     fun isShadowedByFigureDiagonal(sourceFile:Int,sourceRank:Int,targetFile:Int,targetRank: Int) : Boolean{
         if(Math.abs(targetRank-sourceRank)>1 && Math.abs(targetFile-sourceFile)>1){
             val difRank = sign((targetRank-sourceRank).toDouble()).toInt()
@@ -190,6 +193,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return false
     }
 
+    /** calculate the winner (if one exists yet)*/
     fun getWinner() {
         var blackKing = 0
         var whiteKing = 0
@@ -212,6 +216,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         gameFinished = (whiteKing*blackKing) == 0
     }
 
+    /** check if color can move and (if possible) execute movement */
     fun move(color: String, movement: ChessPiece.Movement) : String{
         if(color != moveColor)return "wrong player"
         //check movement
@@ -281,19 +286,12 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         getWinner()
         if(!gameFinished){
             ++moveCounter
-            switchColors()
+            switchMoveColor()
         }
         return ""
     }
 
-    fun checkForPawnPromotion(): Array<Int>? {
-        for (j in pieces.indices) {
-            if (pieces[j][0].name == "PawnPromotion") return arrayOf(0, j)
-            if (pieces[j][7].name == "PawnPromotion") return arrayOf(7, j)
-        }
-        return null
-    }
-
+    /** calculate all points of black player */
     fun points_black(): Int {
         var punkte = 0
         for (a in 0..7) {
@@ -306,6 +304,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return punkte
     }
 
+    /** calculate all points of white player */
     fun points_white(): Int {
         var punkte = 0
         for (a in 0..7) {
@@ -318,13 +317,14 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return punkte
     }
 
-    // do something with the data coming from the AlertDialog
-    private fun promote(figure: String, file:Int, rank: Int) {
+    /** promote figure at (file,rank) to promotion*/
+    private fun promote(promotion: String, file:Int, rank: Int) {
         val color: String = pieces[file][rank].color
-        pieces[file][rank] = ChessPiece(figure, file, rank, 10, color, "", 0)
+        pieces[file][rank] = ChessPiece(promotion, file, rank, 10, color, "", 0)
     }
 
-    fun switchColors(){
+    /** switchMoveColor from white to black and vice versa */
+    fun switchMoveColor(){
         moveColor = oppositeColor(moveColor)
     }
 
@@ -341,7 +341,6 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     override fun hashCode(): Int {
         return super.hashCode()
     }
-
 
     override fun toString(): String {
         var cStringBuilder = StringBuilder("")

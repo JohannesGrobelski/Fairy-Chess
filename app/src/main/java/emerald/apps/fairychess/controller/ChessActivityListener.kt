@@ -355,7 +355,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
             if(gameState.moves.isNotEmpty()){
                 if(gameParameters.playerColor == "white" && gameState.moves.size%2==0
                     || gameParameters.playerColor == "black" && gameState.moves.size%2==1){
-                        chessgame.addMove(gameState.moves[gameState.moves.lastIndex])
+                        chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
                         displayFigures()
                         if(chessgame.gameFinished){
                             finishGame("$gameParameters.playerColor won")

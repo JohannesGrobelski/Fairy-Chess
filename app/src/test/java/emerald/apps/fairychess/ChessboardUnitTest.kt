@@ -1,7 +1,6 @@
 package emerald.apps.fairychess.model
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import emerald.apps.fairychess.model.pieces.Chessboard
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import org.junit.Test

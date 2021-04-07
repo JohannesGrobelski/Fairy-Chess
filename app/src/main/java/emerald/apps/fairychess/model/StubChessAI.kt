@@ -1,6 +1,5 @@
 package emerald.apps.fairychess.model
 
-import emerald.apps.fairychess.model.pieces.Chessboard
 import java.util.*
 import kotlin.math.sign
 
@@ -13,13 +12,10 @@ class StubChessAI {
 
     //Fields
     private var cnt_movements = 0
-    private val chessBoardAI: Chessboard? = null
 
-    private var opponentMover : OpponentMover
     private var color: String
 
-    constructor(color: String, opponentMover: OpponentMover) {
-        this.opponentMover = opponentMover
+    constructor(color: String) {
         this.color = color
     }
 
@@ -40,7 +36,7 @@ class StubChessAI {
             )
         }
         if(movementValue?.movement != null){
-            opponentMover.onOpponentMove(movementValue.movement!!)
+
         }
     }
 
@@ -240,7 +236,7 @@ class StubChessAI {
         )
 
         ++moveCounter
-        switchColors()
+        switchMoveColor()
         return capturedChessPiece
     }
 }

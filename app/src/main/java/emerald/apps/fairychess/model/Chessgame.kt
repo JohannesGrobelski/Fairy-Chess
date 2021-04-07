@@ -1,19 +1,13 @@
 package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.controller.MainActivityListener
-import emerald.apps.fairychess.model.pieces.Chessboard
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
 
 class Chessgame() {
 
-    companion object {
-        const val testPlayerName = "testPlayerName"
-    }
-
     private lateinit var chessboard: Chessboard
-
 
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
@@ -33,6 +27,7 @@ class Chessgame() {
         this.gameFinished = false
     }
 
+    /** execute movement */
     fun movePlayer(movement: ChessPiece.Movement): String {
         val returnValue =  chessboard.move(gameParameters.playerColor, movement)
         if(returnValue == ""){
@@ -49,6 +44,7 @@ class Chessgame() {
         return returnValue
     }
 
+    /** execute movement and check if color allows movement */
     fun movePlayer(movement: ChessPiece.Movement, color:String): String {
         val returnValue =  chessboard.move(color, movement)
         gameFinished = chessboard.gameFinished
@@ -78,13 +74,12 @@ class Chessgame() {
         return chessboard.pieces[file][rank].color
     }
 
-    fun getChessboard() : Chessboard{
+    fun getChessboard() : Chessboard {
         return chessboard
     }
 
-    fun addMove(moveString:  String) {
-        val movement = ChessPiece.Movement.fromStringToMovement(moveString)
-        makeMove(movement)
+    fun makeMove(moveString:  String) {
+        makeMove(ChessPiece.Movement.fromStringToMovement(moveString))
     }
 
     fun makeMove(movement: ChessPiece.Movement){
