@@ -311,11 +311,11 @@ class ChessPiece(
         return inputSquares
     }
 
-    class Movement(val movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")
-             , val sourceFile : Int
-             , val sourceRank : Int
-             , val targetFile : Int
-             , val targetRank : Int) {
+    open class Movement(val movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")
+                        , val sourceFile : Int
+                        , val sourceRank : Int
+                        , val targetFile : Int
+                        , val targetRank : Int) {
         companion object{
             fun fromMovementToString(movement: Movement) : String {
                 return movement.sourceFile.toString()+"_"+movement.sourceRank+"_"+movement.targetFile.toString()+"_"+movement.targetRank
@@ -354,6 +354,40 @@ class ChessPiece(
                     movementList.add(Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank))
                 }
                 return movementList
+            }
+        }
+    }
+
+    class PromotionMovement(movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")
+                            , sourceFile : Int
+                            , sourceRank : Int
+                            , targetFile : Int
+                            , targetRank : Int
+                            , var promotion : String)  : Movement(movementNotation,sourceFile,sourceRank,targetFile,targetRank) {
+
+        companion object {
+            fun fromMovementToString(promotionMovement: PromotionMovement): String {
+                return promotionMovement.sourceFile.toString() + "_" + promotionMovement.sourceRank + "_" +
+                       promotionMovement.targetFile.toString() + "_" + promotionMovement.targetRank+"_"+promotionMovement.promotion
+            }
+
+            fun fromStringToMovement(string: String): Movement {
+                val coordinates = string.split("_")
+                if (coordinates.size == 5) {
+                    val sourceFile = coordinates[0].toInt()
+                    val sourceRank = coordinates[1].toInt()
+                    val targetFile = coordinates[2].toInt()
+                    val targetRank = coordinates[3].toInt()
+                    val promotion = coordinates[4]
+                    return PromotionMovement(
+                        sourceFile = sourceFile,
+                        sourceRank = sourceRank,
+                        targetFile = targetFile,
+                        targetRank = targetRank,
+                        promotion = promotion
+                    )
+                }
+                return Movement(sourceFile = -1, sourceRank = -1, targetFile = -1, targetRank = -1)
             }
         }
 

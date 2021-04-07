@@ -53,8 +53,12 @@ class MultiplayerDB {
 
     fun writePlayerMovement(gameId: String, movement: ChessPiece.Movement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        // Atomically add a new region to the "regions" array field.
         gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(movement)));
+    }
+
+    fun writePlayerMovement(gameId: String, promotionMovement: ChessPiece.PromotionMovement){
+        var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
+        gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(promotionMovement)));
     }
 
     fun searchForOpenGames(gameName: String, timeMode: String) {

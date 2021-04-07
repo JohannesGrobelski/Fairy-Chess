@@ -1,10 +1,9 @@
 package emerald.apps.fairychess.controller
 
+import android.app.AlertDialog
 import android.graphics.Color
 import android.view.View
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.*
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.model.ChessPiece
@@ -156,8 +155,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
                     moveResult = chessgame.movePlayer(movement,chessgame.getChessboard().moveColor)
                     if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won")
                 } else {
-                    moveResult = chessgame.movePlayer(movement)
+                    moveResult = chessgame.movePlayer(movement,gameParameters.playerColor)
                 }
+                moveResult += handlePromotion()
                 if(gameParameters.playMode=="human" && moveResult==""){
                     multiplayerDB.writePlayerMovement(gameData.gameId,movement)
                 }
@@ -174,7 +174,79 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
         }
     }
 
-    private fun displayFigures() {
+    fun handlePromotion() : String{
+        if(chessgame.getChessboard().promotion != null){
+            pawnPromotion(chessgame.getChessboard().promotion!!)
+            chessgame.getChessboard().promotion = null
+            return "promotion"
+        }
+        return ""
+    }
+
+    private fun pawnPromotion(pawnPromotionCandidate: ChessPiece) {
+        if(pawnPromotionCandidate.color != gameParameters.playerColor && gameParameters.playMode=="ai"){
+            val value = chessgame.figureMap["queen"]!!.value
+            val movingPattern = chessgame.figureMap["queen"]!!.movementParlett
+            chessgame.getChessboard().pieces[pawnPromotionCandidate.positionFile][pawnPromotionCandidate.positionRank] =
+                ChessPiece(
+                    "queen",
+                    pawnPromotionCandidate.positionFile,
+                    pawnPromotionCandidate.positionRank,
+                    value,
+                    chessgame.getChessboard().oppositeColor(gameParameters.playerColor),
+                    movingPattern,
+                    0
+                )
+            displayFigures()
+        }
+        else {
+            if(pawnPromotionCandidate.color == gameParameters.playerColor){
+                // create an alert builder
+                val builder = AlertDialog.Builder(chessActivity)
+                builder.setTitle("Pawn Promotion") // set the custom layout
+                val customLayout: View =
+                    chessActivity.layoutInflater.inflate(R.layout.promotion_layout, null)
+                builder.setView(customLayout) // add a button
+                val radioGroup = customLayout.findViewById<RadioGroup>(R.id.radiogroup)
+                builder.setPositiveButton("OK") { dialog, which ->
+                    val radioButton =
+                        customLayout.findViewById<RadioButton>(radioGroup.checkedRadioButtonId)
+                    promote(radioButton.text.toString().toLowerCase(), pawnPromotionCandidate)
+                }
+                // create and show the alert dialog
+                val dialog = builder.create()
+                dialog.show()
+            }
+        }
+    }
+
+    // do something with the data coming from the AlertDialog
+    private fun promote(promotion: String, chessPiece: ChessPiece) {
+        if (chessPiece.positionFile < 0 || chessPiece.positionFile > 7 || chessPiece.positionRank < 0 || chessPiece.positionRank > 7) return
+        val color: String = chessgame.getChessboard().pieces[chessPiece.positionFile][chessPiece.positionRank].color
+        val value = chessgame.figureMap[promotion]!!.value
+        val movingPattern = chessgame.figureMap[promotion]!!.movementParlett
+
+        chessgame.getChessboard().pieces[chessPiece.positionFile][chessPiece.positionRank] =
+            ChessPiece(promotion,chessPiece.positionFile,chessPiece.positionRank,value,color,movingPattern,0)
+        displayFigures()
+
+        var sourceFile = chessPiece.positionFile
+        var sourceRank = 6
+        if(chessPiece.color == "white") chessPiece.positionRank = 1
+        multiplayerDB.writePlayerMovement(gameData.gameId,
+            ChessPiece.PromotionMovement(
+                sourceFile = sourceFile,
+                sourceRank = sourceRank,
+                targetFile = chessPiece.positionFile,
+                targetRank = chessPiece.positionRank,
+                promotion = promotion
+            )
+        )
+    }
+
+
+    fun displayFigures() {
         for (file in 0..7) {
             for (rank in 0..7) {
                 val x: Int = getDrawableFromName(

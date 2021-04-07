@@ -29,7 +29,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         var playMode : String,
         var time : String,
         var playerColor:String)
-    private lateinit var gameParameters:GameParameters
+    private var gameParameters = GameParameters("","","","")
 
     companion object {
         const val TAG = "MainActivityListener"
@@ -53,9 +53,11 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     override fun onClick(v: View?) {
         when(v?.id){
             R.id.btn_human -> {
+                gameParameters.playMode = "human"
                 display_alertDialogGameParameters("human")
             }
             R.id.btn_ai -> {
+                gameParameters.playMode = "human"
                 display_alertDialogGameParameters("ai")
             }
         }
@@ -91,6 +93,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         val dialog = builder.create()
 
         btn_start_game_search.setOnClickListener{
+            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.time = spinner_timemode.selectedItem.toString()
             if(mode == "human"){
                 searchForGames(
                     spinner_gameName.selectedItem.toString(),
@@ -115,8 +119,6 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     fun searchForGames(gameName: String, timeMode: String){
         multiplayerDB.searchForOpenGames(gameName, timeMode)
-        gameParameters.name = gameName
-        gameParameters.time = timeMode
     }
 
     fun start_gameWithParameters(gameData: MultiplayerDB.GameData,gameParameters: GameParameters){
@@ -129,7 +131,6 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         intent.putExtra(gameTimeExtra, gameParameters.time)
         intent.putExtra(playerColorExtra, gameParameters.playerColor)
         mainActivity.startActivityForResult(intent,7777)
-       // mainActivity.finish()
     }
 
     fun loadOrCreateUserName(){

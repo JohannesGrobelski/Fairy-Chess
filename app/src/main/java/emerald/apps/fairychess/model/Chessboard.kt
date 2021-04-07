@@ -25,6 +25,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
 
     var whiteCapturedPieces = mutableListOf<ChessPiece>()
     var blackCapturedPieces = mutableListOf<ChessPiece>()
+    var promotion : ChessPiece? = null
 
     init {
         //hier einen aufstellungsstring übergeben
@@ -265,8 +266,12 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             blackCapturedPieces.add(pieces[movement.targetFile][movement.targetRank])
         }
         //move piece and replace target
+        var pieceName = pieces[movement.sourceFile][movement.sourceRank].name
+        if(movement is ChessPiece.PromotionMovement){
+            pieceName
+        }
         pieces[movement.targetFile][movement.targetRank] = ChessPiece(
-            pieces[movement.sourceFile][movement.sourceRank].name,
+            pieceName,
             movement.targetFile,
             movement.targetRank,
             pieces[movement.sourceFile][movement.sourceRank].value,
@@ -283,12 +288,25 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             "",
             0,
         )
+        checkForPromotion()
         getWinner()
         if(!gameFinished){
             ++moveCounter
             switchMoveColor()
         }
         return ""
+    }
+
+    private fun checkForPromotion() {
+        promotion = null
+        for (file in 0..7) {
+            if(pieces[file][0].name == "pawn"){
+                promotion = (pieces[file][0])
+            }
+            if(pieces[file][7].name == "pawn"){
+                promotion = (pieces[file][7])
+            }
+        }
     }
 
     /** calculate all points of black player */
