@@ -61,7 +61,7 @@ class MultiplayerDB {
         val resultList = mutableListOf<String>()
         db.collection(GAMECOLLECTIONPATH)
             .whereEqualTo("finished",false)
-            .whereEqualTo("gameName",gameName)
+            .whereEqualTo("name",gameName)
             .whereNotEqualTo("player1ID","")
             .whereEqualTo("player2ID","")
             .get()
@@ -102,7 +102,7 @@ class MultiplayerDB {
     fun createGame(gameName: String, player1Name: String) : String {
         // Create a new gameMode hashmap
         val gameHash = hashMapOf(
-            "gameName" to gameName,
+            "name" to gameName,
             "finished" to false,
             "player1ID" to player1Name,
             "player2ID" to "",
@@ -312,6 +312,3 @@ public interface MultiplayerDBGameInterface {
     fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState)
 }
 
-public interface OpponentMover{
-    public fun onOpponentMove(movement: ChessPiece.Movement)
-}

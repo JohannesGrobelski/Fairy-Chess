@@ -26,22 +26,6 @@ class StubChessAI {
     //Fields for move ordering
     private val transpositionTable = Hashtable<String, MovementValue>()
 
-    fun moveRandomFigure(chessgame: Chessgame) {
-        var randomSourceFile : Int
-        var randomSourceRank : Int
-        var targetMovements : List<ChessPiece.Movement>
-        do {
-            do {
-                randomSourceFile = (Math.random() * 8).toInt()
-                randomSourceRank = (Math.random() * 8).toInt()
-            } while(
-                chessgame.getPieceColor(randomSourceFile, randomSourceRank) != this.color
-            )
-            targetMovements = chessgame.getTargetMovements(randomSourceFile, randomSourceRank)
-        } while (targetMovements.isEmpty())
-
-        opponentMover.onOpponentMove(targetMovements[(Math.random() * targetMovements.size).toInt()])
-    }
 
     fun moveFigure(chessgame: Chessgame){
         var movementValue : MovementValue? = null

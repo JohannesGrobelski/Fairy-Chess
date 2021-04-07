@@ -14,40 +14,41 @@ import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
-import kotlinx.coroutines.*
 
 
 class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface {
-    lateinit var userNameDialog : AlertDialog
-    var userName = ""
-    var opponentName = ""
     private lateinit var mainActivity : MainActivity
     private lateinit var multiplayerDB: MultiplayerDB
 
+    lateinit var userNameDialog : AlertDialog
     private var launchedGamesMap = mutableMapOf<String,Boolean>()
+
+    private lateinit var userName:String
+    class GameParameters(
+        var name : String,
+        var playMode : String,
+        var time : String,
+        var playerColor:String)
+    private lateinit var gameParameters:GameParameters
+
+    companion object {
+        const val TAG = "MainActivityListener"
+        const val userNameExtra = "userNameExtra"
+        const val gameIdExtra = "gameId"
+        const val gamePlayerNameExtra = "playerNameExtra"
+        const val gameOpponentNameExtra = "opponentNameExtra"
+        const val gameModeExtra = "gameMode"
+        const val gameNameExtra = "name"
+        const val gameTimeExtra = "gameTime"
+        const val playerColorExtra = "playerColor"
+    }
+
 
     constructor(mainActivity: MainActivity) : this(){
         this.mainActivity = mainActivity
         loadOrCreateUserName()
         multiplayerDB = MultiplayerDB(this)
     }
-
-    companion object {
-        const val TAG = "MainActivityListener"
-        const val userNamePref = "userNamePref"
-        const val gameIdExtra = "gameId"
-        const val gamePlayerNameExtra = "playerNameExtra"
-        const val gameOpponentNameExtra = "opponentNameExtra"
-        const val gameModeExtra = "gameMode"
-        const val gameNameExtra = "gameName"
-        const val gameTimeExtra = "gameTime"
-        const val playerColorExtra = "playerColor"
-    }
-
-    private lateinit var gameSearchParameterGameName : String
-    private lateinit var gameSearchParameterTime : String
-    private var gameSearchParameterPlayerColor = ""
-
 
     override fun onClick(v: View?) {
         when(v?.id){
@@ -96,18 +97,15 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                     spinner_timemode.selectedItem.toString()
                 )
             } else {
-                gameSearchParameterGameName = spinner_gameName.selectedItem.toString()
-                gameSearchParameterTime = spinner_timemode.selectedItem.toString()
-                gameSearchParameterPlayerColor = "white"
-                val gameData = MultiplayerDB.GameData("",userName,"ai")
+                gameParameters = GameParameters(
+                    spinner_gameName.selectedItem.toString(),
+                    "ai",
+                    spinner_timemode.selectedItem.toString(),
+                    "white"
+                )
                 start_gameWithParameters(
-                    FairyChessGame(
-                        gameData,
-                        gameSearchParameterGameName,
-                        "ai",
-                        gameSearchParameterTime,
-                        gameSearchParameterPlayerColor
-                    )
+                    MultiplayerDB.GameData("",userName,"ai"),
+                    gameParameters
                 )
             }
             dialog.dismiss()
@@ -117,35 +115,26 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     fun searchForGames(gameName: String, timeMode: String){
         multiplayerDB.searchForOpenGames(gameName, timeMode)
-        this.gameSearchParameterGameName = gameName
-        this.gameSearchParameterTime = timeMode
+        gameParameters.name = gameName
+        gameParameters.time = timeMode
     }
 
-    fun start_gameWithParameters(fairyChessGame: FairyChessGame){
+    fun start_gameWithParameters(gameData: MultiplayerDB.GameData,gameParameters: GameParameters){
         val intent = Intent(mainActivity, ChessActivity::class.java)
-        intent.putExtra(gameIdExtra, fairyChessGame.gameData.gameId)
-        intent.putExtra(gamePlayerNameExtra, fairyChessGame.gameData.playerID)
-        intent.putExtra(gameOpponentNameExtra, fairyChessGame.gameData.opponentID)
-        intent.putExtra(gameNameExtra, fairyChessGame.gameName)
-        intent.putExtra(gameModeExtra, fairyChessGame.gameMode)
-        intent.putExtra(gameTimeExtra, fairyChessGame.time)
-        intent.putExtra(playerColorExtra, fairyChessGame.playerColor)
+        intent.putExtra(gameIdExtra, gameData.gameId)
+        intent.putExtra(gamePlayerNameExtra, gameData.playerID)
+        intent.putExtra(gameOpponentNameExtra, gameData.opponentID)
+        intent.putExtra(gameNameExtra, gameParameters.name)
+        intent.putExtra(gameModeExtra, gameParameters.playMode)
+        intent.putExtra(gameTimeExtra, gameParameters.time)
+        intent.putExtra(playerColorExtra, gameParameters.playerColor)
         mainActivity.startActivityForResult(intent,7777)
        // mainActivity.finish()
     }
 
-
-    data class FairyChessGame(
-        val gameData: MultiplayerDB.GameData,
-        val gameName: String,
-        val gameMode: String,
-        val time: String,
-        val playerColor: String
-    )
-
     fun loadOrCreateUserName(){
         val sharedPrefs = mainActivity.getSharedPreferences("FairyChess", Context.MODE_PRIVATE)!!
-        userName = sharedPrefs.getString(userNamePref, "")!!
+        userName = sharedPrefs.getString(userNameExtra, "")!!
         if(userName.isEmpty()){
             openCreateUserNameDialog("")
         } else {
@@ -186,7 +175,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             "FairyChess",
             Context.MODE_PRIVATE
         )!!.edit()
-        sharedPrefsEditor.putString(userNamePref, userName)
+        sharedPrefsEditor.putString(userNameExtra, userName)
         sharedPrefsEditor.apply()
         userNameDialog.dismiss()
         Toast.makeText(
@@ -220,12 +209,12 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                 "found gameMode: " + gameIDList[0],
                 Toast.LENGTH_SHORT
             ).show()
-            gameSearchParameterPlayerColor = "black"
+            gameParameters.playerColor = "black"
             multiplayerDB.joinGame(gameIDList[0], userName)
         } else {
             Log.d(TAG,"no gameMode found => create gameMode")
             println("no gameMode found => create gameMode")
-            multiplayerDB.createGame(gameSearchParameterGameName,userName)
+            multiplayerDB.createGame(gameParameters.name,userName)
         }
     }
 
@@ -240,7 +229,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             Toast.LENGTH_SHORT
         ).show()
         multiplayerDB.listenToGameSearch(gameID)
-        this.gameSearchParameterPlayerColor = playerColor
+        gameParameters.playerColor = playerColor
     }
 
     override fun onGameChanged(gameId: String) {
@@ -252,22 +241,17 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     override fun onJoinGame(gameData: MultiplayerDB.GameData) {
         if(!multiplayerDB.gameLaunched && !launchedGamesMap.containsKey(gameData.gameId)){
             multiplayerDB.gameLaunched = true
-            Log.d(TAG, "$userName joined gameMode: $gameSearchParameterGameName")
-            println("$userName joined gameMode: $gameSearchParameterGameName")
+            Log.d(TAG, "$userName joined gameMode: ${gameParameters.playMode}")
+            println("$userName joined gameMode: ${gameParameters.name}")
             Toast.makeText(
                 mainActivity,
-                "$userName joined gameMode: $gameSearchParameterGameName",
+                "$userName joined gameMode: ${gameParameters.name}",
                 Toast.LENGTH_SHORT
             ).show()
             launchedGamesMap[gameData.gameId] = true
             start_gameWithParameters(
-                FairyChessGame(
-                    gameData,
-                    gameSearchParameterGameName,
-                    "human",
-                    gameSearchParameterTime,
-                    gameSearchParameterPlayerColor
-                )
+                gameData,
+                gameParameters
             )
         }
     }

@@ -33,14 +33,16 @@ class ChessActivity : AppCompatActivity() {
         chessActivityListener = ChessActivityListener(this)
     }
 
-    fun onClickSquare(v: View){
-        chessActivityListener.clickSquare(v)
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         chessActivityListener.onDestroy()
     }
+
+
+    fun onClickSquare(v: View){
+        chessActivityListener.clickSquare(v)
+    }
+
 
     fun highlightActivePlayer(activePlayerColor: String){
         if(playerColor == "white"){

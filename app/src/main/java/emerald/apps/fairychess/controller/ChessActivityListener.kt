@@ -90,13 +90,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     private lateinit var chessgame: Chessgame
     private lateinit var multiplayerDB: MultiplayerDB
 
-    private lateinit var gameId : String
-    private lateinit var playerName : String
-    private lateinit var opponentName : String
-    private lateinit var gameMode : String
-    private lateinit var gameName : String
-    private lateinit var time : String
-    private lateinit var playerColor : String
+    lateinit var gameData: MultiplayerDB.GameData
+    lateinit var gameParameters: MainActivityListener.GameParameters
 
     var selectionFile = -1
     var selectionRank = -1
@@ -113,30 +108,33 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        gameId = chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!
-        playerName = chessActivity.intent.getStringExtra(MainActivityListener.gamePlayerNameExtra)!!
-        opponentName = chessActivity.intent.getStringExtra(MainActivityListener.gameOpponentNameExtra)!!
-        gameMode = chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!
-        gameName = chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!
-        time = chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
-        playerColor = chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+        gameData = MultiplayerDB.GameData(
+            chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.gamePlayerNameExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.gameOpponentNameExtra)!!
+        )
+        gameParameters = MainActivityListener.GameParameters(
+            chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+        )
 
-        chessgame = Chessgame(chessActivity,gameId,gameName,playerName,opponentName,gameMode,time,playerColor)
-        if(playerColor=="white"){
-            chessActivity.tv_playernameW.text = playerName
-            chessActivity.tv_opponentnameW.text = opponentName
+        chessgame = Chessgame(chessActivity,gameData, gameParameters)
+        if(gameParameters.playerColor=="white"){
+            chessActivity.tv_playernameW.text = gameData.playerID
+            chessActivity.tv_opponentnameW.text = gameData.opponentID
         }
-        if(playerColor=="black"){
-            chessActivity.tv_playernameB.text = playerName
-            chessActivity.tv_opponentnameB.text = opponentName
+        if(gameParameters.playerColor=="black"){
+            chessActivity.tv_playernameB.text = gameData.playerID
+            chessActivity.tv_opponentnameB.text = gameData.opponentID
         }
-        this.gameMode = gameMode
         initViews()
         displayFigures()
 
-        if(gameMode == "human"){
+        if(gameParameters.playMode == "human"){
             multiplayerDB = MultiplayerDB(this,chessgame)
-            multiplayerDB.listenToGameIngame(gameId)
+            multiplayerDB.listenToGameIngame(gameData.gameId)
         }
     }
 
@@ -154,14 +152,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
                 && clickedFile != -1 && clickedRank != -1){
                 val movement = ChessPiece.Movement(sourceFile = selectionFile,sourceRank = selectionRank,targetFile = clickedFile,targetRank = clickedRank)
                 var moveResult:String
-                if(gameMode=="ai"){
+                if(gameParameters.playMode=="ai"){
                     moveResult = chessgame.movePlayer(movement,chessgame.getChessboard().moveColor)
                     if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won")
                 } else {
                     moveResult = chessgame.movePlayer(movement)
                 }
-                if(gameMode=="human" && moveResult==""){
-                    multiplayerDB.writePlayerMovement(gameId,movement)
+                if(gameParameters.playMode=="human" && moveResult==""){
+                    multiplayerDB.writePlayerMovement(gameData.gameId,movement)
                 }
                 displayFigures()
                 if(moveResult.isNotEmpty()){
@@ -338,12 +336,12 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     }
 
     fun onDestroy() {
-        finishGame("$playerColor left the game")
+        finishGame(gameParameters.playerColor+" left the game")
     }
 
     fun finishGame(cause: String){
-        if(chessgame.gameMode=="human"){
-            multiplayerDB.finishGame(chessgame.gameId, cause)
+        if(chessgame.gameParameters.playMode=="human"){
+            multiplayerDB.finishGame(chessgame.gameData.gameId, cause)
         } else {
             onFinishGame("",cause)
         }
@@ -352,15 +350,15 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
     override fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState) {
         if(gameState.gameFinished){
             Toast.makeText(chessActivity,"opponent left game",Toast.LENGTH_LONG).show()
-            onFinishGame(gameId,"opponent left game")
+            onFinishGame(gameData.gameId,"opponent left game")
         } else {
             if(gameState.moves.isNotEmpty()){
-                if(playerColor == "white" && gameState.moves.size%2==0
-                    || playerColor == "black" && gameState.moves.size%2==1){
+                if(gameParameters.playerColor == "white" && gameState.moves.size%2==0
+                    || gameParameters.playerColor == "black" && gameState.moves.size%2==1){
                         chessgame.addMove(gameState.moves[gameState.moves.lastIndex])
                         displayFigures()
                         if(chessgame.gameFinished){
-                            finishGame("$playerColor won")
+                            finishGame("$gameParameters.playerColor won")
                         }
                 }
             }
