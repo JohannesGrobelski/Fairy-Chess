@@ -70,7 +70,7 @@ class StubChessAI {
                     val chessboardCopy = _chessboard.copy()
                     val currentBestMove = alpha_beta_trans(
                         tiefe - 1,
-                        _chessboard.oppositeColor(color),
+                        Chessboard.oppositeColor(color),
                         _chessboard,
                         alpha,
                         beta
@@ -91,7 +91,7 @@ class StubChessAI {
                     val chessboardCopy = _chessboard.copy()
                     val currentBestMove = alpha_beta_trans(
                         tiefe - 1,
-                        _chessboard.oppositeColor(color),
+                        Chessboard.oppositeColor(color),
                         _chessboard,
                         alpha,
                         beta
@@ -139,7 +139,7 @@ class StubChessAI {
                 val chessboardCopy = _chessboard.copy()
                 val currentBestMove = alpha_beta_trans(
                     tiefe - 1,
-                    _chessboard.oppositeColor(color),
+                    Chessboard.oppositeColor(color),
                     _chessboard,
                     alpha,
                     beta
@@ -160,7 +160,7 @@ class StubChessAI {
                 val chessboardCopy = _chessboard.copy()
                 val currentBestMove = alpha_beta_trans(
                     tiefe - 1,
-                    _chessboard.oppositeColor(color),
+                    Chessboard.oppositeColor(color),
                     _chessboard,
                     alpha,
                     beta

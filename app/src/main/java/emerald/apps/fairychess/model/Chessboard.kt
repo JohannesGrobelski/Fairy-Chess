@@ -55,6 +55,30 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         }
     }
 
+    companion object {
+        /**
+         * returns white or black randomly
+         */
+        fun randomColor() : String {
+            if(Math.random() > 0.5)return "white"
+            else return "black"
+        }
+
+        /**
+         * returns the opposite color
+         */
+        public fun oppositeColor(color : String) : String {
+            return if(color == "white"){
+                "black"
+            } else if(color == "black"){
+                "white"
+            } else {
+                ""
+            }
+        }
+
+    }
+
     /** return a list of possible movements of the figure at (sourceFile,sourceRank)*/
     fun getTargetMovements(sourceFile:Int, sourceRank:Int) : List<ChessPiece.Movement>{
         val nonRelativeMovements = pieces[sourceFile][sourceRank].generateMovements()
@@ -217,6 +241,11 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         gameFinished = (whiteKing*blackKing) == 0
     }
 
+    /** switchMoveColor from white to black and vice versa */
+    fun switchMoveColor(){
+        moveColor = oppositeColor(moveColor)
+    }
+
     /** check if color can move and (if possible) execute movement */
     fun move(color: String, movement: ChessPiece.Movement) : String{
         if(color != moveColor)return "wrong player"
@@ -341,20 +370,6 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         pieces[file][rank] = ChessPiece(promotion, file, rank, 10, color, "", 0)
     }
 
-    /** switchMoveColor from white to black and vice versa */
-    fun switchMoveColor(){
-        moveColor = oppositeColor(moveColor)
-    }
-
-    fun oppositeColor(color : String) : String {
-        return if(color == "white"){
-            "black"
-        } else if(color == "black"){
-            "white"
-        } else {
-            ""
-        }
-    }
 
     override fun hashCode(): Int {
         return super.hashCode()

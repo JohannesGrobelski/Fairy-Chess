@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="gamemodes">
-        <item name = "normal">normal chess</item>
+        <item>all game modes</item>
+        <item>normal chess</item>
         <item>berolina chess</item>
         <item>grasshopper chess</item>
     </string-array>
     <string-array name="timemodes">
+        <item>all time modes</item>
         <item>bullet (2 minutes)</item>
         <item>blitz (5 minutes)</item>
         <item>rapid (10 minutes)</item>

@@ -5,6 +5,9 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import emerald.apps.fairychess.controller.MainActivityListener
+import emerald.apps.fairychess.model.Chessboard.Companion.oppositeColor
+import emerald.apps.fairychess.model.Chessboard.Companion.randomColor
 
 /**
  *  usecase: create player
@@ -28,16 +31,27 @@ import com.google.firebase.ktx.Firebase
 class MultiplayerDB {
     companion object {
         const val TAG = "MultiplayerDB"
+        
+        //collection paths
         const val GAMECOLLECTIONPATH = "test_games"
         const val PLAYERCOLLECTIONPATH = "test_players"
+
+        //fields in game (in game collection)
+        const val GAMEFIELD_FINISHED = "finished"
+        const val GAMEFIELD_GAMENAME = "gameName"
+        const val GAMEFIELD_TIMEMODE = "timeMode"
+        const val GAMEFIELD_MOVES = "moves"
+        const val GAMEFIELD_PLAYER1ID = "player1ID"
+        const val GAMEFIELD_PLAYER1Color = "player1Color"
+        const val GAMEFIELD_PLAYER2ID = "player2ID"
+        const val GAMEFIELD_PLAYER2Color = "player2Color"
+
     }
 
     private var multiplayerDBSearchInterface : MultiplayerDBSearchInterface? = null
     private var multiplayerDBGameInterface : MultiplayerDBGameInterface? = null
     private var db : FirebaseFirestore
     private lateinit var chessGame : Chessgame
-
-    var gameLaunched = false
 
     constructor(multiplayerDBGameInterface: MultiplayerDBGameInterface, chessgame: Chessgame) {
         this.chessGame = chessgame
@@ -61,19 +75,38 @@ class MultiplayerDB {
         gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(promotionMovement)));
     }
 
-    fun searchForOpenGames(gameName: String, timeMode: String) {
-        val resultList = mutableListOf<String>()
-        db.collection(GAMECOLLECTIONPATH)
-            .whereEqualTo("finished",false)
-            .whereEqualTo("name",gameName)
-            .whereNotEqualTo("player1ID","")
-            .whereEqualTo("player2ID","")
+    /**
+     * Search for matching open games = documents with matching parameters (gameName and timeMode),
+     * field finished = false and player1ID not matching player2ID. When search was successful call callback function
+     * (onGameSearchComplete in MainActivityListener)
+     */
+    fun searchForOpenGames(gameName: String, timeMode: String, player2ID: String) {
+        val resultList = mutableListOf<MainActivityListener.Game>()
+        Log.d(TAG, "search for games $gameName, $timeMode, $player2ID")
+        var collection = db.collection(GAMECOLLECTIONPATH)
+            .whereEqualTo(GAMEFIELD_FINISHED,false)
+            .whereEqualTo(GAMEFIELD_PLAYER2ID,"")
+            .whereNotEqualTo(GAMEFIELD_PLAYER1ID,player2ID)
+        if(!gameName.startsWith("all")){
+            collection = collection.whereEqualTo(GAMEFIELD_GAMENAME,gameName)
+        }
+        if(!timeMode.startsWith("all")){
+            collection = collection.whereEqualTo(GAMEFIELD_TIMEMODE,timeMode)
+        }
+        collection
             .get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     for (document in task.result!!) {
                         Log.d(TAG, document.id + " => " + document.data)
-                        resultList.add(document.id)
+                        resultList.add(
+                            MainActivityListener.Game(
+                                document.id,
+                                document.get(GAMEFIELD_GAMENAME) as String,
+                                document.get(GAMEFIELD_TIMEMODE) as String,
+                                document.get(GAMEFIELD_PLAYER2Color) as String
+                            )
+                        )
                     }
                     multiplayerDBSearchInterface?.onGameSearchComplete(resultList)
                 } else {
@@ -82,57 +115,44 @@ class MultiplayerDB {
             }
     }
 
-    fun checkGameForSecondPlayer(gameID: String): Boolean{
-        var isNotEmpty = false
-        db.collection(GAMECOLLECTIONPATH)
-            .document("$GAMECOLLECTIONPATH/$gameID")
-            .get()
-            .addOnSuccessListener { documents ->
-                run {
-                    isNotEmpty = true
-                }
-            }
-            .addOnFailureListener{
-                Log.w(TAG, "Error adding document", it.cause)
-                println("Error adding document" + it.cause)
-            }
-        return isNotEmpty
-    }
-
     /**
-     * create gameMode and
+     * create open game = create document with matching gameName and timeMode and player1ID set.
+     * when finished call the callback function (onCreateGame in MainActivityListener)
      * @return document_id of the gameMode
      */
-    fun createGame(gameName: String, player1Name: String) : String {
+    fun createGame(gameName: String, timeMode: String, player1ID: String) {
         // Create a new gameMode hashmap
+        val player1Color = randomColor()
+        val player2Color = oppositeColor(player1Color)
         val gameHash = hashMapOf(
-            "name" to gameName,
-            "finished" to false,
-            "player1ID" to player1Name,
-            "player2ID" to "",
-            "moves" to listOf<String>()
-        )
-        var document_id = ""
-
+            GAMEFIELD_GAMENAME to gameName,
+            GAMEFIELD_FINISHED to false,
+            GAMEFIELD_TIMEMODE to timeMode,
+            GAMEFIELD_MOVES to listOf<String>(),
+            GAMEFIELD_PLAYER1ID to player1ID,
+            GAMEFIELD_PLAYER1Color to player1Color,
+            GAMEFIELD_PLAYER2ID to "",
+            GAMEFIELD_PLAYER2Color to player2Color
+            )
         // Add a new document with a generated ID
         db.collection(GAMECOLLECTIONPATH)
             .add(gameHash)
             .addOnSuccessListener { documentReference ->
                 run {
                     Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-                    document_id = documentReference.id
-                    multiplayerDBSearchInterface?.onCreateGame(gameName,document_id, "white")
+                    multiplayerDBSearchInterface?.onCreateGame(gameName,documentReference.id, player1Color)
                 }
             }
             .addOnFailureListener { e ->
                 run {
                     Log.w(TAG, "Error adding document", e)
-                    document_id =  ""
                 }
             }
-        return document_id
     }
 
+    /**
+     *
+     */
     fun searchUsers(userName: String) {
         val resultList = mutableListOf<String>()
         db.collection(PLAYERCOLLECTIONPATH)
@@ -149,7 +169,6 @@ class MultiplayerDB {
                     Log.w(TAG, "Error getting documents.", task.exception)
                 }
             }
-
     }
 
     fun joinGame(gameID: String, userName: String) {
@@ -220,12 +239,9 @@ class MultiplayerDB {
                 Log.w(TAG, "Listen failed.", e)
                 return@addSnapshotListener
             }
-
             if (snapshot != null && snapshot.exists()) {
                 Log.d(TAG, "Current data: ${snapshot.data}")
-                if(!gameLaunched){
-                    multiplayerDBSearchInterface?.onGameChanged(snapshot.id)
-                }
+                multiplayerDBSearchInterface?.onGameChanged(snapshot.id)
             } else {
                 Log.d(TAG, "Current data: null")
             }
@@ -300,12 +316,25 @@ class MultiplayerDB {
                 }
             }
     }
+
+    fun cancelGame(gameId: String) {
+        // Add a new document with a generated ID
+        db.collection(GAMECOLLECTIONPATH)
+            .document(gameId)
+            .update(
+                mapOf(
+                    GAMEFIELD_FINISHED to true
+                )
+            )
+    }
+
+
 }
 
 public interface MultiplayerDBSearchInterface {
     fun onCreatePlayer(playerID: String)
     fun onPlayerNameSearchComplete(playerIDr: String, occurences: Int)
-    fun onGameSearchComplete(gameIDList: List<String>)
+    fun onGameSearchComplete(gameIDList: List<MainActivityListener.Game>)
     fun onJoinGame(gameData: MultiplayerDB.GameData)
     fun onCreateGame(gameName: String, gameID: String, player1Color : String)
     fun onGameChanged(gameId : String)

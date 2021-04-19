@@ -39,7 +39,7 @@ class Chessgame() {
         chessboard = Chessboard(chessFormationArray, figureMap)
         this.gameData = gameData
         this.gameParameters = gameParameters
-        this.opponentColor = chessboard.oppositeColor(gameParameters.playerColor)
+        this.opponentColor = Chessboard.oppositeColor(gameParameters.playerColor)
         this.gameFinished = false
         this.chessActivity = chessActivity
     }
@@ -80,9 +80,9 @@ class Chessgame() {
 
     fun makeMove(moveString: String) {
         val count = moveString.count{ "_".contains(it) }
-        if(count == 3)makeMove(ChessPiece.Movement.fromStringToMovement(moveString))
-        if(count == 4)makeMove(ChessPiece.PromotionMovement.fromStringToMovement(moveString))
-    }
+    if(count == 3)makeMove(ChessPiece.Movement.fromStringToMovement(moveString))
+    if(count == 4)makeMove(ChessPiece.PromotionMovement.fromStringToMovement(moveString))
+}
 
     fun makeMove(movement: ChessPiece.Movement){
         chessboard.move(chessboard.moveColor, movement)

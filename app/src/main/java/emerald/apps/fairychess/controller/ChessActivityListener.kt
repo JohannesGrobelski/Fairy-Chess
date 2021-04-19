@@ -6,10 +6,7 @@ import android.view.View
 import android.widget.*
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
-import emerald.apps.fairychess.model.ChessPiece
-import emerald.apps.fairychess.model.Chessgame
-import emerald.apps.fairychess.model.MultiplayerDB
-import emerald.apps.fairychess.model.MultiplayerDBGameInterface
+import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
@@ -193,7 +190,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
                     pawnPromotionCandidate.positionFile,
                     pawnPromotionCandidate.positionRank,
                     value,
-                    chessgame.getChessboard().oppositeColor(gameParameters.playerColor),
+                    Chessboard.oppositeColor(gameParameters.playerColor),
                     movingPattern,
                     0
                 )
