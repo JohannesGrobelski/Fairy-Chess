@@ -12,6 +12,8 @@ import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.ChessActivityListener
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.model.ChessPiece
+import emerald.apps.fairychess.model.ChessTimerOpponent
+import emerald.apps.fairychess.model.ChessTimerPlayer
 import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
 
@@ -20,17 +22,26 @@ class ChessActivity : AppCompatActivity() {
     private lateinit var chessActivityListener: ChessActivityListener
     private lateinit var playerColor : String
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         playerColor = this.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+        val timeMode = this.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
         if(playerColor == "white"){
             setContentView(R.layout.activity_chess_white_perspective)
+            tv_PlayerTimeW.text = timeMode
+            tv_OpponentTimeW.text = timeMode
         } else {
             setContentView(R.layout.activity_chess_black_perspective)
+            tv_PlayerTimeB.text = timeMode
+            tv_OpponentTimeB.text = timeMode
         }
         
         chessActivityListener = ChessActivityListener(this)
+
+
     }
 
     override fun onDestroy() {
@@ -48,18 +59,34 @@ class ChessActivity : AppCompatActivity() {
         if(playerColor == "white"){
             if(playerColor == activePlayerColor){
                 tv_playernameW.setTextColor(RED)
+                tv_PlayerELOW.setTextColor(RED)
+                tv_PlayerTimeW.setTextColor(RED)
                 tv_opponentnameW.setTextColor(WHITE)
+                tv_OpponentTimeW.setTextColor(WHITE)
+                tv_OpponentELOW.setTextColor(WHITE)
             }else {
-                tv_opponentnameW.setTextColor(RED)
                 tv_playernameW.setTextColor(WHITE)
+                tv_PlayerELOW.setTextColor(WHITE)
+                tv_PlayerTimeW.setTextColor(WHITE)
+                tv_opponentnameW.setTextColor(RED)
+                tv_OpponentTimeW.setTextColor(RED)
+                tv_OpponentELOW.setTextColor(RED)
             }
         } else {
             if(playerColor == activePlayerColor){
                 tv_playernameB.setTextColor(RED)
+                tv_PlayerELOB.setTextColor(RED)
+                tv_PlayerTimeB.setTextColor(RED)
                 tv_opponentnameB.setTextColor(WHITE)
+                tv_OpponentTimeB.setTextColor(WHITE)
+                tv_OpponentELOB.setTextColor(WHITE)
             }else {
-                tv_opponentnameB.setTextColor(RED)
-                tv_playernameB.setTextColor(WHITE)
+                tv_playernameB.setTextColor(RED)
+                tv_PlayerELOB.setTextColor(RED)
+                tv_PlayerTimeB.setTextColor(RED)
+                tv_opponentnameB.setTextColor(WHITE)
+                tv_OpponentTimeB.setTextColor(WHITE)
+                tv_OpponentELOB.setTextColor(WHITE)
             }
         }
     }

@@ -7,6 +7,7 @@ import android.widget.*
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.model.*
+import emerald.apps.fairychess.model.TimerUtils.Companion.transformLongToTimeString
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
@@ -76,7 +77,9 @@ import kotlinx.android.synthetic.main.activity_chess_white_perspective.H7
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
 
 
-class ChessActivityListener() : MultiplayerDBGameInterface {
+class ChessActivityListener() : MultiplayerDBGameInterface
+    , ChessTimerPlayer.ChessTimerPlayerInterface
+    , ChessTimerOpponent.ChessTimerOpponentInterface {
     //TODO: Castling: requires history of involved rook and king. Can be accomplished via a hasMovedBefore flag.
     //TODO: en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure, or retaining the previous board state.
     //TODO: Fifty move rule: requires history of when the last capture or pawn move. Can be accomplished via a lastPawnMoveOrCapture counter
@@ -102,6 +105,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
      */
     private lateinit var imageViews: Array<Array<ImageView>> //imageViews[file][rank]
 
+    private var playerTimer : ChessTimerPlayer? = null
+    private var opponentTimer : ChessTimerOpponent? = null
+
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
         gameData = MultiplayerDB.GameData(
@@ -125,6 +131,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
             chessActivity.tv_playernameB.text = gameData.playerID
             chessActivity.tv_opponentnameB.text = gameData.opponentID
         }
+
+        playerTimer = ChessTimerPlayer.getPlTimerFromTimeMode(this,gameParameters.time)
+        opponentTimer = ChessTimerOpponent.getOpTimerFromTimeMode(this,gameParameters.time)
+        playerTimer?.create()
+        opponentTimer?.create()
+
+
         initViews()
         displayFigures()
 
@@ -257,7 +270,20 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
         chessActivity.drawCapturedPiecesDrawable("white",chessgame.getChessboard().blackCapturedPieces)
         chessActivity.drawCapturedPiecesDrawable("black",chessgame.getChessboard().whiteCapturedPieces)
         chessActivity.highlightActivePlayer(chessgame.getChessboard().moveColor)
+        switchClocks(chessgame.getChessboard().moveColor)
     }
+
+    private fun switchClocks(activePlayerColor : String){
+        if(gameParameters.playerColor == activePlayerColor){
+            opponentTimer?.pause()
+            playerTimer?.resume()
+        } else {
+            playerTimer?.pause()
+            opponentTimer?.resume()
+        }
+    }
+
+
 
     private fun displayTargetMovements() {
         val targetMovements = chessgame.getTargetMovements(selectionFile,selectionRank)
@@ -434,10 +460,37 @@ class ChessActivityListener() : MultiplayerDBGameInterface {
         }
     }
 
-
     override fun onFinishGame(gameId: String, cause : String) {
         Toast.makeText(chessActivity,cause,Toast.LENGTH_LONG).show()
         chessActivity.finish()
+    }
+
+    override fun onTickOpponentTimer(millisUntilFinished: Long) {
+        if(gameParameters.playerColor=="white"){
+            chessActivity.tv_OpponentTimeW.text = transformLongToTimeString(millisUntilFinished)
+        }
+        if(gameParameters.playerColor=="black"){
+            chessActivity.tv_OpponentTimeB.text = transformLongToTimeString(millisUntilFinished)
+        }
+    }
+
+    override fun onFinishOpponentTimer() {
+        chessgame.gameFinished = true
+
+        finishGame("timeout. you won.")
+    }
+
+    override fun onTickPlayerTimer(millisUntilFinished: Long) {
+        if(gameParameters.playerColor=="white"){
+            chessActivity.tv_PlayerTimeW.text = transformLongToTimeString(millisUntilFinished)
+        }
+        if(gameParameters.playerColor=="black"){
+            chessActivity.tv_PlayerTimeB.text = transformLongToTimeString(millisUntilFinished)
+        }
+    }
+
+    override fun onFinishPlayerTimer() {
+        finishGame("timeout. you lost.")
     }
 
 

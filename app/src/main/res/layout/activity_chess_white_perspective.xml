@@ -27,17 +27,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:layout_weight="1"
                 android:text="PlayernameOpponent"
                 android:textColor="@android:color/white" />
 
             <TextView
-                android:id="@+id/tv_PlayerOpponentELO"
+                android:id="@+id/tv_OpponentELOW"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_weight="1"
+                android:layout_marginTop="10dp"
                 android:text="800 ELO"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/tv_OpponentTimeW"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
+                android:textAlignment="center"
                 android:textColor="@android:color/white" />
 
         </LinearLayout>
@@ -678,17 +685,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:layout_weight="1"
                 android:text="PlayernamePlayer"
                 android:textColor="@android:color/white" />
 
             <TextView
-                android:id="@+id/tv_PlayerPlayerELO"
+                android:id="@+id/tv_PlayerELOW"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_weight="1"
+                android:layout_marginTop="10dp"
                 android:text="800 ELO"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/tv_PlayerTimeW"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
+                android:textAlignment="center"
                 android:textColor="@android:color/white" />
 
         </LinearLayout>
