@@ -228,9 +228,9 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                     changeMap[MultiplayerDB.GAMEFIELD_GAMENAME] = "normal chess" //standard
                 }
             }
-            if(chosenGame.gameName.startsWith("all")){
-                if(!gameParameters.name.startsWith("all")){
-                    changeMap[MultiplayerDB.GAMEFIELD_TIMEMODE] = gameParameters.name
+            if(chosenGame.timeMode.startsWith("all")){
+                if(!gameParameters.time.startsWith("all")){
+                    changeMap[MultiplayerDB.GAMEFIELD_TIMEMODE] = gameParameters.time
                 } else {
                     changeMap[MultiplayerDB.GAMEFIELD_TIMEMODE] = "blitz (2 minutes)" //standard
                 }
