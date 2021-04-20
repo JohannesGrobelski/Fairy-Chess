@@ -4,6 +4,15 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:id="@+id/tv_gameID"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="ID" />
+
+    <TextView
         android:id="@+id/tv_gameName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

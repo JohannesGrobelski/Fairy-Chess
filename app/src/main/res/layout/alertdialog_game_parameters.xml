@@ -17,7 +17,7 @@
         android:layout_weight="1" />
 
     <Button
-        android:id="@+id/btn_create_game"
+        android:id="@+id/btn_search_game"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="search for games" />

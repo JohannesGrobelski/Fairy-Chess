@@ -83,16 +83,16 @@ class MultiplayerDB {
     fun searchForOpenGames(gameName: String, timeMode: String, player2ID: String) {
         val resultList = mutableListOf<MainActivityListener.Game>()
         Log.d(TAG, "search for games $gameName, $timeMode, $player2ID")
-        var collection = db.collection(GAMECOLLECTIONPATH)
+        val collection = db.collection(GAMECOLLECTIONPATH)
             .whereEqualTo(GAMEFIELD_FINISHED,false)
             .whereEqualTo(GAMEFIELD_PLAYER2ID,"")
             .whereNotEqualTo(GAMEFIELD_PLAYER1ID,player2ID)
-        if(!gameName.startsWith("all")){
-            collection = collection.whereEqualTo(GAMEFIELD_GAMENAME,gameName)
-        }
-        if(!timeMode.startsWith("all")){
-            collection = collection.whereEqualTo(GAMEFIELD_TIMEMODE,timeMode)
-        }
+
+        if(!gameName.startsWith("all"))
+            collection.whereIn(GAMEFIELD_GAMENAME, listOf("all game modes",gameName))
+        if(!timeMode.startsWith("all"))
+            collection.whereEqualTo(GAMEFIELD_TIMEMODE, timeMode)
+
         collection
             .get()
             .addOnCompleteListener { task ->
@@ -171,16 +171,13 @@ class MultiplayerDB {
             }
     }
 
-    fun joinGame(gameID: String, userName: String) {
+    fun joinGame(gameID: String, changeMap : Map<String,String>) {
         db.collection(GAMECOLLECTIONPATH)
             .document(gameID)
             .update(
-                mapOf(
-                    "player2ID" to userName
-                )
-            )
-            .addOnSuccessListener {
-                getGameDataAndJoinGame(gameID,userName)
+                changeMap.toMap()
+            ).addOnSuccessListener {
+                getGameDataAndJoinGame(gameID,changeMap[GAMEFIELD_PLAYER2ID]!!)
             }
     }
 
@@ -192,11 +189,20 @@ class MultiplayerDB {
             .get()
             .addOnSuccessListener { docRef ->
                 run {
-                    val player1ID = docRef.getString("player1ID")!!
-                    val player2ID = docRef.getString("player2ID")!!
+                    val player1ID = docRef.getString(GAMEFIELD_PLAYER1ID)!!
+                    val player2ID = docRef.getString(GAMEFIELD_PLAYER2ID)!!
                     var opponentID = player1ID
                     if(opponentID == userName)opponentID = player2ID
-                    multiplayerDBSearchInterface?.onJoinGame(GameData(gameId,userName,opponentID))
+                    val gameData = GameData(gameId,userName,opponentID)
+
+                    val name = docRef.getString(GAMEFIELD_GAMENAME)!!
+                    val playMode = "human"
+                    val time = docRef.getString(GAMEFIELD_TIMEMODE)!!
+                    var playerColor = docRef.getString(GAMEFIELD_PLAYER1Color)!!
+                    if(userName == player2ID)playerColor = docRef.getString(GAMEFIELD_PLAYER2Color)!!
+                    val gameParameters = MainActivityListener.GameParameters(name,playMode,time,playerColor)
+
+                    multiplayerDBSearchInterface?.onJoinGame(gameParameters,gameData)
                 }
             }
             .addOnFailureListener { e ->
@@ -335,7 +341,7 @@ public interface MultiplayerDBSearchInterface {
     fun onCreatePlayer(playerID: String)
     fun onPlayerNameSearchComplete(playerIDr: String, occurences: Int)
     fun onGameSearchComplete(gameIDList: List<MainActivityListener.Game>)
-    fun onJoinGame(gameData: MultiplayerDB.GameData)
+    fun onJoinGame(gameParameters: MainActivityListener.GameParameters,gameData: MultiplayerDB.GameData)
     fun onCreateGame(gameName: String, gameID: String, player1Color : String)
     fun onGameChanged(gameId : String)
 }

@@ -22,9 +22,6 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     lateinit var userNameDialog : AlertDialog
     var joinWaitDialog : AlertDialog? = null
-    lateinit var gameSearchDialog: AlertDialog
-    var foundGamesList : MutableList<Game> = mutableListOf()
-    lateinit var gameListAdapter : GameListAdapter
     private var launchedGamesMap = mutableMapOf<String, Boolean>()
 
     private lateinit var userName:String
@@ -79,123 +76,35 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
         val inflater = LayoutInflater.from(mainActivity)
-        val rootView: View
 
         //inflate the layout (depending on mode)
-        rootView = if(mode == "ai"){
-            inflater.inflate(
-                R.layout.alertdialog_offline_game_parameters,
-                null,
-                false
-            )
-        } else {
-            inflater.inflate(
-                R.layout.alertdialog_online_game_parameters,
-                null,
-                false
-            )
-        }
+        val searchDialogView = inflater.inflate(
+            R.layout.alertdialog_game_parameters,
+            null,
+            false
+        )
 
         //create dialog
-        val spinner_gameName : Spinner = rootView.findViewById(R.id.spinner_gameName)
+        val spinner_gameName : Spinner = searchDialogView.findViewById(R.id.spinner_gameName)
         spinner_gameName.adapter = ArrayAdapter(
             mainActivity,
             android.R.layout.simple_list_item_1,
             gameModes
         )
-        val spinner_timemode : Spinner = rootView.findViewById(R.id.spinner_timemode)
+        val spinner_timemode : Spinner = searchDialogView.findViewById(R.id.spinner_timemode)
         spinner_timemode.adapter = ArrayAdapter(
             mainActivity,
             android.R.layout.simple_list_item_1,
             timeModes
         )
-        val btn_create_game = rootView.findViewById<Button>(R.id.btn_create_game)
-        val builder = AlertDialog.Builder(mainActivity)
-        builder.setView(rootView)
-        gameSearchDialog = builder.create()
+        val btn_search_game = searchDialogView.findViewById<Button>(R.id.btn_search_game)
+        val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
 
-        if(mode == "human"){
-            searchForGames(
-                spinner_gameName.selectedItem.toString(),
-                spinner_timemode.selectedItem.toString()
-            )
-            gameListAdapter = GameListAdapter(mainActivity, foundGamesList)
-            val LV_matchingGames : ListView = rootView.findViewById(R.id.LV_matchingGames)
-            LV_matchingGames.adapter = gameListAdapter
-
-            spinner_gameName.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    searchForGames(
-                        spinner_gameName.selectedItem.toString(),
-                        spinner_timemode.selectedItem.toString()
-                    )
-                }
-            }
-            spinner_timemode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    searchForGames(
-                        spinner_gameName.selectedItem.toString(),
-                        spinner_timemode.selectedItem.toString()
-                    )
-                }
-            }
-            LV_matchingGames.setOnItemClickListener{ parent, view, position, id ->
-                run {
-                    gameParameters.name = foundGamesList[position].gameName
-                    gameParameters.time = foundGamesList[position].timeMode
-                    gameParameters.playerColor = foundGamesList[position].player2Color
-                    multiplayerDB.joinGame(foundGamesList[position].id, userName)
-                }
-            }
-        }
-
-        btn_create_game.setOnClickListener{
+        btn_search_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             if(mode == "human"){
-                val chosenGameName = spinner_gameName.selectedItem.toString()
-                val chosenTimeMode = spinner_timemode.selectedItem.toString()
-                if(chosenGameName.startsWith("all")){
-                    Toast.makeText(mainActivity,"please chose a game type",Toast.LENGTH_LONG).show()
-                }
-                else if(chosenTimeMode.startsWith("all")){
-                    Toast.makeText(mainActivity,"please chose a time mode",Toast.LENGTH_LONG).show()
-                }
-                if(!chosenGameName.startsWith("all") && !chosenTimeMode.startsWith("all")){
-                    multiplayerDB.createGame(
-                        spinner_gameName.selectedItem.toString(),
-                        spinner_timemode.selectedItem.toString(),
-                        userName
-                    )
-                    val builder = AlertDialog.Builder(mainActivity)
-                    builder.setCancelable(false)
-                    builder.setView(R.layout.waiting_for_join_dialog)
-                    joinWaitDialog = builder.create()
-                    joinWaitDialog!!.show()
-                    val btn_canceln = joinWaitDialog!!.findViewById<Button>(R.id.btn_cancelJoinWait)
-                    btn_canceln.setOnClickListener{_ ->
-                        run{
-                            if(createdGameID.isNotEmpty()){
-                                joinWaitDialog!!.dismiss()
-                                multiplayerDB.cancelGame(createdGameID)
-                                createdGameID = ""
-                            }
-                        }
-                    }
-                    gameSearchDialog.dismiss()
-                }
+                searchForGames(gameParameters.name,gameParameters.time)
             } else {
                 gameParameters = GameParameters(
                     spinner_gameName.selectedItem.toString(),
@@ -207,10 +116,10 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                     MultiplayerDB.GameData("", userName, "ai"),
                     gameParameters
                 )
-                gameSearchDialog.dismiss()
+                searchDialog.dismiss()
             }
         }
-        gameSearchDialog.show()
+        searchDialog.show()
     }
 
     fun searchForGames(gameName: String, timeMode: String){
@@ -220,7 +129,6 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     }
 
     fun start_gameWithParameters(gameData: MultiplayerDB.GameData, gameParameters: GameParameters){
-        gameSearchDialog.dismiss()
         launchedGamesMap[gameData.gameId] = true
         joinWaitDialog?.dismiss()
 
@@ -257,8 +165,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         builder.setView(input)
 
         // Set up the buttons
-        builder.setPositiveButton("OK") { dialog, which -> }
-        builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel()}
+        builder.setPositiveButton("Create User") { dialog, which -> }
+        builder.setNegativeButton("Close") { dialog, which -> dialog.cancel()}
         userNameDialog = builder.create()
         userNameDialog.setOnShowListener(OnShowListener {
             val button = (userNameDialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
@@ -298,17 +206,49 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                 "user name already taken$playerID",
                 Toast.LENGTH_SHORT
             ).show()
-            //openCreateUserNameDialog(playerID)
         }
     }
 
     override fun onGameSearchComplete(gameIDList: List<Game>) {
-        Log.d(TAG, "gameMode found => join gameMode")
-        println("gameMode found => join gameMode")
-        gameParameters.playerColor = "black"
-        foundGamesList.clear()
-        foundGamesList.addAll(gameIDList)
-        gameListAdapter.notifyDataSetChanged()
+        if(gameIDList.isNotEmpty()){
+            //chose random game
+            val chosenGame = gameIDList[(Math.random()*gameIDList.size).toInt()]
+            Log.d(TAG, "gameMode found => join gameMode")
+            println("gameMode found => join gameMode")
+            gameParameters.playerColor = chosenGame.player2Color
+
+            //set
+            val changeMap = mutableMapOf(
+                MultiplayerDB.GAMEFIELD_PLAYER2ID to userName,
+            )
+            if(chosenGame.gameName.startsWith("all")){
+                if(!gameParameters.name.startsWith("all")){
+                    changeMap[MultiplayerDB.GAMEFIELD_GAMENAME] = gameParameters.name
+                } else {
+                    changeMap[MultiplayerDB.GAMEFIELD_GAMENAME] = "normal chess" //standard
+                }
+            }
+            if(chosenGame.gameName.startsWith("all")){
+                if(!gameParameters.name.startsWith("all")){
+                    changeMap[MultiplayerDB.GAMEFIELD_TIMEMODE] = gameParameters.name
+                } else {
+                    changeMap[MultiplayerDB.GAMEFIELD_TIMEMODE] = "blitz (2 minutes)" //standard
+                }
+            }
+
+            //join game
+            multiplayerDB.joinGame(
+                chosenGame.id,changeMap.toMap()
+            )
+        } else{
+            AlertDialog.Builder(mainActivity)
+                .setTitle("no games found")
+                .setPositiveButton("create game"
+                ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName)}
+                .setNegativeButton("close",null)
+                .show()
+        }
+
     }
 
     override fun onCreateGame(gameName: String, gameID: String, playerColor: String) {
@@ -320,9 +260,24 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             Toast.LENGTH_SHORT
         ).show()
         createdGameID = gameID
-        joinWaitDialog?.findViewById<Button>(R.id.btn_cancelJoinWait)?.visibility = View.VISIBLE
         multiplayerDB.listenToGameSearch(gameID)
         gameParameters.playerColor = playerColor
+
+        val builder = AlertDialog.Builder(mainActivity)
+        builder.setCancelable(false)
+        builder.setView(R.layout.waiting_for_join_dialog)
+        joinWaitDialog = builder.create()
+        joinWaitDialog!!.show()
+        val btn_canceln = joinWaitDialog!!.findViewById<Button>(R.id.btn_cancelJoinWait)
+        btn_canceln.setOnClickListener{_ ->
+            run{
+                if(createdGameID.isNotEmpty()){
+                    joinWaitDialog!!.dismiss()
+                    multiplayerDB.cancelGame(createdGameID)
+                    createdGameID = ""
+                }
+            }
+        }
     }
 
     override fun onGameChanged(gameId: String) {
@@ -332,8 +287,11 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     }
 
 
-    override fun onJoinGame(gameData: MultiplayerDB.GameData) {
+    override fun onJoinGame(onlineGameParameters: GameParameters, gameData: MultiplayerDB.GameData) {
         if(!launchedGamesMap.containsKey(gameData.gameId)){
+            gameParameters.name = onlineGameParameters.name
+            gameParameters.time = onlineGameParameters.time
+            gameParameters.playerColor = onlineGameParameters.playerColor
 
             Log.d(TAG, "$userName joined gameMode: ${gameParameters.playMode}")
             println("$userName joined gameMode: ${gameParameters.name}")

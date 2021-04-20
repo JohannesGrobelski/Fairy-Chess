@@ -39,5 +39,3 @@ o
 ?app/src/test/java/emerald/apps/fairychess/ChessboardUnitTest.kt,c\f\cf1681b4bc352c30950c54dc45e5ad54650a82ae
 {
 Kapp/src/androidTest/java/emerald/apps/fairychess/ExampleInstrumentedTest.kt,1\a\1a6251f7c154b73ef582d6c795ff71cbde1d88e7
-w
-Gapp/src/main/java/emerald/apps/fairychess/controller/GameListAdapter.kt,3\6\3669a90acf5bb8eee3b614d57fe788a9c917e890
