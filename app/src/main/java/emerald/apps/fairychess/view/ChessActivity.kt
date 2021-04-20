@@ -12,8 +12,6 @@ import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.ChessActivityListener
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.model.ChessPiece
-import emerald.apps.fairychess.model.ChessTimerOpponent
-import emerald.apps.fairychess.model.ChessTimerPlayer
 import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
 
@@ -40,8 +38,6 @@ class ChessActivity : AppCompatActivity() {
         }
         
         chessActivityListener = ChessActivityListener(this)
-
-
     }
 
     override fun onDestroy() {
@@ -57,38 +53,27 @@ class ChessActivity : AppCompatActivity() {
 
     fun highlightActivePlayer(activePlayerColor: String){
         if(playerColor == "white"){
-            if(playerColor == activePlayerColor){
-                tv_playernameW.setTextColor(RED)
-                tv_PlayerELOW.setTextColor(RED)
-                tv_PlayerTimeW.setTextColor(RED)
-                tv_opponentnameW.setTextColor(WHITE)
-                tv_OpponentTimeW.setTextColor(WHITE)
-                tv_OpponentELOW.setTextColor(WHITE)
-            }else {
-                tv_playernameW.setTextColor(WHITE)
-                tv_PlayerELOW.setTextColor(WHITE)
-                tv_PlayerTimeW.setTextColor(WHITE)
-                tv_opponentnameW.setTextColor(RED)
-                tv_OpponentTimeW.setTextColor(RED)
-                tv_OpponentELOW.setTextColor(RED)
-            }
+            val playerActive = playerColor == activePlayerColor
+            tv_playernameW.setTextColor(getHighlightColor(playerActive))
+            tv_PlayerELOW.setTextColor(getHighlightColor(playerActive))
+            tv_PlayerTimeW.setTextColor(getHighlightColor(playerActive))
+            tv_opponentnameW.setTextColor(getHighlightColor(!playerActive))
+            tv_OpponentTimeW.setTextColor(getHighlightColor(!playerActive))
+            tv_OpponentELOW.setTextColor(getHighlightColor(!playerActive))
         } else {
-            if(playerColor == activePlayerColor){
-                tv_playernameB.setTextColor(RED)
-                tv_PlayerELOB.setTextColor(RED)
-                tv_PlayerTimeB.setTextColor(RED)
-                tv_opponentnameB.setTextColor(WHITE)
-                tv_OpponentTimeB.setTextColor(WHITE)
-                tv_OpponentELOB.setTextColor(WHITE)
-            }else {
-                tv_playernameB.setTextColor(RED)
-                tv_PlayerELOB.setTextColor(RED)
-                tv_PlayerTimeB.setTextColor(RED)
-                tv_opponentnameB.setTextColor(WHITE)
-                tv_OpponentTimeB.setTextColor(WHITE)
-                tv_OpponentELOB.setTextColor(WHITE)
-            }
+            val playerActive = playerColor == activePlayerColor
+            tv_playernameB.setTextColor(getHighlightColor(playerActive))
+            tv_PlayerELOB.setTextColor(getHighlightColor(playerActive))
+            tv_PlayerTimeB.setTextColor(getHighlightColor(playerActive))
+            tv_opponentnameB.setTextColor(getHighlightColor(!playerActive))
+            tv_OpponentTimeB.setTextColor(getHighlightColor(!playerActive))
+            tv_OpponentELOB.setTextColor(getHighlightColor(!playerActive))
         }
+    }
+
+    fun getHighlightColor(active:Boolean) : Int{
+        return if(active) RED
+        else WHITE
     }
 
     fun drawCapturedPiecesDrawable(color: String, capturedPieces: List<ChessPiece>) {
@@ -118,5 +103,4 @@ class ChessActivity : AppCompatActivity() {
             }
         }
     }
-
 }
