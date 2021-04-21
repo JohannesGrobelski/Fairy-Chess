@@ -63,7 +63,7 @@ class Chessgame() {
     }
 
     fun getTargetMovements(sourceFile: Int, sourceRank: Int): List<ChessPiece.Movement> {
-        return chessboard.getTargetMovements(sourceFile, sourceRank)
+        return chessboard.getTargetMovements(sourceFile, sourceRank,true)
     }
 
     fun getPieceName(file: Int, rank: Int) : String{

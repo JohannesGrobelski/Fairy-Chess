@@ -187,7 +187,7 @@ class StubChessAI {
         else if(pieces[movement.sourceFile][movement.sourceRank].color == pieces[movement.targetFile][movement.targetRank].color)return null
         else if(pieces[movement.sourceFile][movement.sourceRank].color != moveColor)return null
         else {
-            val targetMovements = getTargetMovements(movement.sourceFile, movement.sourceRank)
+            val targetMovements = getTargetMovements(movement.sourceFile, movement.sourceRank,true)
             for(targetMovement in targetMovements){
                 if(targetMovement.targetFile == movement.targetFile && targetMovement.targetRank == movement.targetRank){
                     userMovement = targetMovement

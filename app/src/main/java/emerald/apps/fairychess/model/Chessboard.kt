@@ -1,5 +1,6 @@
 package emerald.apps.fairychess.model
 
+import emerald.apps.fairychess.model.ChessPiece.MovementNotation.Companion.CASTLING_MOVEMENT
 import emerald.apps.fairychess.utility.FigureParser
 import kotlin.math.abs
 import kotlin.math.sign
@@ -82,7 +83,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     /** return a list of possible movements of the figure at (sourceFile,sourceRank)*/
-    fun getTargetMovements(sourceFile:Int, sourceRank:Int) : List<ChessPiece.Movement>{
+    fun getTargetMovements(sourceFile:Int, sourceRank:Int, genCastlingMoves:Boolean) : MutableList<ChessPiece.Movement>{
         val nonRelativeMovements = pieces[sourceFile][sourceRank].generateMovements()
         val relativeMovements = mutableListOf<ChessPiece.Movement>()
         //filter target squares
@@ -96,6 +97,13 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                 relativeMovements.add(nonRelativeMovement)
             }
         }
+        //add special movements
+        if(genCastlingMoves){
+            for(moveArray in generate_specialMoveCheck_Castling(pieces[sourceFile][sourceRank].color)){
+                relativeMovements.add(moveArray[0])//king move
+            }
+        }
+
         return relativeMovements
     }
 
@@ -105,7 +113,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         for(file in 0..7){
             for(rank in 0..7){
                 if(pieces[file][rank].color == color){
-                    allPossibleMoves.addAll(getTargetMovements(file,rank))
+                    allPossibleMoves.addAll(getTargetMovements(file,rank,true))
                 }
             }
         }
@@ -259,10 +267,51 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         else if(pieces[movement.sourceFile][movement.sourceRank].color == pieces[movement.targetFile][movement.targetRank].color)return "same color"
         else if(pieces[movement.sourceFile][movement.sourceRank].color != moveColor)return "wrong figure"
         else {
-            val targetMovements = getTargetMovements(movement.sourceFile,movement.sourceRank)
+            val targetMovements = getTargetMovements(movement.sourceFile,movement.sourceRank,true)
             for(targetMovement in targetMovements){
-                if(targetMovement.targetFile == movement.targetFile && targetMovement.targetRank == movement.targetRank){
-                    userMovement = targetMovement
+                if(targetMovement.movementNotation == CASTLING_MOVEMENT){
+                    val castleMovements = generate_specialMoveCheck_Castling(color)//TODO: inefficent
+                    for(castleMovement in castleMovements){
+                        if(castleMovement[0].sourceFile == movement.sourceFile
+                            && castleMovement[0].sourceRank == movement.sourceRank){
+                            //move king
+                            pieces[castleMovement[0].targetFile][castleMovement[0].targetRank] =
+                                ChessPiece(
+                                    pieces[castleMovement[0].sourceFile][castleMovement[0].sourceRank].name,
+                                    castleMovement[0].targetFile,
+                                    castleMovement[0].targetRank,
+                                    pieces[castleMovement[0].sourceFile][castleMovement[0].sourceRank].value,
+                                    pieces[castleMovement[0].sourceFile][castleMovement[0].sourceRank].color,
+                                    pieces[castleMovement[0].sourceFile][castleMovement[0].sourceRank].movingPatternString,
+                                    pieces[castleMovement[0].sourceFile][castleMovement[0].sourceRank].moveCounter+1,
+                                )
+                            pieces[castleMovement[0].sourceFile][castleMovement[0].sourceRank] = ChessPiece.emptyChessPiece
+                            //move rook
+                            pieces[castleMovement[1].targetFile][castleMovement[1].targetRank] =
+                                ChessPiece(
+                                    pieces[castleMovement[1].sourceFile][castleMovement[1].sourceRank].name,
+                                    castleMovement[1].targetFile,
+                                    castleMovement[1].targetRank,
+                                    pieces[castleMovement[1].sourceFile][castleMovement[1].sourceRank].value,
+                                    pieces[castleMovement[1].sourceFile][castleMovement[1].sourceRank].color,
+                                    pieces[castleMovement[1].sourceFile][castleMovement[1].sourceRank].movingPatternString,
+                                    pieces[castleMovement[1].sourceFile][castleMovement[1].sourceRank].moveCounter+1,
+                                )
+                            pieces[castleMovement[1].sourceFile][castleMovement[1].sourceRank] = ChessPiece.emptyChessPiece
+                            addMoveToMoveHistory(castleMovement[0])
+                            addMoveToMoveHistory(castleMovement[1])
+                            getWinner()
+                            if(!gameFinished){
+                                ++moveCounter
+                                switchMoveColor()
+                            }
+                            return ""
+                        }
+                    }
+                } else {
+                    if(targetMovement.targetFile == movement.targetFile && targetMovement.targetRank == movement.targetRank){
+                        userMovement = targetMovement
+                    }
                 }
             }
             if(userMovement == null)return "cannot move there"
@@ -379,6 +428,122 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             }
         }
         return null
+    }
+
+    private fun generate_specialMoveCheck_Castling(color : String) : List<Array<ChessPiece.Movement>>{
+        val moveList = mutableListOf<Array<ChessPiece.Movement>>()
+        val allEnemyMoves = mutableListOf<ChessPiece.Movement>()
+        if(color == "black"){
+            if(pieces[4][7].name == "king" && pieces[4][7].moveCounter == 0) {//rule: king not moved
+                //small castling
+                if(pieces[7][7].name == "rook" && pieces[7][7].moveCounter == 0) {//rule: rook not moved
+                    if(pieces[5][7].color.isEmpty() && pieces[6][7].color.isEmpty()){//rule: move space is free of figures
+                        allEnemyMoves.addAll(generateAllMovements("white",false))
+                        var shortCastlingPossible = true
+                        for(move in allEnemyMoves){
+                            if(move.targetRank == 7 && (move.targetFile == 4 //rule: king is not attacked
+                                        || move.targetFile == 5 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 6)){ //rule: future position of king is not attacked
+                                shortCastlingPossible = false
+                            }
+                        }
+                        if(shortCastlingPossible){
+                            moveList.add(
+                                arrayOf(
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,4, 7, 6, 7),
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,7,7,5,7)
+                                )
+                            )
+                        }
+                    }
+                }
+                //large castling
+                if (pieces[0][7].name == "rook" && pieces[0][7].moveCounter == 0) {//rule: rook not moved
+                    if(pieces[1][7].color.isEmpty() && pieces[2][7].color.isEmpty() && pieces[3][7].color.isEmpty()){//rule: move space is free of figures
+                        if(allEnemyMoves.isEmpty())allEnemyMoves.addAll(generateAllMovements("white",false))
+                        var longCastlingPossible = true
+                        for(move in allEnemyMoves){
+                            if(move.targetRank == 7 && (move.targetFile == 4 //rule: king is not attacked
+                                        || move.targetFile == 3 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 2 //rule: future position of king is not attacked
+                                        || move.targetFile == 1)){ //rule: transfer line of castling is not attacked
+                                longCastlingPossible = false
+                            }
+                        }
+                        if(longCastlingPossible){
+                            moveList.add(
+                                arrayOf(
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,4, 7, 2, 7),
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,0,7,3,7)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        } else if (color == "white") {
+            if(pieces[4][0].name == "king" && pieces[4][0].moveCounter == 0) {//rule: king not moved
+                //small castling
+                if(pieces[7][0].name == "rook" && pieces[7][0].moveCounter == 0) {//rule: rook not moved
+                    if(pieces[5][0].color.isEmpty() && pieces[6][0].color.isEmpty()){//rule: move space is free of figures
+                        allEnemyMoves.addAll(generateAllMovements("black",false))
+                        var shortCastlingPossible = true
+                        for(move in allEnemyMoves){
+                            if(move.targetRank == 0 && (move.targetFile == 4 //rule: king is not attacked
+                                        || move.targetFile == 5 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 6)){ //rule: future position of king is not attacked
+                                shortCastlingPossible = false
+                            }
+                        }
+                        if(shortCastlingPossible){
+                            moveList.add(
+                                arrayOf(
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,4, 0, 2, 0),
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,0,0,3,0)
+                                )
+                            )
+                        }
+                    }
+                }
+                //large castling
+                if (pieces[0][0].name == "rook" && pieces[0][0].moveCounter == 0) {//rule: rook not moved
+                    if(pieces[1][0].color.isEmpty() && pieces[2][0].color.isEmpty() && pieces[3][0].color.isEmpty()){//rule: move space is free of figures
+                        if(allEnemyMoves.isEmpty())allEnemyMoves.addAll(generateAllMovements("black",false))
+                        var longCastlingPossible = true
+                        for(move in allEnemyMoves){
+                            if(move.targetRank == 0 && (move.targetFile == 4 //rule: king is not attacked
+                                        || move.targetFile == 3 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 2 //rule: future position of king is not attacked
+                                        || move.targetFile == 1)){ //rule: transfer line of castling is not attacked
+                                longCastlingPossible = false
+                            }
+                        }
+                        if(longCastlingPossible){
+                            moveList.add(
+                                arrayOf(
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,4, 0, 2, 0),
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,0,0,3,0)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        return moveList
+    }
+
+    private fun generateAllMovements(color : String, generateCastlingMoves:Boolean) : List<ChessPiece.Movement>{
+        val moveList = mutableListOf<ChessPiece.Movement>()
+        for(file in pieces.indices){
+            for(rank in pieces[0].indices){
+                if(pieces[file][rank].color==color){
+                    moveList.addAll(getTargetMovements(file,rank,generateCastlingMoves))
+                }
+            }
+        }
+
+        return moveList
     }
 
     private fun checkForPromotion() {

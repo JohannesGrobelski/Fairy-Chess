@@ -398,7 +398,11 @@ class ChessPiece(
     }
 
     class MovementNotation(val grouping: String, val conditions: List<String>, val movetype: String, val distances: List<String>, val direction: String){
+
+
         companion object {
+            val CASTLING_MOVEMENT = MovementNotation("", listOf(),"", listOf(),"")
+
             fun parseMovementString(movementString : String) : List<MovementNotation> {
                 if(movementString.isEmpty())return emptyList()
                 val movementList = mutableListOf<MovementNotation>()
