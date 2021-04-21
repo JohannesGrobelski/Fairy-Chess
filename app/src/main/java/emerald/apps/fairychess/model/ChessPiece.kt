@@ -13,6 +13,10 @@ class ChessPiece(
     val moveCounter: Int
 ) {
 
+    companion object {
+        val emptyChessPiece = ChessPiece("",-1,-1,0,"","",0)
+    }
+
     var movingPatterns = MovementNotation.parseMovementString(movingPatternString)
 
     /** parlett notation: <conditions> <move type> <distance> <direction> <other>

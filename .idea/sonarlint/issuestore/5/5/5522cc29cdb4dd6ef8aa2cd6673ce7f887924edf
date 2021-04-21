@@ -1,12 +1,7 @@
 
->kotlin:S125­"Remove this commented out code.(Ø¶ç›8şÂ¤Õ/
-ykotlin:S1186"ZAdd a nested comment explaining why this function is empty or complete the implementation.(µ‰äî8şÂ¤Õ/
-skotlin:S117p"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ÀòÃy8şÂ¤Õ/
-zkotlin:S117»"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Ï°Ìùÿÿÿÿ8şÂ¤Õ/
-kotlin:S100N"jRename function "display_alertDialogGameParameters" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(Û¬¸©ûÿÿÿÿ8şÂ¤Õ/
-zkotlin:S1186"ZAdd a nested comment explaining why this function is empty or complete the implementation.(µ‰äî8şÂ¤Õ/
-ykotlin:S117{"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ØĞ çÿÿÿÿÿ8şÂ¤Õ/
-ykotlin:S117d"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(“´½ùÿÿÿÿ8şÂ¤Õ/
-€kotlin:S100Ş"aRename function "start_gameWithParameters" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(‹¤ÏÔ8şÂ¤Õ/
-ykotlin:S117j"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ğµçüÿÿÿÿ8şÂ¤Õ/
-vkotlin:S3776N"RRefactor this method to reduce its Cognitive Complexity from 20 to the 15 allowed.(Û¬¸©ûÿÿÿÿ8şÂ¤Õ/
+ykotlin:S117X"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Â—Ò³şÿÿÿÿ8áÌŠø/
+ykotlin:S117^"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ÅİÕ„ûÿÿÿÿ8áÌŠø/
+zkotlin:S117"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Ï°Ìùÿÿÿÿ8şÂ¤Õ/
+€kotlin:S100ƒ"aRename function "start_gameWithParameters" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(‹¤ÏÔ8şÂ¤Õ/
+kotlin:S100K"jRename function "display_alertDialogGameParameters" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(Û¬¸©ûÿÿÿÿ8şÂ¤Õ/
+ykotlin:S117d"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(¬ô€‘şÿÿÿÿ8şÂ¤Õ/
