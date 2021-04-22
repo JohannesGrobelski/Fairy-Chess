@@ -32,11 +32,21 @@
         android:layout_marginLeft="20dp"
         android:layout_marginTop="10dp"
         android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:background="#A97C7C7C"
         android:text="@string/play_against_human"
         android:textColor="#FFFFFF"
         android:textSize="50sp" />
+
+    <TextView
+        android:id="@+id/tv_playerstats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="20sp" />
 
 </LinearLayout>

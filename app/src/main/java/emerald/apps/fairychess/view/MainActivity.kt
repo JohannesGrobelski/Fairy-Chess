@@ -18,6 +18,10 @@ class MainActivity : AppCompatActivity() {
         btn_ai.setOnClickListener(mainActivityListener)
     }
 
+    override fun onResume() {
+        super.onResume()
+        mainActivityListener.loadPlayerStats()
+    }
 
 
 }

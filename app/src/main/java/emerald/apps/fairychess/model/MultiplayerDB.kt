@@ -36,6 +36,13 @@ class MultiplayerDB {
         const val GAMECOLLECTIONPATH = "test_games"
         const val PLAYERCOLLECTIONPATH = "test_players"
 
+        //fields in player (in player collection)
+        const val PLAYER_ID = "name"
+        const val PLAYER_GAMES_PLAYED = "played_games"
+        const val PLAYER_GAMES_WON = "wins"
+        const val PLAYER_GAMES_LOST = "losses"
+        const val PLAYER_ELO = "elo"
+
         //fields in game (in game collection)
         const val GAMEFIELD_FINISHED = "finished"
         const val GAMEFIELD_GAMENAME = "gameName"
@@ -43,9 +50,10 @@ class MultiplayerDB {
         const val GAMEFIELD_MOVES = "moves"
         const val GAMEFIELD_PLAYER1ID = "player1ID"
         const val GAMEFIELD_PLAYER1Color = "player1Color"
+        const val GAMEFIELD_PLAYER1ELO = "player1ELO"
         const val GAMEFIELD_PLAYER2ID = "player2ID"
         const val GAMEFIELD_PLAYER2Color = "player2Color"
-
+        const val GAMEFIELD_PLAYER2ELO = "player2ELO"
     }
 
     private var multiplayerDBSearchInterface : MultiplayerDBSearchInterface? = null
@@ -120,7 +128,7 @@ class MultiplayerDB {
      * when finished call the callback function (onCreateGame in MainActivityListener)
      * @return document_id of the gameMode
      */
-    fun createGame(gameName: String, timeMode: String, player1ID: String) {
+    fun createGame(gameName: String, timeMode: String, player1ID: String, player1ELO: Double) {
         // Create a new gameMode hashmap
         val player1Color = randomColor()
         val player2Color = oppositeColor(player1Color)
@@ -131,9 +139,10 @@ class MultiplayerDB {
             GAMEFIELD_MOVES to listOf<String>(),
             GAMEFIELD_PLAYER1ID to player1ID,
             GAMEFIELD_PLAYER1Color to player1Color,
+            GAMEFIELD_PLAYER1ELO to player1ELO,
             GAMEFIELD_PLAYER2ID to "",
             GAMEFIELD_PLAYER2Color to player2Color
-            )
+        )
         // Add a new document with a generated ID
         db.collection(GAMECOLLECTIONPATH)
             .add(gameHash)
@@ -171,18 +180,18 @@ class MultiplayerDB {
             }
     }
 
-    fun joinGame(gameID: String, changeMap : Map<String,String>) {
+    fun joinGame(gameID: String, changeMap : Map<String,Any>) {
         db.collection(GAMECOLLECTIONPATH)
             .document(gameID)
             .update(
-                changeMap.toMap()
+                changeMap.toMap(),
             ).addOnSuccessListener {
-                getGameDataAndJoinGame(gameID,changeMap[GAMEFIELD_PLAYER2ID]!!)
+                getGameDataAndJoinGame(gameID,changeMap[GAMEFIELD_PLAYER2ID]!!.toString())
             }
     }
 
 
-    class GameData(val gameId: String, val playerID: String, val opponentID: String)
+    class GameData(val gameId: String, val playerID: String, val opponentID: String, var playerELO: Double, var opponentELO :Double)
     fun getGameDataAndJoinGame(gameId: String,userName: String){
         db.collection(GAMECOLLECTIONPATH)
             .document(gameId)
@@ -191,9 +200,16 @@ class MultiplayerDB {
                 run {
                     val player1ID = docRef.getString(GAMEFIELD_PLAYER1ID)!!
                     val player2ID = docRef.getString(GAMEFIELD_PLAYER2ID)!!
+                    val player1ELO = docRef.getDouble(GAMEFIELD_PLAYER1ELO)!!
+                    val player2ELO = docRef.getDouble(GAMEFIELD_PLAYER2ELO)!!
                     var opponentID = player1ID
-                    if(opponentID == userName)opponentID = player2ID
-                    val gameData = GameData(gameId,userName,opponentID)
+                    var playerELO = player2ELO
+                    var opponentELO = player1ELO
+                    if(opponentID == userName){
+                        opponentID = player2ID
+                        opponentELO = player2ELO
+                    }
+                    val gameData = GameData(gameId,userName,opponentID,playerELO,opponentELO)
 
                     val name = docRef.getString(GAMEFIELD_GAMENAME)!!
                     val playMode = "human"
@@ -323,6 +339,39 @@ class MultiplayerDB {
             }
     }
 
+    class PlayerStats(val games_played : Long, val games_won : Long, val games_lost : Long, var ELO : Double)
+    fun getPlayerStats(playerID: String) {
+        db.collection(PLAYERCOLLECTIONPATH)
+            .whereEqualTo(PLAYER_ID,playerID)
+            .get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    for(document in task.result!!){
+                        val gamesPlayed : Long = document.getLong(PLAYER_GAMES_PLAYED)!!
+                        val gamesWon : Long = document.getLong(PLAYER_GAMES_WON)!!
+                        val gamesLost : Long = document.getLong(PLAYER_GAMES_LOST)!!
+                        val elo : Double = document.getDouble(PLAYER_ELO)!!
+                        multiplayerDBSearchInterface?.onGetPlayerstats(PlayerStats(gamesPlayed,gamesWon,gamesLost,elo))
+                    }
+                } else {
+                    Log.w(TAG, "Error getting documents.", task.exception)
+                }
+            }
+    }
+
+    fun setPlayerStats(playerID: String,playerStats: PlayerStats) {
+        db.collection(PLAYERCOLLECTIONPATH)
+            .document(playerID)
+            .update(
+                mapOf(
+                    PLAYER_GAMES_PLAYED to playerStats.games_played,
+                    PLAYER_GAMES_WON to playerStats.games_won,
+                    PLAYER_GAMES_LOST to playerStats.games_lost,
+                    PLAYER_ELO to playerStats.ELO
+                )
+            )
+    }
+
     fun cancelGame(gameId: String) {
         // Add a new document with a generated ID
         db.collection(GAMECOLLECTIONPATH)
@@ -344,6 +393,9 @@ public interface MultiplayerDBSearchInterface {
     fun onJoinGame(gameParameters: MainActivityListener.GameParameters,gameData: MultiplayerDB.GameData)
     fun onCreateGame(gameName: String, gameID: String, player1Color : String)
     fun onGameChanged(gameId : String)
+
+    fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats)
+    fun onSetPlayerstats()
 }
 
 public interface MultiplayerDBGameInterface {

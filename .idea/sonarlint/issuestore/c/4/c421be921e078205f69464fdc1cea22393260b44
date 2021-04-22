@@ -1,4 +1,8 @@
 
-rkotlin:S3776’"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(‡ˆ±Ò8­æÔÀ‰/
-xkotlin:S1192q"YDefine a constant instead of duplicating this literal "Error getting documents." 4 times.(™ù¿8²—Ğ/
-vkotlin:S1192”"VDefine a constant instead of duplicating this literal "Error adding document" 3 times.(™Øƒè8¹­˜Ğ/
+xkotlin:S1192y"YDefine a constant instead of duplicating this literal "Error getting documents." 5 times.(™ù¿8²—Ğ/
+pkotlin:S117Ö"QRename this parameter to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(œ ğ•8ªúÂÌ/
+rkotlin:S3776¢"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(‡ˆ±Ò8­æÔÀ‰/
+pkotlin:S117Ö"QRename this parameter to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(œ ğ•8ªúÂÌ/
+vkotlin:S1192"VDefine a constant instead of duplicating this literal "Error adding document" 3 times.(™Øƒè8¹­˜Ğ/
+pkotlin:S117Ö"QRename this parameter to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(œ ğ•8ªúÂÌ/
+pkotlin:S117Ö"QRename this parameter to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(œ ğ•8ªúÂÌ/

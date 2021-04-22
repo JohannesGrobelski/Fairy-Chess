@@ -80,10 +80,6 @@ import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
 class ChessActivityListener() : MultiplayerDBGameInterface
     , ChessTimerPlayer.ChessTimerPlayerInterface
     , ChessTimerOpponent.ChessTimerOpponentInterface {
-    //TODO: Castling: requires history of involved rook and king. Can be accomplished via a hasMovedBefore flag.
-    //TODO: en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure, or retaining the previous board state.
-    //TODO: Fifty move rule: requires history of when the last capture or pawn move. Can be accomplished via a lastPawnMoveOrCapture counter
-    //TODO: Threefold repetition: requires all previous board states since the last castle, pawn move or capture. A list of hashes of previous states may be an option. (Thanks dfeuer)
 
     private lateinit var chessActivity : ChessActivity
     private lateinit var chessgame: Chessgame
@@ -107,13 +103,25 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     private var playerTimer : ChessTimerPlayer? = null
     private var opponentTimer : ChessTimerOpponent? = null
+    private lateinit var playerStats : MultiplayerDB.PlayerStats
+    private lateinit var opponentStats : MultiplayerDB.PlayerStats
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
+        playerStats = MultiplayerDB.PlayerStats(0,0,0,
+            chessActivity.intent.getDoubleExtra(MainActivityListener.gamePlayerELOExtra, 0.0)
+        )
+        opponentStats = MultiplayerDB.PlayerStats(
+            0, 0, 0,
+            chessActivity.intent.getDoubleExtra(MainActivityListener.gameOpponentELOExtra, 0.0)
+        )
+
         gameData = MultiplayerDB.GameData(
             chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!,
             chessActivity.intent.getStringExtra(MainActivityListener.gamePlayerNameExtra)!!,
-            chessActivity.intent.getStringExtra(MainActivityListener.gameOpponentNameExtra)!!
+            chessActivity.intent.getStringExtra(MainActivityListener.gameOpponentNameExtra)!!,
+            playerStats.ELO,
+            opponentStats.ELO
         )
         gameParameters = MainActivityListener.GameParameters(
             chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!,
@@ -126,17 +134,20 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         if(gameParameters.playerColor=="white"){
             chessActivity.tv_playernameW.text = gameData.playerID
             chessActivity.tv_opponentnameW.text = gameData.opponentID
+            chessActivity.tv_PlayerELOW.text = playerStats.ELO.toString()
+            chessActivity.tv_OpponentELOW.text = opponentStats.ELO.toString()
         }
         if(gameParameters.playerColor=="black"){
             chessActivity.tv_playernameB.text = gameData.playerID
             chessActivity.tv_opponentnameB.text = gameData.opponentID
+            chessActivity.tv_PlayerELOB.text = playerStats.ELO.toString()
+            chessActivity.tv_OpponentELOB.text = opponentStats.ELO.toString()
         }
 
         playerTimer = ChessTimerPlayer.getPlTimerFromTimeMode(this,gameParameters.time)
         opponentTimer = ChessTimerOpponent.getOpTimerFromTimeMode(this,gameParameters.time)
         playerTimer?.create()
         opponentTimer?.create()
-
 
         initViews()
         displayFigures()
@@ -163,7 +174,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 var moveResult:String
                 if(gameParameters.playMode=="ai"){
                     moveResult = chessgame.movePlayer(movement,chessgame.getChessboard().moveColor)
-                    if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won") //check for winner
+                    if(chessgame.gameFinished){
+                        if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
+                            finishGame(chessgame.getChessboard().gameWinner+" won",true)
+                        } else {
+                            finishGame(chessgame.getChessboard().gameWinner+" won",false)
+                        }
+                    } //check for winner
                     if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
                         offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
                     }
@@ -436,12 +453,19 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     fun onDestroy() {
-        finishGame(gameParameters.playerColor+" left the game")
+        finishGame(gameParameters.playerColor+" left the game",false)
     }
 
-    fun finishGame(cause: String){
+    fun finishGame(cause: String,playerWon:Boolean){
         if(chessgame.gameParameters.playMode=="human"){
             multiplayerDB.finishGame(chessgame.gameData.gameId, cause)
+            ChessRatingSystem.updatePlayerStats(
+                playerStats,
+                opponentStats,
+                playerWon
+            )
+            multiplayerDB.setPlayerStats(gameData.playerID,playerStats)
+            multiplayerDB.setPlayerStats(gameData.playerID,opponentStats)
         } else {
             onFinishGame("",cause)
         }
@@ -457,7 +481,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     || gameParameters.playerColor == "black" && gameState.moves.size%2==1){
                         chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
                         displayFigures()
-                        if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won") //check for winner
+                        if(chessgame.gameFinished){
+                            if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
+                                finishGame(chessgame.getChessboard().gameWinner+" won",true)
+                            } else {
+                                finishGame(chessgame.getChessboard().gameWinner+" won",false)
+                            }
+                        } //check for winner
                         if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
                             offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
                         }
@@ -482,8 +512,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     override fun onFinishOpponentTimer() {
         chessgame.gameFinished = true
-
-        finishGame("timeout. you won.")
+        finishGame("timeout. you won.",true)
     }
 
     override fun onTickPlayerTimer(millisUntilFinished: Long) {
@@ -496,7 +525,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     override fun onFinishPlayerTimer() {
-        finishGame("timeout. you lost.")
+        finishGame("timeout. you lost.",false)
     }
 
 

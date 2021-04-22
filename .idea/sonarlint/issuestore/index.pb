@@ -43,3 +43,7 @@ z
 Japp/src/main/java/emerald/apps/fairychess/model/CountDownTimerWithPause.kt,e\0\e0a0d481294b3245ed76e76694571c94a618fc1c
 m
 =app/src/main/java/emerald/apps/fairychess/model/ChessTimer.kt,3\a\3ae6bf8cb6a69ab30133cc2143bc7df89ee4ba4c
+r
+Bapp/src/test/java/emerald/apps/fairychess/ChessRatingSystemTest.kt,d\1\d143daaf38ea09b6b19dbd9907836288f8200645
+t
+Dapp/src/main/java/emerald/apps/fairychess/model/ChessRatingSystem.kt,d\8\d820f672eb951a83c701c08a46d3d655bc7c927f

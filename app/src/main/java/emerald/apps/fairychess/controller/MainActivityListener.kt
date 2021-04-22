@@ -14,6 +14,8 @@ import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.math.roundToInt
 
 
 class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface {
@@ -25,6 +27,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     private var launchedGamesMap = mutableMapOf<String, Boolean>()
 
     private lateinit var userName:String
+    private lateinit var playerStats: MultiplayerDB.PlayerStats
+    private lateinit var opponentStats: MultiplayerDB.PlayerStats
     class Game(
         val id: String,
         val gameName: String,
@@ -45,18 +49,24 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         const val userNameExtra = "userNameExtra"
         const val gameIdExtra = "gameId"
         const val gamePlayerNameExtra = "playerNameExtra"
+        const val gamePlayerELOExtra = "playerELOExtra"
         const val gameOpponentNameExtra = "opponentNameExtra"
+        const val gameOpponentELOExtra = "opponentELOExtra"
         const val gameModeExtra = "gameMode"
         const val gameNameExtra = "name"
         const val gameTimeExtra = "gameTime"
         const val playerColorExtra = "playerColor"
     }
 
-
     constructor(mainActivity: MainActivity) : this(){
         this.mainActivity = mainActivity
         loadOrCreateUserName()
         multiplayerDB = MultiplayerDB(this)
+        loadPlayerStats()
+    }
+
+    fun loadPlayerStats(){
+        multiplayerDB.getPlayerStats(userName)
     }
 
     override fun onClick(v: View?) {
@@ -113,7 +123,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                     "white"
                 )
                 start_gameWithParameters(
-                    MultiplayerDB.GameData("", userName, "ai"),
+                    MultiplayerDB.GameData("", userName, "ai", playerStats.ELO, opponentStats.ELO),
                     gameParameters
                 )
                 searchDialog.dismiss()
@@ -135,7 +145,9 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         val intent = Intent(mainActivity, ChessActivity::class.java)
         intent.putExtra(gameIdExtra, gameData.gameId)
         intent.putExtra(gamePlayerNameExtra, gameData.playerID)
+        intent.putExtra(gamePlayerELOExtra, playerStats.ELO)
         intent.putExtra(gameOpponentNameExtra, gameData.opponentID)
+        intent.putExtra(gameOpponentELOExtra, opponentStats.ELO)
         intent.putExtra(gameNameExtra, gameParameters.name)
         intent.putExtra(gameModeExtra, gameParameters.playMode)
         intent.putExtra(gameTimeExtra, gameParameters.time)
@@ -220,6 +232,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             //set
             val changeMap = mutableMapOf(
                 MultiplayerDB.GAMEFIELD_PLAYER2ID to userName,
+                MultiplayerDB.GAMEFIELD_PLAYER2ELO to playerStats.ELO
             )
             if(chosenGame.gameName.startsWith("all")){
                 if(!gameParameters.name.startsWith("all")){
@@ -244,7 +257,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             AlertDialog.Builder(mainActivity)
                 .setTitle("no games found")
                 .setPositiveButton("create game"
-                ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName)}
+                ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)}
                 .setNegativeButton("close",null)
                 .show()
         }
@@ -286,12 +299,23 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         }
     }
 
+    override fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats) {
+        this.playerStats = playerStats
+        mainActivity.tv_playerstats.text = "$userName ("+playerStats.ELO.roundToInt()+" ELO)"
+    }
+
+    override fun onSetPlayerstats() {
+        TODO("Not yet implemented")
+    }
+
 
     override fun onJoinGame(onlineGameParameters: GameParameters, gameData: MultiplayerDB.GameData) {
         if(!launchedGamesMap.containsKey(gameData.gameId)){
             gameParameters.name = onlineGameParameters.name
             gameParameters.time = onlineGameParameters.time
             gameParameters.playerColor = onlineGameParameters.playerColor
+
+            opponentStats = MultiplayerDB.PlayerStats(0,0,0,gameData.opponentELO)
 
             Log.d(TAG, "$userName joined gameMode: ${gameParameters.playMode}")
             println("$userName joined gameMode: ${gameParameters.name}")
