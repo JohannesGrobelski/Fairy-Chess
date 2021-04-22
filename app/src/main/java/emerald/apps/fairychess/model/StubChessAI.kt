@@ -61,7 +61,7 @@ class StubChessAI {
             ++cntHashFails
             val possible_moves: List<ChessPiece.Movement> = _chessboard.getAllPossibleMoves(color)
             if (tiefe == 0 || possible_moves.isEmpty()) {
-                return MovementValue(null, _chessboard.points_black() - _chessboard.points_white())
+                return MovementValue(null, _chessboard.pointsBlack() - _chessboard.pointsWhite())
             }
             if (color == this.color) {
                 bestValue = Int.MIN_VALUE
@@ -127,7 +127,7 @@ class StubChessAI {
         ++cnt_movements
         val possible_moves: List<ChessPiece.Movement> = _chessboard.getAllPossibleMoves(color)
         if (tiefe == 0 || possible_moves.isEmpty()) {
-            return MovementValue(null, _chessboard.points_black() - _chessboard.points_white())
+            return MovementValue(null, _chessboard.pointsBlack() - _chessboard.pointsWhite())
         }
         var bestValue = 0
         var bestMove : MovementValue? = null

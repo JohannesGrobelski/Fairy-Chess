@@ -14,12 +14,12 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
      */
 
 
+
     var pieces: Array<Array<ChessPiece>> = Array(8) {
         Array(8) {
             ChessPiece("", -1,-1, 0, "", "", 0)
         }
     }
-    var moveHistory = mutableListOf<ChessPiece.Movement>()
 
     var moveColor = "white"
     var moveCounter : Int = 0
@@ -29,6 +29,13 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     var whiteCapturedPieces = mutableListOf<ChessPiece>()
     var blackCapturedPieces = mutableListOf<ChessPiece>()
     var promotion : ChessPiece? = null
+
+    //special chess rules
+    var moveHistory = mutableListOf<ChessPiece.Movement>() //castling
+    var playerWithDrawOpportunity = ""
+    var lastCaptureCounter = 0
+    var lastPawnMove = 0
+    var boardStateListSinceCastling = mutableListOf<String>()
 
     init {
         //hier einen aufstellungsstring übergeben
@@ -70,7 +77,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         /**
          * returns the opposite color
          */
-        public fun oppositeColor(color : String) : String {
+        fun oppositeColor(color : String) : String {
             return if(color == "white"){
                 "black"
             } else if(color == "black"){
@@ -82,7 +89,9 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
 
     }
 
-    /** return a list of possible movements of the figure at (sourceFile,sourceRank)*/
+    /**
+     * return a list of possible movements of the figure at (sourceFile,sourceRank)
+     * */
     fun getTargetMovements(sourceFile:Int, sourceRank:Int, genCastlingMoves:Boolean) : MutableList<ChessPiece.Movement>{
         val nonRelativeMovements = pieces[sourceFile][sourceRank].generateMovements()
         val relativeMovements = mutableListOf<ChessPiece.Movement>()
@@ -99,11 +108,10 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         }
         //add special movements
         if(genCastlingMoves){
-            for(moveArray in generate_specialMoveCheck_Castling(pieces[sourceFile][sourceRank].color)){
+            for(moveArray in generateSpecialMoveCheckCastling(pieces[sourceFile][sourceRank].color)){
                 relativeMovements.add(moveArray[0])//king move
             }
         }
-
         return relativeMovements
     }
 
@@ -164,7 +172,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                     && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
                     && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
             //en passante
-            returnValue = specialMoveCheck_Enpassante(movement) != null
+            returnValue = specialMoveCheckEnpassante(movement) != null
         }
         if(movement.movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
             returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
@@ -231,7 +239,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     /** calculate the winner (if one exists yet)*/
-    fun getWinner() {
+    private fun checkForWinner() {
         var blackKing = 0
         var whiteKing = 0
         //count kings
@@ -253,6 +261,33 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         gameFinished = (whiteKing*blackKing) == 0
     }
 
+    /**
+     *
+     */
+    private fun checkForDraw(){
+        playerWithDrawOpportunity = ""
+        //50 move rule
+        if(lastCaptureCounter >= 50 || lastPawnMove >= 50){
+            playerWithDrawOpportunity = oppositeColor(moveColor)
+        }
+        //3-repetition rule
+        if(boardStateListSinceCastling.size >= 12){
+            val boardStateMap = mutableMapOf<String,Int>()
+            //count occurrences of board-state-Strings (with map)
+            //and check whether same board-state-String occurred 3 times
+            for(boardStateString in boardStateListSinceCastling){
+                if(boardStateMap.containsKey(boardStateString)){
+                    boardStateMap[boardStateString] = boardStateMap[boardStateString]!!.toInt() + 1
+                    if(boardStateMap[boardStateString]!!.toInt() >= 3){
+                        playerWithDrawOpportunity = oppositeColor(moveColor)
+                    }
+                } else {
+                    boardStateMap[boardStateString] = 0
+                }
+            }
+        }
+    }
+
     /** switchMoveColor from white to black and vice versa */
     fun switchMoveColor(){
         moveColor = oppositeColor(moveColor)
@@ -270,7 +305,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             val targetMovements = getTargetMovements(movement.sourceFile,movement.sourceRank,true)
             for(targetMovement in targetMovements){
                 if(targetMovement.movementNotation == CASTLING_MOVEMENT){
-                    val castleMovements = generate_specialMoveCheck_Castling(color)//TODO: inefficent
+                    val castleMovements = generateSpecialMoveCheckCastling(color)//TODO: inefficent, idea: create var lastCastleMovement and use it here
                     for(castleMovement in castleMovements){
                         if(castleMovement[0].sourceFile == movement.sourceFile
                             && castleMovement[0].sourceRank == movement.sourceRank){
@@ -300,11 +335,16 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                             pieces[castleMovement[1].sourceFile][castleMovement[1].sourceRank] = ChessPiece.emptyChessPiece
                             addMoveToMoveHistory(castleMovement[0])
                             addMoveToMoveHistory(castleMovement[1])
-                            getWinner()
+                            boardStateListSinceCastling.clear()
+                            ++lastCaptureCounter
+                            ++lastPawnMove
+                            checkForWinner()
+                            checkForDraw()
                             if(!gameFinished){
                                 ++moveCounter
                                 switchMoveColor()
                             }
+                            println(movement.asString(moveColor))
                             return ""
                         }
                     }
@@ -316,12 +356,20 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             }
             if(userMovement == null)return "cannot move there"
         }
+        ++lastCaptureCounter
+        ++lastPawnMove
 
-        if(specialMoveCheck_Enpassante(userMovement) != null){
-            capturePiece(specialMoveCheck_Enpassante(userMovement)!!)
+        if(specialMoveCheckEnpassante(userMovement) != null){
+            capturePiece(specialMoveCheckEnpassante(userMovement)!!)
+        }
+
+
+        if(pieces[movement.sourceFile][movement.sourceRank].name == "pawn"){
+            lastPawnMove = 0
         }
 
         //valid movement
+        println(movement.asString(moveColor))
         if (userMovement.movementNotation.movetype == "g") {
             //capture the piece hopped over
             val signFile = sign((userMovement.targetFile - userMovement.sourceFile).toDouble()).toInt()
@@ -331,8 +379,10 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             if(pieces[captureFile][captureRank].color != moveColor){
                 if(pieces[captureFile][captureRank].color == "white"){
                     whiteCapturedPieces.add(pieces[captureFile][captureRank])
+                    lastCaptureCounter = 0
                 } else if(pieces[captureFile][captureRank].color == "black"){
                     blackCapturedPieces.add(pieces[captureFile][captureRank])
+                    lastCaptureCounter = 0
                 }
                 pieces[captureFile][captureRank] = ChessPiece(
                     "",
@@ -348,8 +398,10 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         //if target is nonempty, add to captured pieces
         if(pieces[movement.targetFile][movement.targetRank].color == "white"){
             whiteCapturedPieces.add(pieces[movement.targetFile][movement.targetRank])
+            lastCaptureCounter = 0
         } else if(pieces[movement.targetFile][movement.targetRank].color == "black"){
             blackCapturedPieces.add(pieces[movement.targetFile][movement.targetRank])
+            lastCaptureCounter = 0
         }
         //move piece and replace target
         var pieceName = pieces[movement.sourceFile][movement.sourceRank].name
@@ -377,11 +429,15 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         addMoveToMoveHistory(userMovement)
 
         checkForPromotion()
-        getWinner()
+        boardStateListSinceCastling.add(getBoardStateString())
+
+        checkForWinner()
+        checkForDraw()
         if(!gameFinished){
             ++moveCounter
             switchMoveColor()
         }
+
         return ""
     }
 
@@ -400,7 +456,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
 
-    private fun specialMoveCheck_Enpassante(movement: ChessPiece.Movement) : ChessPiece?{
+    private fun specialMoveCheckEnpassante(movement: ChessPiece.Movement) : ChessPiece?{
         if(moveHistory.isNotEmpty()){
             val lastMoveSourceFile = moveHistory[moveHistory.lastIndex].sourceFile
             val lastMoveSourceRank = moveHistory[moveHistory.lastIndex].sourceRank
@@ -430,7 +486,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         return null
     }
 
-    private fun generate_specialMoveCheck_Castling(color : String) : List<Array<ChessPiece.Movement>>{
+    private fun generateSpecialMoveCheckCastling(color : String) : List<Array<ChessPiece.Movement>>{
         val moveList = mutableListOf<Array<ChessPiece.Movement>>()
         val allEnemyMoves = mutableListOf<ChessPiece.Movement>()
         if(color == "black"){
@@ -498,8 +554,8 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                         if(shortCastlingPossible){
                             moveList.add(
                                 arrayOf(
-                                    ChessPiece.Movement(CASTLING_MOVEMENT,4, 0, 2, 0),
-                                    ChessPiece.Movement(CASTLING_MOVEMENT,0,0,3,0)
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,4, 0, 6, 0),
+                                    ChessPiece.Movement(CASTLING_MOVEMENT,7,0,5,0)
                                 )
                             )
                         }
@@ -542,8 +598,22 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                 }
             }
         }
-
         return moveList
+    }
+
+    private fun getBoardStateString(): String {
+        val boardStateString = java.lang.StringBuilder("$moveColor:\n")
+        for(file in pieces.indices){
+            for(rank in pieces[0].indices){
+                when(pieces[rank][file].color){
+                    "white" -> {boardStateString.append(pieces[rank][file].name[0].toUpperCase())}
+                    "black" -> {boardStateString.append(pieces[rank][file].name[0].toLowerCase())}
+                    else -> {boardStateString.append(" ")}
+                }
+            }
+            boardStateString.append("\n")
+        }
+        return return boardStateString.toString()
     }
 
     private fun checkForPromotion() {
@@ -559,7 +629,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     /** calculate all points of black player */
-    fun points_black(): Int {
+    fun pointsBlack(): Int {
         var punkte = 0
         for (a in 0..7) {
             for (b in 0..7) {
@@ -572,7 +642,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     /** calculate all points of white player */
-    fun points_white(): Int {
+    fun pointsWhite(): Int {
         var punkte = 0
         for (a in 0..7) {
             for (b in 0..7) {

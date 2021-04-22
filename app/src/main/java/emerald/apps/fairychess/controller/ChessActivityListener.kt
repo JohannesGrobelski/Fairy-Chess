@@ -163,7 +163,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 var moveResult:String
                 if(gameParameters.playMode=="ai"){
                     moveResult = chessgame.movePlayer(movement,chessgame.getChessboard().moveColor)
-                    if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won")
+                    if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won") //check for winner
+                    if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
+                        offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
+                    }
                 } else {
                     moveResult = chessgame.movePlayer(movement,gameParameters.playerColor)
                 }
@@ -283,7 +286,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-
+    private fun offerDraw(color : String){
+        Toast.makeText(chessActivity,"$color can draw!",Toast.LENGTH_LONG).show()
+    }
 
     private fun displayTargetMovements() {
         val targetMovements = chessgame.getTargetMovements(selectionFile,selectionRank)
@@ -452,8 +457,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     || gameParameters.playerColor == "black" && gameState.moves.size%2==1){
                         chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
                         displayFigures()
-                        if(chessgame.gameFinished){
-                            finishGame("$gameParameters.playerColor won")
+                        if(chessgame.gameFinished)finishGame(chessgame.getChessboard().gameWinner+" won") //check for winner
+                        if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
+                            offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
                         }
                 }
             }

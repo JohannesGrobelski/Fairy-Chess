@@ -360,6 +360,10 @@ class ChessPiece(
                 return movementList
             }
         }
+
+        fun asString(playerColor : String): String {
+            return playerColor+": "+sourceFile.toString()+"_"+sourceRank+"_"+targetFile+"_"+targetRank
+        }
     }
 
     class PromotionMovement(movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")

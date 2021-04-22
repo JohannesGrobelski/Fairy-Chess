@@ -80,9 +80,9 @@ class Chessgame() {
 
     fun makeMove(moveString: String) {
         val count = moveString.count{ "_".contains(it) }
-    if(count == 3)makeMove(ChessPiece.Movement.fromStringToMovement(moveString))
-    if(count == 4)makeMove(ChessPiece.PromotionMovement.fromStringToMovement(moveString))
-}
+        if(count == 3)makeMove(ChessPiece.Movement.fromStringToMovement(moveString))
+        if(count == 4)makeMove(ChessPiece.PromotionMovement.fromStringToMovement(moveString))
+    }
 
     fun makeMove(movement: ChessPiece.Movement){
         chessboard.move(chessboard.moveColor, movement)
