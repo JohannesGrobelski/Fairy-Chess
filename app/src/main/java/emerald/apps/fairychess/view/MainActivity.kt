@@ -1,5 +1,6 @@
 package emerald.apps.fairychess.view
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import emerald.apps.fairychess.R
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        mainActivityListener.loadPlayerStats()
+        mainActivityListener.onResume()
     }
 
 

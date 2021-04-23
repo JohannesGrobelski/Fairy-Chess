@@ -1,6 +1,8 @@
 package emerald.apps.fairychess.controller
 
+import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Color
 import android.view.View
 import android.widget.*
@@ -105,16 +107,12 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private var opponentTimer : ChessTimerOpponent? = null
     private lateinit var playerStats : MultiplayerDB.PlayerStats
     private lateinit var opponentStats : MultiplayerDB.PlayerStats
+    private var playerStatsUpdated = false
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        playerStats = MultiplayerDB.PlayerStats(0,0,0,
-            chessActivity.intent.getDoubleExtra(MainActivityListener.gamePlayerELOExtra, 0.0)
-        )
-        opponentStats = MultiplayerDB.PlayerStats(
-            0, 0, 0,
-            chessActivity.intent.getDoubleExtra(MainActivityListener.gameOpponentELOExtra, 0.0)
-        )
+        playerStats = chessActivity.intent.getParcelableExtra(MainActivityListener.gamePlayerStatsExtra)!!
+        opponentStats = chessActivity.intent.getParcelableExtra(MainActivityListener.gameOpponentStatsExtra)!!
 
         gameData = MultiplayerDB.GameData(
             chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!,
@@ -130,7 +128,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
         )
 
-        chessgame = Chessgame(chessActivity,gameData, gameParameters)
+        chessgame = Chessgame(chessActivity, gameData, gameParameters)
         if(gameParameters.playerColor=="white"){
             chessActivity.tv_playernameW.text = gameData.playerID
             chessActivity.tv_opponentnameW.text = gameData.opponentID
@@ -144,8 +142,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             chessActivity.tv_OpponentELOB.text = opponentStats.ELO.toString()
         }
 
-        playerTimer = ChessTimerPlayer.getPlTimerFromTimeMode(this,gameParameters.time)
-        opponentTimer = ChessTimerOpponent.getOpTimerFromTimeMode(this,gameParameters.time)
+        playerTimer = ChessTimerPlayer.getPlTimerFromTimeMode(this, gameParameters.time)
+        opponentTimer = ChessTimerOpponent.getOpTimerFromTimeMode(this, gameParameters.time)
         playerTimer?.create()
         opponentTimer?.create()
 
@@ -153,7 +151,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         displayFigures()
 
         if(gameParameters.playMode == "human"){
-            multiplayerDB = MultiplayerDB(this,chessgame)
+            multiplayerDB = MultiplayerDB(this, chessgame)
             multiplayerDB.listenToGameIngame(gameData.gameId)
         }
     }
@@ -162,7 +160,11 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     fun clickSquare(clickedView: View){
         //get file and rank of clicked view
         val clickedviewFullname: String = chessActivity.resources.getResourceName(clickedView.id)
-        val clickedViewName: String = clickedviewFullname.substring(clickedviewFullname.lastIndexOf("/") + 1)
+        val clickedViewName: String = clickedviewFullname.substring(
+            clickedviewFullname.lastIndexOf(
+                "/"
+            ) + 1
+        )
         if(clickedViewName.matches("[A-Z][0-9]+".toRegex())){
             //calculate clickedFile and clickedRank
             val clickedFile = nameToFile(clickedViewName)
@@ -170,30 +172,35 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             //if a file and rank was selected => move from selected square to
             if(selectionRank != -1 && selectionFile != -1
                 && clickedFile != -1 && clickedRank != -1){
-                val movement = ChessPiece.Movement(sourceFile = selectionFile,sourceRank = selectionRank,targetFile = clickedFile,targetRank = clickedRank)
+                val movement = ChessPiece.Movement(
+                    sourceFile = selectionFile,
+                    sourceRank = selectionRank,
+                    targetFile = clickedFile,
+                    targetRank = clickedRank
+                )
                 var moveResult:String
                 if(gameParameters.playMode=="ai"){
-                    moveResult = chessgame.movePlayer(movement,chessgame.getChessboard().moveColor)
+                    moveResult = chessgame.movePlayer(movement, chessgame.getChessboard().moveColor)
                     if(chessgame.gameFinished){
                         if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
-                            finishGame(chessgame.getChessboard().gameWinner+" won",true)
+                            finishGame(chessgame.getChessboard().gameWinner + " won", true)
                         } else {
-                            finishGame(chessgame.getChessboard().gameWinner+" won",false)
+                            finishGame(chessgame.getChessboard().gameWinner + " won", false)
                         }
                     } //check for winner
                     if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
                         offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
                     }
                 } else {
-                    moveResult = chessgame.movePlayer(movement,gameParameters.playerColor)
+                    moveResult = chessgame.movePlayer(movement, gameParameters.playerColor)
                 }
                 moveResult += handlePromotion()
                 if(gameParameters.playMode=="human" && moveResult==""){
-                    multiplayerDB.writePlayerMovement(gameData.gameId,movement)
+                    multiplayerDB.writePlayerMovement(gameData.gameId, movement)
                 }
                 displayFigures()
                 if(moveResult.isNotEmpty()){
-                    Toast.makeText(chessActivity,moveResult,Toast.LENGTH_LONG).show()
+                    Toast.makeText(chessActivity, moveResult, Toast.LENGTH_LONG).show()
                 }
             }
             //mark the clicked view
@@ -258,13 +265,22 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         val movingPattern = chessgame.figureMap[promotion]!!.movementParlett
 
         chessgame.getChessboard().pieces[chessPiece.positionFile][chessPiece.positionRank] =
-            ChessPiece(promotion,chessPiece.positionFile,chessPiece.positionRank,value,color,movingPattern,0)
+            ChessPiece(
+                promotion,
+                chessPiece.positionFile,
+                chessPiece.positionRank,
+                value,
+                color,
+                movingPattern,
+                0
+            )
         displayFigures()
 
         var sourceFile = chessPiece.positionFile
         var sourceRank = 6
         if(chessPiece.color == "white") chessPiece.positionRank = 1
-        multiplayerDB.writePlayerMovement(gameData.gameId,
+        multiplayerDB.writePlayerMovement(
+            gameData.gameId,
             ChessPiece.PromotionMovement(
                 sourceFile = sourceFile,
                 sourceRank = sourceRank,
@@ -280,20 +296,26 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         for (file in 0..7) {
             for (rank in 0..7) {
                 val x: Int = getDrawableFromName(
-                    chessgame.getPieceName(file,rank),
-                    chessgame.getPieceColor(file,rank)
+                    chessgame.getPieceName(file, rank),
+                    chessgame.getPieceColor(file, rank)
                 )
                 if (x != -1) imageViews[file][rank].setImageResource(x)
             }
         }
         //display captures
-        chessActivity.drawCapturedPiecesDrawable("white",chessgame.getChessboard().blackCapturedPieces)
-        chessActivity.drawCapturedPiecesDrawable("black",chessgame.getChessboard().whiteCapturedPieces)
+        chessActivity.drawCapturedPiecesDrawable(
+            "white",
+            chessgame.getChessboard().blackCapturedPieces
+        )
+        chessActivity.drawCapturedPiecesDrawable(
+            "black",
+            chessgame.getChessboard().whiteCapturedPieces
+        )
         chessActivity.highlightActivePlayer(chessgame.getChessboard().moveColor)
         switchClocks(chessgame.getChessboard().moveColor)
     }
 
-    private fun switchClocks(activePlayerColor : String){
+    private fun switchClocks(activePlayerColor: String){
         if(gameParameters.playerColor == activePlayerColor){
             opponentTimer?.pause()
             playerTimer?.resume()
@@ -303,14 +325,26 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-    private fun offerDraw(color : String){
-        Toast.makeText(chessActivity,"$color can draw!",Toast.LENGTH_LONG).show()
+    private fun offerDraw(color: String){
+        if(color == gameParameters.playerColor){
+            // create an alert builder
+            val builder = AlertDialog.Builder(chessActivity)
+            builder.setTitle("Do you want to draw?") // set the custom layout
+            builder.setPositiveButton("yes") { _, _ ->
+                run {
+                    finishGame(gameData.playerID + " draw", null)
+                }
+            }
+            builder.setNegativeButton("no",null)
+            val dialog = builder.create()
+            dialog.show()
+        }
     }
 
     private fun displayTargetMovements() {
-        val targetMovements = chessgame.getTargetMovements(selectionFile,selectionRank)
+        val targetMovements = chessgame.getTargetMovements(selectionFile, selectionRank)
         for (targetMovement in targetMovements){
-            markSquare(targetMovement.targetFile,targetMovement.targetRank)
+            markSquare(targetMovement.targetFile, targetMovement.targetRank)
         }
     }
 
@@ -408,7 +442,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-    fun markSquare(file : Int, rank : Int) {
+    fun markSquare(file: Int, rank: Int) {
         imageViews[file][rank].setBackgroundColor(
             getMixedColor(file, rank, Color.YELLOW)
         )
@@ -435,11 +469,11 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private fun getMixedColor(x: Int, y: Int, color: Int): Int {
         return if ((x + y) % 2 == 0) ColorUtils.blendARGB(
             color,
-            chessActivity.getResources().getColor(R.color.colorWhite),
+            chessActivity.resources.getColor(R.color.colorWhite),
             0.8f
         ) else ColorUtils.blendARGB(
             color,
-            chessActivity.getResources().getColor(R.color.colorBlack),
+            chessActivity.resources.getColor(R.color.colorBlack),
             0.8f
         )
     }
@@ -453,51 +487,60 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     fun onDestroy() {
-        finishGame(gameParameters.playerColor+" left the game",false)
+        finishGame(gameParameters.playerColor + " left the game", false)
     }
 
-    fun finishGame(cause: String,playerWon:Boolean){
+    fun finishGame(cause: String, playerWon: Boolean?){
         if(chessgame.gameParameters.playMode=="human"){
-            multiplayerDB.finishGame(chessgame.gameData.gameId, cause)
-            ChessRatingSystem.updatePlayerStats(
-                playerStats,
-                opponentStats,
-                playerWon
-            )
-            multiplayerDB.setPlayerStats(gameData.playerID,playerStats)
-            multiplayerDB.setPlayerStats(gameData.playerID,opponentStats)
+            chessgame.gameFinished = true
+            if(!playerStatsUpdated){
+                ChessRatingSystem.updatePlayerStats(
+                    playerStats,
+                    opponentStats,
+                    playerWon
+                )
+                multiplayerDB.setPlayerStats(gameData.playerID, playerStats, cause)
+                playerStatsUpdated = true
+            }
         } else {
-            onFinishGame("",cause)
+            onFinishGame("", cause)
         }
+    }
+
+    override fun onSetPlayerstats(cause : String) {
+        multiplayerDB.finishGame(chessgame.gameData.gameId, cause)
     }
 
     override fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState) {
         if(gameState.gameFinished){
-            Toast.makeText(chessActivity,"opponent left game",Toast.LENGTH_LONG).show()
-            onFinishGame(gameData.gameId,"opponent left game")
+            Toast.makeText(chessActivity, "opponent left game", Toast.LENGTH_LONG).show()
+            finishGame("opponent left game", true)
         } else {
             if(gameState.moves.isNotEmpty()){
                 if(gameParameters.playerColor == "white" && gameState.moves.size%2==0
                     || gameParameters.playerColor == "black" && gameState.moves.size%2==1){
-                        chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
-                        displayFigures()
-                        if(chessgame.gameFinished){
-                            if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
-                                finishGame(chessgame.getChessboard().gameWinner+" won",true)
-                            } else {
-                                finishGame(chessgame.getChessboard().gameWinner+" won",false)
-                            }
-                        } //check for winner
-                        if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
-                            offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
+                    chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
+                    displayFigures()
+                    if(chessgame.gameFinished){
+                        if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
+                            finishGame(chessgame.getChessboard().gameWinner + " won", true)
+                        } else {
+                            finishGame(chessgame.getChessboard().gameWinner + " won", false)
                         }
+                    } //check for winner
+                    if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
+                        offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
+                    }
                 }
             }
         }
     }
 
-    override fun onFinishGame(gameId: String, cause : String) {
-        Toast.makeText(chessActivity,cause,Toast.LENGTH_LONG).show()
+    override fun onFinishGame(gameId: String, cause: String) {
+        Toast.makeText(chessActivity, cause, Toast.LENGTH_LONG).show()
+        val data = Intent()
+            data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
+        chessActivity.setResult(RESULT_OK, data)
         chessActivity.finish()
     }
 
@@ -512,7 +555,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     override fun onFinishOpponentTimer() {
         chessgame.gameFinished = true
-        finishGame("timeout. you won.",true)
+        finishGame("timeout. you won.", true)
     }
 
     override fun onTickPlayerTimer(millisUntilFinished: Long) {
@@ -525,7 +568,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     override fun onFinishPlayerTimer() {
-        finishGame("timeout. you lost.",false)
+        finishGame("timeout. you lost.", false)
     }
 
 

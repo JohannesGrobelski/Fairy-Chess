@@ -1,5 +1,7 @@
 package emerald.apps.fairychess.model
 
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -8,6 +10,7 @@ import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.model.Chessboard.Companion.oppositeColor
 import emerald.apps.fairychess.model.Chessboard.Companion.randomColor
+import java.io.Serializable
 
 /**
  *  usecase: create player
@@ -30,6 +33,7 @@ import emerald.apps.fairychess.model.Chessboard.Companion.randomColor
  */
 class MultiplayerDB {
     companion object {
+        const val matchmakingWinningChanceOffset = 0.3 //0.0 ... 0.5
         const val TAG = "MultiplayerDB"
         
         //collection paths
@@ -89,7 +93,7 @@ class MultiplayerDB {
      * (onGameSearchComplete in MainActivityListener)
      */
     fun searchForOpenGames(gameName: String, timeMode: String, player2ID: String) {
-        val resultList = mutableListOf<MainActivityListener.Game>()
+        val resultList = mutableListOf<MainActivityListener.GameSearchResult>()
         Log.d(TAG, "search for games $gameName, $timeMode, $player2ID")
         val collection = db.collection(GAMECOLLECTIONPATH)
             .whereEqualTo(GAMEFIELD_FINISHED,false)
@@ -108,11 +112,12 @@ class MultiplayerDB {
                     for (document in task.result!!) {
                         Log.d(TAG, document.id + " => " + document.data)
                         resultList.add(
-                            MainActivityListener.Game(
+                            MainActivityListener.GameSearchResult(
                                 document.id,
-                                document.get(GAMEFIELD_GAMENAME) as String,
                                 document.get(GAMEFIELD_TIMEMODE) as String,
-                                document.get(GAMEFIELD_PLAYER2Color) as String
+                                document.get(GAMEFIELD_PLAYER2Color) as String,
+                                document.get(GAMEFIELD_PLAYER1ELO) as Double,
+                                document.get(GAMEFIELD_GAMENAME) as String
                             )
                         )
                     }
@@ -339,7 +344,37 @@ class MultiplayerDB {
             }
     }
 
-    class PlayerStats(val games_played : Long, val games_won : Long, val games_lost : Long, var ELO : Double)
+    class PlayerStats(var games_played : Long, var games_won : Long, var games_lost : Long, var ELO : Double) : Parcelable {
+        constructor(parcel: Parcel) : this(
+            parcel.readLong(),
+            parcel.readLong(),
+            parcel.readLong(),
+            parcel.readDouble()
+        ) {
+        }
+
+        override fun writeToParcel(parcel: Parcel, flags: Int) {
+            parcel.writeLong(games_played)
+            parcel.writeLong(games_won)
+            parcel.writeLong(games_lost)
+            parcel.writeDouble(ELO)
+        }
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        companion object CREATOR : Parcelable.Creator<PlayerStats> {
+            override fun createFromParcel(parcel: Parcel): PlayerStats {
+                return PlayerStats(parcel)
+            }
+
+            override fun newArray(size: Int): Array<PlayerStats?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
+
     fun getPlayerStats(playerID: String) {
         db.collection(PLAYERCOLLECTIONPATH)
             .whereEqualTo(PLAYER_ID,playerID)
@@ -359,17 +394,37 @@ class MultiplayerDB {
             }
     }
 
-    fun setPlayerStats(playerID: String,playerStats: PlayerStats) {
+    fun setPlayerStats(playerID: String,playerStats: PlayerStats, cause: String) {
+        //get doc id
         db.collection(PLAYERCOLLECTIONPATH)
-            .document(playerID)
-            .update(
-                mapOf(
-                    PLAYER_GAMES_PLAYED to playerStats.games_played,
-                    PLAYER_GAMES_WON to playerStats.games_won,
-                    PLAYER_GAMES_LOST to playerStats.games_lost,
-                    PLAYER_ELO to playerStats.ELO
-                )
-            )
+            .whereEqualTo(PLAYER_ID,playerID)
+            .get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    for(document in task.result!!){
+                        val docID = document.id
+                        db.collection(PLAYERCOLLECTIONPATH)
+                            .document(docID)
+                            .update(
+                                mapOf(
+                                    PLAYER_GAMES_PLAYED to playerStats.games_played,
+                                    PLAYER_GAMES_WON to playerStats.games_won,
+                                    PLAYER_GAMES_LOST to playerStats.games_lost,
+                                    PLAYER_ELO to playerStats.ELO
+                                )
+                            )
+                            .addOnSuccessListener {
+                                multiplayerDBGameInterface?.onSetPlayerstats(cause)
+                            }
+                            .addOnFailureListener() {
+                                Log.e("MultiplayerDB", "could not set player stats: "+it.cause)
+                            }
+                    }
+                } else {
+                    Log.w(TAG, "Error getting documents.", task.exception)
+                }
+            }
+
     }
 
     fun cancelGame(gameId: String) {
@@ -389,17 +444,17 @@ class MultiplayerDB {
 public interface MultiplayerDBSearchInterface {
     fun onCreatePlayer(playerID: String)
     fun onPlayerNameSearchComplete(playerIDr: String, occurences: Int)
-    fun onGameSearchComplete(gameIDList: List<MainActivityListener.Game>)
+    fun onGameSearchComplete(gameSearchResultList: List<MainActivityListener.GameSearchResult>)
     fun onJoinGame(gameParameters: MainActivityListener.GameParameters,gameData: MultiplayerDB.GameData)
     fun onCreateGame(gameName: String, gameID: String, player1Color : String)
     fun onGameChanged(gameId : String)
 
     fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats)
-    fun onSetPlayerstats()
 }
 
 public interface MultiplayerDBGameInterface {
     fun onFinishGame(gameId: String, cause : String)
     fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState)
+    fun onSetPlayerstats(exitCause : String)
 }
 

@@ -26,8 +26,8 @@ class ChessRatingSystemTest {
     @Test
     fun testUpdatePlayerStats() {
         // Ra and Rb are current ELO ratings
-        val playerStatsTom = MultiplayerDB.PlayerStats(30,15,10,1200.0)
-        val playerStatsKaty = MultiplayerDB.PlayerStats(30,15,10,1000.0)
+        val playerStatsTom = MultiplayerDB.PlayerStats(0,0,0,400.0)
+        val playerStatsKaty = MultiplayerDB.PlayerStats(0,0,0,400.0)
 
         updatePlayerStats(playerStatsTom,playerStatsKaty,true)
         assert(playerStatsTom.ELO in 1207.2..1208.3)
