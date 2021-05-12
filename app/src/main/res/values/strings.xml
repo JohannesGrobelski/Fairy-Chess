@@ -2,6 +2,6 @@
     <string name="app_name">Schach</string>
     <string name="title_activity_chess">ChessActivity</string>
     <string name="title_activity_janus_chess">JanusChessActivity</string>
-    <string name="play_against_computer">play against computer</string>
-    <string name="play_against_human">play against human</string>
+    <string name="play_local">play local chess</string>
+    <string name="play_online">play online chess</string>
 </resources>

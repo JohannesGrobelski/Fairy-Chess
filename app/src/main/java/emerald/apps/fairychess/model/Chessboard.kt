@@ -262,9 +262,10 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     /**
-     *
+     * checks if a player has the right to draw
+     * (50 move rule or 3-repetition rule)
      */
-    private fun checkForDraw(){
+    private fun checkForDrawRight(){
         playerWithDrawOpportunity = ""
         //50 move rule
         if(lastCaptureCounter >= 50 || lastPawnMove >= 50){
@@ -339,7 +340,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                             ++lastCaptureCounter
                             ++lastPawnMove
                             checkForWinner()
-                            checkForDraw()
+                            checkForDrawRight()
                             if(!gameFinished){
                                 ++moveCounter
                                 switchMoveColor()
@@ -432,12 +433,11 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         boardStateListSinceCastling.add(getBoardStateString())
 
         checkForWinner()
-        checkForDraw()
+        checkForDrawRight()
         if(!gameFinished){
             ++moveCounter
             switchMoveColor()
         }
-
         return ""
     }
 

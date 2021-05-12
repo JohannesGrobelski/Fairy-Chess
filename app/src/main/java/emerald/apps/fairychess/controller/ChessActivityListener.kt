@@ -349,7 +349,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     private fun initViews() {
-        elterLayout = chessActivity.findViewById<LinearLayout>(R.id.elterLayout)
+        elterLayout = chessActivity.findViewById(R.id.elterLayout)
         imageViews = arrayOf(
             arrayOf(
                 chessActivity.A1, chessActivity.A2, chessActivity.A3, chessActivity.A4,
@@ -405,8 +405,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             return R.drawable.white_grasshopper
         } else if (color == "black" && type == "king") {
             return R.drawable.black_king
-        } else if (color == "black" && type == "queen") {
-            return R.drawable.black_queen
         } else if (color == "black" && type == "pawn") {
             return R.drawable.black_pawn
         } else if (color == "black" && type == "bishop") {
@@ -465,7 +463,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-    //Hilfsfunktionen
+    //helper functions
     private fun getMixedColor(x: Int, y: Int, color: Int): Int {
         return if ((x + y) % 2 == 0) ColorUtils.blendARGB(
             color,

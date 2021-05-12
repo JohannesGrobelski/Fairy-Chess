@@ -236,10 +236,11 @@ class MultiplayerDB {
 
     fun createPlayer(playerID: String) {
         val playerHash = hashMapOf(
-            "name" to playerID,
-            "wins" to 0,
-            "losses" to 0,
-            "played_games" to 0
+            PLAYER_ELO to 400,
+            PLAYER_ID to playerID,
+            PLAYER_GAMES_WON to 0,
+            PLAYER_GAMES_LOST to 0,
+            PLAYER_GAMES_PLAYED to 0
         )
         // Add a new document with a generated ID
         db.collection(PLAYERCOLLECTIONPATH)

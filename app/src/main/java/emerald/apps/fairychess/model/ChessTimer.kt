@@ -39,7 +39,6 @@ class ChessTimerPlayer(
     }
 }
 
-
 class ChessTimerOpponent(
     private val chessTimerInterface: ChessTimerOpponentInterface,
     finished: Long,
@@ -94,5 +93,4 @@ class TimerUtils {
             )
         }
     }
-
 }

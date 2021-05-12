@@ -1,7 +1,7 @@
 package emerald.apps.fairychess.view
 
-import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
@@ -15,8 +15,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         mainActivityListener = MainActivityListener(this)
-        btn_human.setOnClickListener(mainActivityListener)
-        btn_ai.setOnClickListener(mainActivityListener)
+        btn_online.setOnClickListener(mainActivityListener)
+        btn_local.setOnClickListener(mainActivityListener)
     }
 
     override fun onResume() {
@@ -24,5 +24,8 @@ class MainActivity : AppCompatActivity() {
         mainActivityListener.onResume()
     }
 
+    fun onClick(v: View){
+        mainActivityListener.onClick(v)
+    }
 
 }

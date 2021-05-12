@@ -12,7 +12,7 @@
     tools:context=".view.MainActivity">
 
     <Button
-        android:id="@+id/btn_ai"
+        android:id="@+id/btn_local"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_marginLeft="20dp"
@@ -21,12 +21,12 @@
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:background="#A97C7C7C"
-        android:text="@string/play_against_computer"
+        android:text="@string/play_local"
         android:textColor="#FFFFFF"
         android:textSize="50sp" />
 
     <Button
-        android:id="@+id/btn_human"
+        android:id="@+id/btn_online"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_marginLeft="20dp"
@@ -35,7 +35,7 @@
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:background="#A97C7C7C"
-        android:text="@string/play_against_human"
+        android:text="@string/play_online"
         android:textColor="#FFFFFF"
         android:textSize="50sp" />
 
@@ -44,9 +44,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
+        android:onClick="onClick"
         android:padding="10dp"
+        android:text="username"
         android:textAlignment="center"
         android:textColor="@android:color/white"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="visible" />
 
 </LinearLayout>

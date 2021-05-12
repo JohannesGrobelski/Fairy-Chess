@@ -78,15 +78,48 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     override fun onClick(v: View?) {
         when(v?.id){
-            R.id.btn_human -> {
+            R.id.btn_online -> {
                 gameParameters.playMode = "human"
                 display_alertDialogGameParameters("human")
             }
-            R.id.btn_ai -> {
+            R.id.btn_local -> {
                 gameParameters.playMode = "human"
                 display_alertDialogGameParameters("ai")
             }
+            R.id.tv_playerstats -> {
+                if(this::playerStats.isInitialized) {
+                    display_alertDialogPlayerStats()
+                } else {
+                    Toast.makeText(mainActivity,"loading player stats",Toast.LENGTH_SHORT).show()
+                }
+            }
         }
+    }
+
+    fun display_alertDialogPlayerStats(){
+        val inflater = LayoutInflater.from(mainActivity)
+
+        //inflate the layout (depending on mode)
+        val playerStatsDialogView = inflater.inflate(
+            R.layout.alertdialog_playerstats,
+            null,
+            false
+        )
+
+        playerStatsDialogView.findViewById<TextView>(R.id.aD_playerStats_playerName).text =
+            "playername : $userName"
+        playerStatsDialogView.findViewById<TextView>(R.id.aD_playerStats_ELO).text =
+            "ELO : "+playerStats.ELO
+        playerStatsDialogView.findViewById<TextView>(R.id.aD_playerStats_gamesPlayed).text =
+            "games played : "+playerStats.games_played
+        playerStatsDialogView.findViewById<TextView>(R.id.aD_playerStats_gamesWon).text =
+            "games won : "+playerStats.games_won
+        playerStatsDialogView.findViewById<TextView>(R.id.aD_playerStats_gamesLost).text =
+            "games lost : "+playerStats.games_lost
+
+        val playerStatsDialogBuilder = AlertDialog.Builder(mainActivity).setView(playerStatsDialogView)
+        playerStatsDialogBuilder.setPositiveButton("OK",null)
+        playerStatsDialogBuilder.show()
     }
 
     fun display_alertDialogGameParameters(mode: String){
@@ -327,7 +360,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     override fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats) {
         this.playerStats = playerStats
-        mainActivity.tv_playerstats.text = "$userName ("+playerStats.ELO.roundToInt()+" ELO)"
+        mainActivity.tv_playerstats.text = userName
     }
 
     override fun onJoinGame(onlineGameParameters: GameParameters, gameData: MultiplayerDB.GameData) {
