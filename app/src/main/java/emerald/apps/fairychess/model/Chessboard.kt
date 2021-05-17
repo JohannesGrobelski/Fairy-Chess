@@ -13,8 +13,6 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
        (0,0) ... (0,7)
      */
 
-
-
     var pieces: Array<Array<ChessPiece>> = Array(8) {
         Array(8) {
             ChessPiece("", -1,-1, 0, "", "", 0)

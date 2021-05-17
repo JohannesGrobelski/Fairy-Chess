@@ -5,15 +5,15 @@ import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 
-
+/** parse chessformation-File to a 2D-Array of figure-String (Array<Array<String>>)*/
 class ChessFormationParser {
     companion object {
         private val TAG: String = "ChessFormationParser"
+
+        /** parse chessFormation string by splitting brackets and then, comma's */
         fun parseChessFormationString(chessFormation: String) : Array<Array<String>> {
             var fileList = mutableListOf<Array<String>>()
-
             var chessFormationWOC = chessFormation.replace("[\\s]*\\/\\/[^\\n]*".toRegex(), "")
-
             val matchedResults = Regex(pattern = "\\[.+\\]").findAll(input = chessFormationWOC)
             for (matchedText in matchedResults) {
                 val array = matchedText.value.
@@ -25,6 +25,7 @@ class ChessFormationParser {
             return fileList.toTypedArray()
         }
 
+        /** create inputstream from file and then parse JSON string from inputstream */
         fun parseChessFormation(context: Context, fileName: String) : Array<Array<String>> {
             try {
                 val inputStream = context.resources.openRawResource(
@@ -33,7 +34,7 @@ class ChessFormationParser {
                         "raw", context.packageName
                     )
                 )
-                return invert2DArray(
+                return rotate2DArray(
                     parseChessFormationString(
                         convertStreamToString(
                             inputStream
@@ -46,17 +47,22 @@ class ChessFormationParser {
             return arrayOf()
         }
 
-        fun invert2DArray(inputArray: Array<Array<String>>) : Array<Array<String>>{
-           //create empty array
-           var outputArray = arrayOf<Array<String>>()
-           for (i in 0..inputArray.size-1) {
+        /** rotate the 2D array like this:
+         *  AB  to   AC
+         *  CD       CD
+         *
+         * */
+        fun rotate2DArray(inputArray: Array<Array<String>>) : Array<Array<String>>{
+            //create empty array
+            var outputArray = arrayOf<Array<String>>()
+            for (i in 0..inputArray.size-1) {
                 var array = arrayOf<String>()
                 for (j in 0..inputArray[i].size-1) {
                     array += inputArray[j][i]
                 }
                 outputArray += array
-           }
-           return outputArray
+            }
+            return outputArray
         }
 
         fun convertStreamToString(inputStream: InputStream): String {

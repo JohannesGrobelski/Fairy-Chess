@@ -226,7 +226,7 @@ class ChessboardUnitTest {
                 "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\$mode.chessformation"
             val initialFile = File(absPath)
             val inputStream: InputStream = FileInputStream(initialFile)
-            return ChessFormationParser.invert2DArray(
+            return ChessFormationParser.rotate2DArray(
                 ChessFormationParser.parseChessFormationString(
                     ChessFormationParser.convertStreamToString(
                         inputStream

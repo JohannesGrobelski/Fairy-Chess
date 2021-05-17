@@ -12,7 +12,8 @@ import emerald.apps.fairychess.model.Chessboard.Companion.oppositeColor
 import emerald.apps.fairychess.model.Chessboard.Companion.randomColor
 import java.io.Serializable
 
-/**
+/** MultiplayerDB adds/changes FirebaseFirestore-Database like
+ *
  *  usecase: create player
     - check for playername duplicate
     - create unique player

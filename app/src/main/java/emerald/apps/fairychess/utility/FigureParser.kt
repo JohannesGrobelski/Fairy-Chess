@@ -3,7 +3,8 @@ package emerald.apps.fairychess.utility
 import android.content.Context
 import org.json.JSONObject
 
-
+/** parses the figures.json file to a figure map from
+ *  name to figure (Map<String,Figure>)*/
 class FigureParser {
 
     data class Figure(val name: String, val value: Int, val movementParlett: String)
@@ -11,7 +12,7 @@ class FigureParser {
     companion object {
         private val TAG: String = "FigureParser"
 
-
+        /** create inputstream from file and then parse JSON string from inputstream */
         fun parseFigureMapFromFile(context: Context) : Map<String,Figure> {
             try {
                 val inputStream = context.resources.openRawResource(
@@ -32,13 +33,14 @@ class FigureParser {
             return mapOf()
         }
 
+        /** parse figures.json string to Map<String,Figure>*/
         fun parseFigureMapFromJSONString(jsonString: String): Map<String,Figure> {
             val figureList = mutableMapOf<String,Figure>()
-            //erstelle JSON-Objekt aus String
+            //create JSON object from string
             val outer = JSONObject(jsonString)
             val jsonArray = outer.getJSONArray("figures")
-            //gehe durch jsonArray und hole die drei Zitat-Eigenschaften mithilfe der 3 folgenden
-            //keys: id, author, text
+            //go through jsonArray and get the three quote properties using the
+            //following 4 keys (figure, name, value, movement) and create figure object
             for (i in 0 until jsonArray.length()) {
                 val figure = jsonArray.getJSONObject(i)
                 val name = figure.getString("name")

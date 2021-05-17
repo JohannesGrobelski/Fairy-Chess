@@ -20,11 +20,9 @@ class ChessActivity : AppCompatActivity() {
     private lateinit var chessActivityListener: ChessActivityListener
     private lateinit var playerColor : String
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        //get parameters from intent
         playerColor = this.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
         val timeMode = this.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
         if(playerColor == "white"){
@@ -36,7 +34,6 @@ class ChessActivity : AppCompatActivity() {
             tv_PlayerTimeB.text = timeMode
             tv_OpponentTimeB.text = timeMode
         }
-        
         chessActivityListener = ChessActivityListener(this)
     }
 
@@ -45,49 +42,55 @@ class ChessActivity : AppCompatActivity() {
         chessActivityListener.onDestroy()
     }
 
-
+    /** propagate user input (click on chessboard square) */
     fun onClickSquare(v: View){
         chessActivityListener.clickSquare(v)
     }
 
-
+    /** highlight the textfield displaying information regarding the active player
+     *  (active player = player that has to make a move)*/
     fun highlightActivePlayer(activePlayerColor: String){
         if(playerColor == "white"){
             val playerActive = playerColor == activePlayerColor
-            tv_playernameW.setTextColor(getHighlightColor(playerActive))
-            tv_PlayerELOW.setTextColor(getHighlightColor(playerActive))
-            tv_PlayerTimeW.setTextColor(getHighlightColor(playerActive))
-            tv_opponentnameW.setTextColor(getHighlightColor(!playerActive))
-            tv_OpponentTimeW.setTextColor(getHighlightColor(!playerActive))
-            tv_OpponentELOW.setTextColor(getHighlightColor(!playerActive))
+            tv_playernameW.setTextColor(getTextFieldColor(playerActive))
+            tv_PlayerELOW.setTextColor(getTextFieldColor(playerActive))
+            tv_PlayerTimeW.setTextColor(getTextFieldColor(playerActive))
+            tv_opponentnameW.setTextColor(getTextFieldColor(!playerActive))
+            tv_OpponentTimeW.setTextColor(getTextFieldColor(!playerActive))
+            tv_OpponentELOW.setTextColor(getTextFieldColor(!playerActive))
         } else {
             val playerActive = playerColor == activePlayerColor
-            tv_playernameB.setTextColor(getHighlightColor(playerActive))
-            tv_PlayerELOB.setTextColor(getHighlightColor(playerActive))
-            tv_PlayerTimeB.setTextColor(getHighlightColor(playerActive))
-            tv_opponentnameB.setTextColor(getHighlightColor(!playerActive))
-            tv_OpponentTimeB.setTextColor(getHighlightColor(!playerActive))
-            tv_OpponentELOB.setTextColor(getHighlightColor(!playerActive))
+            tv_playernameB.setTextColor(getTextFieldColor(playerActive))
+            tv_PlayerELOB.setTextColor(getTextFieldColor(playerActive))
+            tv_PlayerTimeB.setTextColor(getTextFieldColor(playerActive))
+            tv_opponentnameB.setTextColor(getTextFieldColor(!playerActive))
+            tv_OpponentTimeB.setTextColor(getTextFieldColor(!playerActive))
+            tv_OpponentELOB.setTextColor(getTextFieldColor(!playerActive))
         }
     }
 
-    fun getHighlightColor(active:Boolean) : Int{
+    /** get color of textfield, depending on whether the player is active */
+    fun getTextFieldColor(active:Boolean) : Int{
         return if(active) RED
         else WHITE
     }
 
+    /** draw all pieces captured by player as layer-drawable by placing
+     * the pictures of the captured pieces on top of each other  */
     fun drawCapturedPiecesDrawable(color: String, capturedPieces: List<ChessPiece>) {
-        val layers = mutableListOf<Drawable>()
+        val layerList = mutableListOf<Drawable>()
         var inset = 0
+        //create a insetDrawable for each captured piece with inset of 100 and add it to layerlist
         for(capturedPiece in capturedPieces){
             val drawable = this.resources.getDrawable(
                 chessActivityListener.getDrawableFromName(capturedPiece.name,capturedPiece.color)
             )
             val insetDrawable = InsetDrawable(drawable,inset,0,0,0)
             inset += 100
-            layers.add(insetDrawable)
+            layerList.add(insetDrawable)
         }
-        val layerDrawable = LayerDrawable(layers.toTypedArray())
+        //create a layerDrawable from Layerlist and display it
+        val layerDrawable = LayerDrawable(layerList.toTypedArray())
         if(color == playerColor){
             if(playerColor == "white"){
                 iv_captPiecesPlayerLine1W.setImageDrawable(layerDrawable)

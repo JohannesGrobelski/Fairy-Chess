@@ -78,7 +78,7 @@ import kotlinx.android.synthetic.main.activity_chess_white_perspective.H6
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H7
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
 
-
+/** controller that propagates inputs from view to model and changes from model to view */
 class ChessActivityListener() : MultiplayerDBGameInterface
     , ChessTimerPlayer.ChessTimerPlayerInterface
     , ChessTimerOpponent.ChessTimerOpponentInterface {
@@ -95,14 +95,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     //Views
     var elterLayout: LinearLayout? = null
-    /*
+    /* chess board layout consists of 64 imageviews:
        pieces-array: (file,rank)-coordinates
        (7,0) ... (7,7)      (A,8) ... (H,8)
        ...        ...    =   ...        ...
        (0,0) ... (0,7)      (A,1) ... (G,1)
      */
     private lateinit var imageViews: Array<Array<ImageView>> //imageViews[file][rank]
-
     private var playerTimer : ChessTimerPlayer? = null
     private var opponentTimer : ChessTimerOpponent? = null
     private lateinit var playerStats : MultiplayerDB.PlayerStats
@@ -111,9 +110,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
+        //get game parameters from intent
         playerStats = chessActivity.intent.getParcelableExtra(MainActivityListener.gamePlayerStatsExtra)!!
         opponentStats = chessActivity.intent.getParcelableExtra(MainActivityListener.gameOpponentStatsExtra)!!
-
         gameData = MultiplayerDB.GameData(
             chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!,
             chessActivity.intent.getStringExtra(MainActivityListener.gamePlayerNameExtra)!!,
@@ -127,8 +126,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!,
             chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
         )
-
+        //create ches game with parameters
         chessgame = Chessgame(chessActivity, gameData, gameParameters)
+
+        //write information from intent into views and create/start timers
         if(gameParameters.playerColor=="white"){
             chessActivity.tv_playernameW.text = gameData.playerID
             chessActivity.tv_opponentnameW.text = gameData.opponentID
@@ -141,15 +142,16 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             chessActivity.tv_PlayerELOB.text = playerStats.ELO.toString()
             chessActivity.tv_OpponentELOB.text = opponentStats.ELO.toString()
         }
-
         playerTimer = ChessTimerPlayer.getPlTimerFromTimeMode(this, gameParameters.time)
         opponentTimer = ChessTimerOpponent.getOpTimerFromTimeMode(this, gameParameters.time)
         playerTimer?.create()
         opponentTimer?.create()
 
-        initViews()
+        //init chessboard-views
+        create2DArrayImageViews()
         displayFigures()
 
+        //init multiplayerDB
         if(gameParameters.playMode == "human"){
             multiplayerDB = MultiplayerDB(this, chessgame)
             multiplayerDB.listenToGameIngame(gameData.gameId)
@@ -220,7 +222,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         return ""
     }
 
+    /** handle pawn promotion*/
     private fun pawnPromotion(pawnPromotionCandidate: ChessPiece) {
+        //handle pawn promotion of ai (exchange pawn with queen)
         if(pawnPromotionCandidate.color != gameParameters.playerColor && gameParameters.playMode=="ai"){
             val value = chessgame.figureMap["queen"]!!.value
             val movingPattern = chessgame.figureMap["queen"]!!.movementParlett
@@ -236,6 +240,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 )
             displayFigures()
         }
+        //handle user pawn promotion by create alert dialog
         else {
             if(pawnPromotionCandidate.color == gameParameters.playerColor){
                 // create an alert builder
@@ -257,7 +262,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-    // do something with the data coming from the AlertDialog
+    //propagate promotion information from the AlertDialog onto chessboard
     private fun promote(promotion: String, chessPiece: ChessPiece) {
         if (chessPiece.positionFile < 0 || chessPiece.positionFile > 7 || chessPiece.positionRank < 0 || chessPiece.positionRank > 7) return
         val color: String = chessgame.getChessboard().pieces[chessPiece.positionFile][chessPiece.positionRank].color
@@ -276,8 +281,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             )
         displayFigures()
 
-        var sourceFile = chessPiece.positionFile
-        var sourceRank = 6
+        val sourceFile = chessPiece.positionFile
+        val sourceRank = 6
         if(chessPiece.color == "white") chessPiece.positionRank = 1
         multiplayerDB.writePlayerMovement(
             gameData.gameId,
@@ -291,7 +296,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         )
     }
 
-
+    /** display figures from chess board in imageViews of chessActivity-layout */
     fun displayFigures() {
         for (file in 0..7) {
             for (rank in 0..7) {
@@ -315,6 +320,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         switchClocks(chessgame.getChessboard().moveColor)
     }
 
+    /** switch clock from the player finishing the move to the other player */
     private fun switchClocks(activePlayerColor: String){
         if(gameParameters.playerColor == activePlayerColor){
             opponentTimer?.pause()
@@ -325,6 +331,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
+    /** create alert dialog for player that has a right for draw*/
     private fun offerDraw(color: String){
         if(color == gameParameters.playerColor){
             // create an alert builder
@@ -341,6 +348,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
+    /** highlight the square from */
     private fun displayTargetMovements() {
         val targetMovements = chessgame.getTargetMovements(selectionFile, selectionRank)
         for (targetMovement in targetMovements){
@@ -348,7 +356,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-    private fun initViews() {
+    /** create 2D array of chesssquare-imageViews */
+    private fun create2DArrayImageViews() {
         elterLayout = chessActivity.findViewById(R.id.elterLayout)
         imageViews = arrayOf(
             arrayOf(
@@ -386,6 +395,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         )
     }
 
+    /** get Drawable from figure name*/
     fun getDrawableFromName(type: String, color: String): Int {
         if (color == "white" && type == "king") {
             return R.drawable.white_king
@@ -405,6 +415,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             return R.drawable.white_grasshopper
         } else if (color == "black" && type == "king") {
             return R.drawable.black_king
+        } else if (color == "black" && type == "queen") {
+            return R.drawable.black_queen
         } else if (color == "black" && type == "pawn") {
             return R.drawable.black_pawn
         } else if (color == "black" && type == "bishop") {
@@ -422,8 +434,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
+    /** mark square for figure that was selected */
     fun markFigure(v: View) {
-        val fullName: String = chessActivity.getResources().getResourceName(v.getId())
+        val fullName: String = chessActivity.resources.getResourceName(v.id)
         val name: String = fullName.substring(fullName.lastIndexOf("/") + 1)
         val file = nameToFile(name)
         val rank = nameToRank(name)
@@ -446,6 +459,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         )
     }
 
+    /** reset chessboard square color to "normal" after highlighting it */
     private fun resetFieldColor() {
         for(rank in 0..7){
             for(file in 0..7){
@@ -463,7 +477,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-    //helper functions
+    /** helper functions for highlighting square */
     private fun getMixedColor(x: Int, y: Int, color: Int): Int {
         return if ((x + y) % 2 == 0) ColorUtils.blendARGB(
             color,
@@ -488,6 +502,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         finishGame(gameParameters.playerColor + " left the game", false)
     }
 
+    /** finish a chess game by writing changes to multiplayerDB*/
     fun finishGame(cause: String, playerWon: Boolean?){
         if(chessgame.gameParameters.playMode=="human"){
             chessgame.gameFinished = true
