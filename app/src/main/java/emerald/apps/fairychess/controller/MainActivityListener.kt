@@ -96,6 +96,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         }
     }
 
+    /** alert dialog to display playerstats (name,elo,games played,won and lost)*/
     fun display_alertDialogPlayerStats(){
         val inflater = LayoutInflater.from(mainActivity)
 
@@ -122,6 +123,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         playerStatsDialogBuilder.show()
     }
 
+    /** alert dialog to search for online games or start an offline game with parameters. */
     fun display_alertDialogGameParameters(mode: String){
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
@@ -173,39 +175,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         searchDialog.show()
     }
 
-    fun searchForGames(gameName: String, timeMode: String){
-        gameParameters.name = gameName
-        gameParameters.time = timeMode
-        multiplayerDB.searchForOpenGames(gameName, timeMode, userName)
-    }
-
-    fun start_gameWithParameters(gameData: MultiplayerDB.GameData, gameParameters: GameParameters){
-        launchedGamesMap[gameData.gameId] = true
-        joinWaitDialog?.dismiss()
-
-        val intent = Intent(mainActivity, ChessActivity::class.java)
-        intent.putExtra(gameIdExtra, gameData.gameId)
-        intent.putExtra(gamePlayerNameExtra, gameData.playerID)
-        intent.putExtra(gamePlayerStatsExtra, playerStats)
-        intent.putExtra(gameOpponentNameExtra, gameData.opponentID)
-        intent.putExtra(gameOpponentStatsExtra, opponentStats)
-        intent.putExtra(gameNameExtra, gameParameters.name)
-        intent.putExtra(gameModeExtra, gameParameters.playMode)
-        intent.putExtra(gameTimeExtra, gameParameters.time)
-        intent.putExtra(playerColorExtra, gameParameters.playerColor)
-        mainActivity.startActivity(intent)
-    }
-
-    fun loadOrCreateUserName(){
-        val sharedPrefs = mainActivity.getSharedPreferences("FairyChess", Context.MODE_PRIVATE)!!
-        userName = sharedPrefs.getString(userNameExtra, "")!!
-        if(userName.isEmpty()){
-            openCreateUserNameDialog("")
-        } else {
-            Toast.makeText(mainActivity, "welcome $userName!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
+    /** display a simple alert dialog to input a username. */
     fun openCreateUserNameDialog(takenUserName: String){
         val builder = AlertDialog.Builder(mainActivity)
         builder.setTitle("Create User")
@@ -233,6 +203,43 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         userNameDialog.show()
     }
 
+    fun searchForGames(gameName: String, timeMode: String){
+        gameParameters.name = gameName
+        gameParameters.time = timeMode
+        multiplayerDB.searchForOpenGames(gameName, timeMode, userName)
+    }
+
+    /** saves game parameters and player data into bundle and start chess activity*/
+    fun start_gameWithParameters(gameData: MultiplayerDB.GameData, gameParameters: GameParameters){
+        launchedGamesMap[gameData.gameId] = true
+        joinWaitDialog?.dismiss()
+
+        val intent = Intent(mainActivity, ChessActivity::class.java)
+        intent.putExtra(gameIdExtra, gameData.gameId)
+        intent.putExtra(gamePlayerNameExtra, gameData.playerID)
+        intent.putExtra(gamePlayerStatsExtra, playerStats)
+        intent.putExtra(gameOpponentNameExtra, gameData.opponentID)
+        intent.putExtra(gameOpponentStatsExtra, opponentStats)
+        intent.putExtra(gameNameExtra, gameParameters.name)
+        intent.putExtra(gameModeExtra, gameParameters.playMode)
+        intent.putExtra(gameTimeExtra, gameParameters.time)
+        intent.putExtra(playerColorExtra, gameParameters.playerColor)
+        mainActivity.startActivity(intent)
+    }
+
+    /** try to load username from shared prefs, if not exist create one in sp and multiplayer db */
+    fun loadOrCreateUserName(){
+        val sharedPrefs = mainActivity.getSharedPreferences("FairyChess", Context.MODE_PRIVATE)!!
+        userName = sharedPrefs.getString(userNameExtra, "")!!
+        if(userName.isEmpty()){
+            openCreateUserNameDialog("")
+        } else {
+            Toast.makeText(mainActivity, "welcome $userName!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** call back method after creating player in multiplayer db
+     *  save name in sp and notify of success via Toast*/
     override fun onCreatePlayer(playerID: String) {
         //save username
         val sharedPrefsEditor = mainActivity.getSharedPreferences(
@@ -249,6 +256,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         ).show()
     }
 
+    /** call back method after searching player name (in process of creating new player)
+     *  create player if playername unique, else notify user via toast*/
     override fun onPlayerNameSearchComplete(playerID: String, occurences: Int) {
         if(occurences==0){
             multiplayerDB.createPlayer(userName)
@@ -262,6 +271,9 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         }
     }
 
+    /** call back method after searching for game
+     *  go through games matching parameters and pick a game with chance of winning in the defined area (if possible)
+     *  and then join the game; if no matching game is found notify user via Toast*/
     override fun onGameSearchComplete(gameSearchResultList: List<GameSearchResult>) {
         if(gameSearchResultList.isNotEmpty()){
             //pre filter for fair games (winning chance is >30%)
@@ -323,6 +335,8 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     }
 
+    /** call back method after creating multiplayer game in db
+     *  display "waiting for opponent" dialog */
     override fun onCreateGame(gameName: String, gameID: String, playerColor: String) {
         Log.d(TAG, "gameMode created")
         println("gameMode created")
@@ -352,17 +366,22 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         }
     }
 
+    /** call back method after after game was changed,
+     *  check if second player has joined */
     override fun onGameChanged(gameId: String) {
         if(!launchedGamesMap.containsKey(gameId)){
             multiplayerDB.hasSecondPlayerJoined(gameId)
         }
     }
 
+    /** call back method after getting player stats */
     override fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats) {
         this.playerStats = playerStats
         mainActivity.tv_playerstats.text = userName
     }
 
+    /** call back method after joining game
+     *  save game parameters and start game */
     override fun onJoinGame(onlineGameParameters: GameParameters, gameData: MultiplayerDB.GameData) {
         if(!launchedGamesMap.containsKey(gameData.gameId)){
             gameParameters.name = onlineGameParameters.name
