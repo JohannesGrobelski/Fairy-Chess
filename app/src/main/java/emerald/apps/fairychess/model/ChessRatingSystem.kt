@@ -16,9 +16,9 @@ class ChessRatingSystem {
                     10.0.pow(1.0 * (rating1 - rating2) / 400))
         }
 
-        // Function to calculate Elo rating
-        // K is a constant.
-        // d determines whether Player A wins or Player B.
+        /** Function to calculate Elo rating
+        * K is a constant.
+        * d determines whether Player A wins or Player B. */
         fun EloRating(ratingPlayerA: Double, ratingPlayerB: Double, K: Int, playerAWon: Boolean) : Array<Double>{
 
             // To calculate the Winning
@@ -34,15 +34,16 @@ class ChessRatingSystem {
             // Case -1 When Player A wins
             // Updating the Elo Ratings
             if (playerAWon) {
-                newRatingPlayerA += K * (1 - probabilityPlayerA)
-                newRatingPlayerB += K * (0 - probabilityPlayerB)
+                newRatingPlayerA += K * (WINNING_SCORE - probabilityPlayerA)
+                newRatingPlayerB += K * (LOSING_SCORE - probabilityPlayerB)
             } else {
-                newRatingPlayerA += K * (0 - probabilityPlayerA)
-                newRatingPlayerB += K * (1 - probabilityPlayerB)
+                newRatingPlayerA += K * (LOSING_SCORE - probabilityPlayerA)
+                newRatingPlayerB += K * (WINNING_SCORE - probabilityPlayerB)
             }
             return arrayOf(newRatingPlayerA,newRatingPlayerB)
         }
 
+        /** udpate playerstats (ELO,gamesLost,gamesWon,gamesPlayed)*/
         fun updatePlayerStats(playerAStats : MultiplayerDB.PlayerStats, playerBStats: MultiplayerDB.PlayerStats, playerAWon : Boolean?){
             ++playerAStats.games_played
             ++playerBStats.games_played
