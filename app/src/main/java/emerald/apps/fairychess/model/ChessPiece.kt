@@ -17,17 +17,16 @@ class ChessPiece(
         val emptyChessPiece = ChessPiece("",-1,-1,0,"","",0)
     }
 
+    /** parlett notation syntax: <conditions> <move type> <distance> <direction> <other> */
     var movingPatterns = MovementNotation.parseMovementString(movingPatternString)
 
-    /** parlett notation: <conditions> <move type> <distance> <direction> <other>
-     *
-     */
+    /** generate a list of Movements possible for chesspiece (according to parlett notation) */
     fun generateMovements() : List<Movement>{
         val targetCoordinates = mutableListOf<Movement>()
         for(movingPattern in movingPatterns){
-            if(movingPattern.movetype == "~" || movingPattern.movetype == "^" || movingPattern.movetype == "g"){
+            if(movingPattern.movetype == "~" || movingPattern.movetype == "^" || movingPattern.movetype == "g"){ //leaper
                 targetCoordinates.addAll(generateLeaperMovements(movingPattern))
-            } else {
+            } else { //rider
                 targetCoordinates.addAll(generateRiderMovements(movingPattern))
             }
         }
@@ -37,15 +36,15 @@ class ChessPiece(
     /** generate a list of movement matching the movingPattern (Leaper) */
     fun generateLeaperMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
-        if(movingPattern.grouping == "/" && movingPattern.distances.size == 2){
+        if(movingPattern.grouping == "/" && movingPattern.distances.size == 2){ //for now leaper movement consist of 2 subsequent movements
             //leaper-movements always have 8 sub-moves:
             //(2: increase/decrease)*(2: value1/value2)*(2: on File / on Rank) = 8 permutations
-            val m1 = movingPattern.distances[0]
-            val m2 = movingPattern.distances[1]
-            if(m1.matches("[0-9]".toRegex()) && m2.matches("[0-9]".toRegex())){
-                generate8LeaperMovements(movingPattern,targetSquares,m1.toInt(), m2.toInt())
+            val movement1 = movingPattern.distances[0]
+            val movement2 = movingPattern.distances[1]
+            if(movement1.matches("[0-9]".toRegex()) && movement2.matches("[0-9]".toRegex())){
+                generate8LeaperMovements(movingPattern,targetSquares,movement1.toInt(), movement2.toInt())
             } else {
-                if(m1 == "x" && m2 == "x"){//only in pairs (x,x): any distance in the given direction equal to its twin or zero
+                if(movement1 == "x" && movement2 == "x"){//only in pairs (x,x): any distance in the given direction equal to its twin or zero
                     for(a in -7..7){
                         //orthogonal
                         generateLeaperMovement(movingPattern,targetSquares,0, a)
@@ -111,10 +110,9 @@ class ChessPiece(
         return targetSquares
     }
 
-    /** generate a  */
+    /** generate all diagonal rider movements */
     fun generateDiagonalRiderMovement(movementNotation: MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
-        var difRank=0; var difFile=0;
         var distance = 7
         if(movementNotation.distances[0].matches("[0-9]".toRegex())){
             distance = movementNotation.distances[0].toInt()
@@ -140,7 +138,7 @@ class ChessPiece(
         return targetSquares
     }
 
-    /** right,forward: increase file, increase rank*/
+    /** NorthEastDiagonalMovement: right,forward: increase file, increase rank*/
     fun generateNorthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = 1;
         while(positionFile+difFile <= 7 && positionRank+difRank <= 7) {
@@ -159,7 +157,7 @@ class ChessPiece(
         return inputSquares
     }
 
-    /** left,forward: decrease file, increase rank*/
+    /** NorthWestDiagonalMovement: left,forward: decrease file, increase rank*/
     fun generateNorthWestDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = -1; var difRank = 1;
         while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
@@ -178,7 +176,7 @@ class ChessPiece(
         return inputSquares
     }
 
-    /** right,backward: increase file, decrease rank*/
+    /** SouthEastDiagonalMovement: right,backward: increase file, decrease rank*/
     fun generateSouthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = -1
         while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
@@ -197,7 +195,7 @@ class ChessPiece(
         return inputSquares
     }
 
-    /** left,backward: decrease file, decrease rank*/
+    /** SouthWestDiagonalMovement: left,backward: decrease file, decrease rank*/
     fun generateSouthWestDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difRank = -1; var difFile = -1
         while(positionFile+difFile >= 0 && positionRank+difRank >= 0) {
@@ -216,17 +214,17 @@ class ChessPiece(
         return inputSquares
     }
 
+    /** generate all orthogonal movements horizontal (WEST,EAST movements) and vertical (NORTH,SOUTH) movements*/
     fun generateOrthogonalMovement(movementNotation: MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
         var distance = 7
         if(movementNotation.distances[0].matches("[1-9]+".toRegex()))distance = movementNotation.distances[0].toInt()
-
+        //forward(>) and backwards(<) are color-dependent because they are depending on direction of the figures
         //color-independent movements
         if(movementNotation.direction.contains("=") || movementNotation.direction == "+" || movementNotation.direction == "*") {
             generateWestMovement(targetSquares,movementNotation,distance)
             generateEastMovement(targetSquares,movementNotation,distance)
         }
-
         if(movementNotation.direction == "+" || movementNotation.direction == "*" || movementNotation.direction == "<>"
             || movementNotation.direction.contains(">") || movementNotation.direction.contains("<")){
                 //color-dependent movements
@@ -250,7 +248,6 @@ class ChessPiece(
                 }
 
         }
-
         return targetSquares
     }
 
