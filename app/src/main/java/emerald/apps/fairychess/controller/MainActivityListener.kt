@@ -48,6 +48,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     private var createdGameID = ""
 
     companion object {
+        const val DEBUG = false
         const val TAG = "MainActivityListener"
         const val userNameExtra = "userNameExtra"
         const val gameIdExtra = "gameId"
@@ -289,7 +290,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                 //chose random game
                 val chosenGame = gameSearchResultList[(Math.random()*fairGames.size).toInt()]
                 Log.d(TAG, "gameMode found => join gameMode")
-                println("gameMode found => join gameMode")
+                if(DEBUG)println("gameMode found => join gameMode")
                 gameParameters.playerColor = chosenGame.player2Color
 
                 //set
@@ -339,7 +340,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
      *  display "waiting for opponent" dialog */
     override fun onCreateGame(gameName: String, gameID: String, playerColor: String) {
         Log.d(TAG, "gameMode created")
-        println("gameMode created")
+        if(DEBUG)println("gameMode created")
         Toast.makeText(
             mainActivity,
             "created gameMode: $gameName",
@@ -391,7 +392,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             opponentStats = MultiplayerDB.PlayerStats(0,0,0,gameData.opponentELO)
 
             Log.d(TAG, "$userName joined gameMode: ${gameParameters.playMode}")
-            println("$userName joined gameMode: ${gameParameters.name}")
+            if(DEBUG)println("$userName joined gameMode: ${gameParameters.name}")
             Toast.makeText(
                 mainActivity,
                 "$userName joined gameMode: ${gameParameters.name}",

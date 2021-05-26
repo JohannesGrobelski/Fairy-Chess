@@ -79,9 +79,10 @@ class Chessgame() {
     }
 
     fun makeMove(moveString: String) {
-        val count = moveString.count{ "_".contains(it) }
-        if(count == 3)makeMove(ChessPiece.Movement.fromStringToMovement(moveString))
-        if(count == 4)makeMove(ChessPiece.PromotionMovement.fromStringToMovement(moveString))
+        when(moveString.count{ "_".contains(it) }){
+            3 -> {makeMove(ChessPiece.Movement.fromStringToMovement(moveString))} //normal movement
+            4 -> {makeMove(ChessPiece.PromotionMovement.fromStringToMovement(moveString))} //movement + promotion
+        }
     }
 
     fun makeMove(movement: ChessPiece.Movement){

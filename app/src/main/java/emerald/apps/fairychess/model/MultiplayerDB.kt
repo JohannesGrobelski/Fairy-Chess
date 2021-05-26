@@ -61,8 +61,8 @@ class MultiplayerDB {
         const val GAMEFIELD_PLAYER2ELO = "player2ELO"
     }
 
-    private var multiplayerDBSearchInterface : MultiplayerDBSearchInterface? = null
-    private var multiplayerDBGameInterface : MultiplayerDBGameInterface? = null
+    private var multiplayerDBSearchInterface : MultiplayerDBSearchInterface? = null //interface implemented by mainactivitylistener
+    private var multiplayerDBGameInterface : MultiplayerDBGameInterface? = null //interface implemented by chessactivitylistener
     private var db : FirebaseFirestore
     private lateinit var chessGame : Chessgame
 
@@ -165,9 +165,7 @@ class MultiplayerDB {
             }
     }
 
-    /**
-     *
-     */
+    /** Search for a user with userName and call onPlayerNameSearchComplete on success. */
     fun searchUsers(userName: String) {
         val resultList = mutableListOf<String>()
         db.collection(PLAYERCOLLECTIONPATH)
@@ -186,6 +184,7 @@ class MultiplayerDB {
             }
     }
 
+    /** join the game with gameID by updating changeMap and if successful call getGameDataAndJoinGame */
     fun joinGame(gameID: String, changeMap : Map<String,Any>) {
         db.collection(GAMECOLLECTIONPATH)
             .document(gameID)
@@ -198,6 +197,7 @@ class MultiplayerDB {
 
 
     class GameData(val gameId: String, val playerID: String, val opponentID: String, var playerELO: Double, var opponentELO :Double)
+    /** get GameData for gameID and if successful call onJoinGame */
     fun getGameDataAndJoinGame(gameId: String,userName: String){
         db.collection(GAMECOLLECTIONPATH)
             .document(gameId)
@@ -234,7 +234,7 @@ class MultiplayerDB {
             }
     }
 
-
+    /** create player with playerID and default player data, on success call onCreatePlayer */
     fun createPlayer(playerID: String) {
         val playerHash = hashMapOf(
             PLAYER_ELO to 400,
@@ -260,7 +260,8 @@ class MultiplayerDB {
     }
 
     class GameState(val gameFinished : Boolean, val moves : List<String>)
-
+    /** add snapshotlistener to listen to changes in a created game without second player
+     *  if change occurs call onGameChanged */
     fun listenToGameSearch(gameId: String) {
         val docRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
         docRef.addSnapshotListener { snapshot, e ->
@@ -276,7 +277,8 @@ class MultiplayerDB {
             }
         }
     }
-
+    /** add snapshotlistener to listen to changes on game (moves and gamestatus)
+     *  if change occurs call readGameState */
     fun listenToGameIngame(gameId: String) {
         val docRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
         docRef.addSnapshotListener { snapshot, e ->
@@ -284,7 +286,6 @@ class MultiplayerDB {
                 Log.w(TAG, "Listen failed.", e)
                 return@addSnapshotListener
             }
-
             if (snapshot != null && snapshot.exists()) {
                 Log.d(TAG, "Current data: ${snapshot.data}")
                 readGameState(gameId)
@@ -294,6 +295,8 @@ class MultiplayerDB {
         }
     }
 
+    /** check whether second player has joined in game with gameID
+     *  if so call getGameDataAndJoinGame */
     fun hasSecondPlayerJoined(gameId: String) {
         db.collection(GAMECOLLECTIONPATH)
             .document(gameId)
@@ -316,6 +319,7 @@ class MultiplayerDB {
             }
     }
 
+    /** finish game by updating variable finished to true, on success call onFinishGame */
     fun finishGame(gameId: String, cause: String) {
         db.collection(GAMECOLLECTIONPATH)
             .document(gameId)
@@ -327,6 +331,8 @@ class MultiplayerDB {
             .addOnSuccessListener { multiplayerDBGameInterface?.onFinishGame(gameId,cause)}
     }
 
+    /** read game state of game with gameID (document,finished,moves) and on sucess call onGameChanged,
+     * (because this is only called if snapshot listener detects change in game document)*/
     fun readGameState(gameId: String) {
         db.collection(GAMECOLLECTIONPATH)
             .document(gameId)
@@ -346,6 +352,7 @@ class MultiplayerDB {
             }
     }
 
+    /** parcelable class PlayerStats that save statistics of player*/
     class PlayerStats(var games_played : Long, var games_won : Long, var games_lost : Long, var ELO : Double) : Parcelable {
         constructor(parcel: Parcel) : this(
             parcel.readLong(),
@@ -377,6 +384,7 @@ class MultiplayerDB {
         }
     }
 
+    /** get playerStats for player document with playerID (gamesPlayed,gamesWon,gamesLost and ELO) and on success call onGetPlayerstats*/
     fun getPlayerStats(playerID: String) {
         db.collection(PLAYERCOLLECTIONPATH)
             .whereEqualTo(PLAYER_ID,playerID)
@@ -396,6 +404,7 @@ class MultiplayerDB {
             }
     }
 
+    /** set playerStats for player document with playerID (gamesPlayed,gamesWon,gamesLost and ELO) and on success call onSetPlayerstats*/
     fun setPlayerStats(playerID: String,playerStats: PlayerStats, cause: String) {
         //get doc id
         db.collection(PLAYERCOLLECTIONPATH)
@@ -429,6 +438,7 @@ class MultiplayerDB {
 
     }
 
+    /** update GAMEFIELD_FINISHED to true in game with gameID */
     fun cancelGame(gameId: String) {
         // Add a new document with a generated ID
         db.collection(GAMECOLLECTIONPATH)
@@ -443,7 +453,7 @@ class MultiplayerDB {
 
 }
 
-public interface MultiplayerDBSearchInterface {
+interface MultiplayerDBSearchInterface {
     fun onCreatePlayer(playerID: String)
     fun onPlayerNameSearchComplete(playerIDr: String, occurences: Int)
     fun onGameSearchComplete(gameSearchResultList: List<MainActivityListener.GameSearchResult>)
@@ -454,7 +464,7 @@ public interface MultiplayerDBSearchInterface {
     fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats)
 }
 
-public interface MultiplayerDBGameInterface {
+interface MultiplayerDBGameInterface {
     fun onFinishGame(gameId: String, cause : String)
     fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState)
     fun onSetPlayerstats(exitCause : String)
