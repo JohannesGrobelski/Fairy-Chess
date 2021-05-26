@@ -13,12 +13,14 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
        (0,0) ... (0,7)
      */
 
+    //2D-array of chesspieces to represent board
     var pieces: Array<Array<ChessPiece>> = Array(8) {
         Array(8) {
             ChessPiece("", -1,-1, 0, "", "", 0)
         }
     }
 
+    //state variables
     var moveColor = "white"
     var moveCounter : Int = 0
     var gameFinished = false
@@ -36,7 +38,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     var boardStateListSinceCastling = mutableListOf<String>()
 
     init {
-        //hier einen aufstellungsstring übergeben
+        //pass a string representing the chess formation here and update chessFormationArray
         if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
             for (file in 0..7) {
                 for (rank in 0..7) {
@@ -64,6 +66,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     companion object {
+        const val DEBUG = false
         /**
          * returns white or black randomly
          */
@@ -343,7 +346,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                                 ++moveCounter
                                 switchMoveColor()
                             }
-                            println(movement.asString(moveColor))
+                            if(DEBUG)println(movement.asString(moveColor))
                             return ""
                         }
                     }
@@ -368,7 +371,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         }
 
         //valid movement
-        println(movement.asString(moveColor))
+        if(DEBUG)println(movement.asString(moveColor))
         if (userMovement.movementNotation.movetype == "g") {
             //capture the piece hopped over
             val signFile = sign((userMovement.targetFile - userMovement.sourceFile).toDouble()).toInt()
