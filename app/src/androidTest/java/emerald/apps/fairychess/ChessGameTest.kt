@@ -18,7 +18,7 @@ import org.junit.Assert.*
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class ChessGameTest {
     @Test
     fun simpleCheckmate() {
         // Context of the app under test.
@@ -38,4 +38,6 @@ class ExampleInstrumentedTest {
 
         assertEquals("black",chessBoardNormal.gameWinner)
     }
+
+
 }

@@ -179,7 +179,7 @@ class ChessPiece(
     /** SouthEastDiagonalMovement: right,backward: increase file, decrease rank*/
     fun generateSouthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = -1
-        while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
+        while(positionFile+difFile <= 7 && positionRank+difRank >= 0) {
             if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
                 inputSquares.add(
                     Movement(movementNotation,
@@ -317,6 +317,20 @@ class ChessPiece(
                         , val sourceRank : Int
                         , val targetFile : Int
                         , val targetRank : Int) {
+
+        override fun equals(other: Any?) : Boolean {
+            return if(other is Movement){
+                (sourceFile == other.sourceFile
+                && sourceRank == other.sourceRank
+                && targetRank == other.targetRank
+                && targetFile == other.targetFile
+                && movementNotation.equals(other.movementNotation)
+            )
+            } else super.equals(other)
+        }
+
+
+
         companion object{
             fun fromMovementToString(movement: Movement) : String {
                 return movement.sourceFile.toString()+"_"+movement.sourceRank+"_"+movement.targetFile.toString()+"_"+movement.targetRank
@@ -348,11 +362,14 @@ class ChessPiece(
             fun fromStringToMovementList(string: String) : List<Movement> {
                 val movementList = mutableListOf<Movement>()
                 for(substring in string.split(";")){
-                    val sourceFile = string.split("_")[0].toInt()
-                    val sourceRank = string.split("_")[0].toInt()
-                    val targetFile = string.split("_")[0].toInt()
-                    val targetRank = string.split("_")[0].toInt()
-                    movementList.add(Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank))
+                    if(substring.split("_").size == 4){
+                        val sourceFile = substring.split("_")[0].toInt()
+                        val sourceRank = substring.split("_")[1].toInt()
+                        val targetFile = substring.split("_")[2].toInt()
+                        val targetRank = substring.split("_")[3].toInt()
+                        movementList.add(Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank))
+
+                    }
                 }
                 return movementList
             }
@@ -400,6 +417,16 @@ class ChessPiece(
 
     class MovementNotation(val grouping: String, val conditions: List<String>, val movetype: String, val distances: List<String>, val direction: String){
 
+        override fun equals(other: Any?) : Boolean {
+            return if(other is MovementNotation){
+                (grouping == other.grouping
+                        && conditions == other.conditions
+                        && movetype == other.movetype
+                        && distances == other.distances
+                        && direction == other.direction
+                        )
+            } else super.equals(other)
+        }
 
         companion object {
             val CASTLING_MOVEMENT = MovementNotation("", listOf(),"", listOf(),"")

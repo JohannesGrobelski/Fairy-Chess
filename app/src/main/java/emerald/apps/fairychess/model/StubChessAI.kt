@@ -44,7 +44,7 @@ class StubChessAI {
     class MovementValue(val movement: ChessPiece.Movement?, val value: Int)
 
     private fun alpha_beta_trans(
-        tiefe: Int,
+        depth: Int,
         color: String,
         chessboard: Chessboard,
         alpha: Int,
@@ -60,7 +60,7 @@ class StubChessAI {
         if (!transpositionTable.containsKey(color + _chessboard.hashCode())) {
             ++cntHashFails
             val possible_moves: List<ChessPiece.Movement> = _chessboard.getAllPossibleMoves(color)
-            if (tiefe == 0 || possible_moves.isEmpty()) {
+            if (depth == 0 || possible_moves.isEmpty()) {
                 return MovementValue(null, _chessboard.pointsBlack() - _chessboard.pointsWhite())
             }
             if (color == this.color) {
@@ -69,7 +69,7 @@ class StubChessAI {
                     val geschlagen: ChessPiece? = _chessboard.moveAndReturnCapture(color, zug)
                     val chessboardCopy = _chessboard.copy()
                     val currentBestMove = alpha_beta_trans(
-                        tiefe - 1,
+                        depth - 1,
                         Chessboard.oppositeColor(color),
                         _chessboard,
                         alpha,
@@ -90,7 +90,7 @@ class StubChessAI {
                     val geschlagen: ChessPiece? = _chessboard.moveAndReturnCapture(color, zug)
                     val chessboardCopy = _chessboard.copy()
                     val currentBestMove = alpha_beta_trans(
-                        tiefe - 1,
+                        depth - 1,
                         Chessboard.oppositeColor(color),
                         _chessboard,
                         alpha,

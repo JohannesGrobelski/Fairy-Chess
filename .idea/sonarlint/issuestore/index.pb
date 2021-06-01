@@ -37,8 +37,6 @@ p
 @app/src/main/java/emerald/apps/fairychess/model/MultiplayerDB.kt,c\4\c421be921e078205f69464fdc1cea22393260b44
 o
 ?app/src/test/java/emerald/apps/fairychess/ChessboardUnitTest.kt,c\f\cf1681b4bc352c30950c54dc45e5ad54650a82ae
-{
-Kapp/src/androidTest/java/emerald/apps/fairychess/ExampleInstrumentedTest.kt,1\a\1a6251f7c154b73ef582d6c795ff71cbde1d88e7
 z
 Japp/src/main/java/emerald/apps/fairychess/model/CountDownTimerWithPause.kt,e\0\e0a0d481294b3245ed76e76694571c94a618fc1c
 m
