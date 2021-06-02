@@ -378,6 +378,24 @@ class ChessPiece(
         fun asString(playerColor : String): String {
             return playerColor+": "+sourceFile.toString()+"_"+sourceRank+"_"+targetFile+"_"+targetRank
         }
+
+        fun asString2(playerColor : String): String {
+            return playerColor+": "+getLetterFromInt(sourceFile)+sourceRank+"_"+getLetterFromInt(targetFile)+targetRank
+        }
+
+        fun getLetterFromInt(int: Int) : String{
+            when(int){
+                0 -> return "A"
+                1 -> return "B"
+                2 -> return "C"
+                3 -> return "D"
+                4 -> return "E"
+                5 -> return "F"
+                6 -> return "G"
+                7 -> return "H"
+            }
+            return ""
+        }
     }
 
     class PromotionMovement(movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")

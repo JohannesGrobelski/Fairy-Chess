@@ -1,10 +1,12 @@
 package emerald.apps.fairychess.model
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.ChessFormationParser.Companion.parseChessFormation
 import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.utility.FigureParser.Companion.parseFigureMapFromFile
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -19,6 +21,8 @@ import kotlin.math.max
  */
 @RunWith(AndroidJUnit4::class)
 class ChessGameUnitTest {
+
+
 
 
     @Test

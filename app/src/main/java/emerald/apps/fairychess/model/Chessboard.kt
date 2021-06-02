@@ -66,7 +66,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     companion object {
-        const val DEBUG = false
+        const val DEBUG = true
         /**
          * returns white or black randomly
          */
@@ -346,7 +346,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                                 ++moveCounter
                                 switchMoveColor()
                             }
-                            if(DEBUG)println(movement.asString(moveColor))
+                            if(DEBUG)println(movement.asString2(moveColor))
                             return ""
                         }
                     }
@@ -371,7 +371,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         }
 
         //valid movement
-        if(DEBUG)println(movement.asString(moveColor))
+        if(DEBUG)println(movement.asString2(moveColor))
         if (userMovement.movementNotation.movetype == "g") {
             //capture the piece hopped over
             val signFile = sign((userMovement.targetFile - userMovement.sourceFile).toDouble()).toInt()
