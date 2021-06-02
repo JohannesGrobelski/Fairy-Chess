@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInterface {
 
     companion object {
-        const val firestoreConnectionTimeoutSeconds = 10L
+        const val firestoreConnectionTimeoutSeconds = 20L
     }
 
     private lateinit var db : FirebaseFirestore
@@ -42,8 +42,7 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
     @Before
     fun before(){
         db = Firebase.firestore
-        multiplayerDB = MultiplayerDB(this)
-
+        multiplayerDB = MultiplayerDB(this,this)
     }
 
 
@@ -155,11 +154,12 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
         signal = CountDownLatch(1);
         multiplayerDB.listenToGameIngame(createdGameID)
         signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
+        assertTrue(gameChanged)
 
         //create movement and check for changes
         gameChanged = false
         signal = CountDownLatch(1);
-        val movement = ChessPiece.Movement(sourceRank = 0,sourceFile = 0,targetFile = 7,targetRank = 7)
+        val movement = ChessPiece.Movement(sourceRank = 0,sourceFile = 0,targetFile = 6,targetRank = 6)
         multiplayerDB.writePlayerMovement(createdGameID, movement)
         signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
         assertTrue(gameChanged)
@@ -241,6 +241,7 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
 
     override fun onGameChanged(gameId: String, gameState: MultiplayerDB.GameState) {
         this.gameWritePlayerMovementChangeGameState = gameState
+        this.gameChanged = true
         signal.countDown()
     }
 

@@ -78,6 +78,12 @@ class MultiplayerDB {
         this.multiplayerDBSearchInterface = multiplayerDBSearchInterface
     }
 
+    constructor(multiplayerDBSearchInterface: MultiplayerDBSearchInterface,multiplayerDBGameInterface: MultiplayerDBGameInterface) {
+        db = Firebase.firestore
+        this.multiplayerDBSearchInterface = multiplayerDBSearchInterface
+        this.multiplayerDBGameInterface = multiplayerDBGameInterface
+    }
+
     fun writePlayerMovement(gameId: String, movement: ChessPiece.Movement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
         gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(movement)));
