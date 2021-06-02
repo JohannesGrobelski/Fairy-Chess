@@ -45,3 +45,17 @@ r
 Bapp/src/test/java/emerald/apps/fairychess/ChessRatingSystemTest.kt,d\1\d143daaf38ea09b6b19dbd9907836288f8200645
 t
 Dapp/src/main/java/emerald/apps/fairychess/model/ChessRatingSystem.kt,d\8\d820f672eb951a83c701c08a46d3d655bc7c927f
+n
+>app/src/test/java/emerald/apps/fairychess/ChessGameUnitTest.kt,0\3\03868e3a2c7e1e811a60f41d7e6814f9b3cdf134
+g
+7app/src/test/java/emerald/apps/fairychess/ParserTest.kt,0\b\0b3ad277122b91fcb5777b8b7d366faafea2a790
+z
+Japp/src/test/java/emerald/apps/fairychess/chessGameTester/ChessGameTest.kt,4\f\4f75bd1eda22c5f5b5d150418e5a80aba508416e
+|
+Lapp/src/test/java/emerald/apps/fairychess/chessGameTester/ChessgameParser.kt,a\f\afc3a1e52c8930cc215549416812317ded7191b6
+q
+Aapp/src/androidTest/java/emerald/apps/fairychess/ChessGameTest.kt,7\f\7fe154efcde1f0a0beab8c00d455bb9713046fd6
+v
+Fapp/src/androidTest/java/emerald/apps/fairychess/ChesstimerUnitTest.kt,e\1\e11730d9dc36d58ab553cb01c6b0fcfaddce11dc
+y
+Iapp/src/androidTest/java/emerald/apps/fairychess/MultiplayerDBUnittest.kt,f\7\f76f267a91ec292149824213b5d62e3f34bad315

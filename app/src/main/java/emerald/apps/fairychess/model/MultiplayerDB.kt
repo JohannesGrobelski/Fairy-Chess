@@ -115,10 +115,10 @@ class MultiplayerDB {
                         resultList.add(
                             MainActivityListener.GameSearchResult(
                                 document.id,
+                                document.get(GAMEFIELD_GAMENAME) as String,
                                 document.get(GAMEFIELD_TIMEMODE) as String,
-                                document.get(GAMEFIELD_PLAYER2Color) as String,
                                 document.get(GAMEFIELD_PLAYER1ELO) as Double,
-                                document.get(GAMEFIELD_GAMENAME) as String
+                                document.get(GAMEFIELD_PLAYER2Color) as String
                             )
                         )
                     }
@@ -325,7 +325,7 @@ class MultiplayerDB {
             .document(gameId)
             .update(
                 mapOf(
-                    "finished" to true
+                    GAMEFIELD_FINISHED to true
                 )
             )
             .addOnSuccessListener { multiplayerDBGameInterface?.onFinishGame(gameId,cause)}
@@ -341,7 +341,7 @@ class MultiplayerDB {
                 if (task.isSuccessful) {
                     if(task.result!!.exists()){
                         val document = task.result!!
-                        val finished : Boolean = document.getBoolean("finished")!!
+                        val finished : Boolean = document.getBoolean(GAMEFIELD_FINISHED)!!
                         val moves : List<String> = document.get("moves") as List<String>
                         val gameState = GameState(finished,moves)
                         multiplayerDBGameInterface?.onGameChanged(gameId,gameState)
