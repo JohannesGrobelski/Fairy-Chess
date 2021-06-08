@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.alertdialog_create_game.*
 
 class MainActivity : AppCompatActivity() {
     lateinit var mainActivityListener : MainActivityListener
@@ -15,8 +16,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         mainActivityListener = MainActivityListener(this)
-        btn_online.setOnClickListener(mainActivityListener)
-        btn_local.setOnClickListener(mainActivityListener)
+        btn_createGame.setOnClickListener(mainActivityListener)
+        btn_searchGame.setOnClickListener(mainActivityListener)
+        btn_quickmatch.setOnClickListener(mainActivityListener)
     }
 
     override fun onResume() {

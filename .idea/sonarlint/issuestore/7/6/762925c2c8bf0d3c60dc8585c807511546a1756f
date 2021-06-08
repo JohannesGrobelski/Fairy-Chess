@@ -1,19 +1,19 @@
 
-wkotlin:S3776İ"RRefactor this method to reduce its Cognitive Complexity from 24 to the 15 allowed.(¦ã«èÿÿÿÿÿ8éõ¥¼Š/
+Nkotlin:S1066Ö".Merge this "if" statement with the nested one.(¯×àÂ8ò‹ı¤/
 Skotlin:S1066 ".Merge this "if" statement with the nested one.(ê›üêıÿÿÿÿ8¬¬¦/
-Lkotlin:S1144“",Remove this unused private "promote" method.(Ã›¸ó8éõ¥¼Š/
-rkotlin:S3776ó"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(¸·«ğ8ÕòÊ/
-Skotlin:S1066ğ".Merge this "if" statement with the nested one.(óÚšˆÿÿÿÿÿ8õ§™¦/
-Nkotlin:S1066†".Merge this "if" statement with the nested one.(Ä¢…ƒ8ÚÆ·¨/
+xkotlin:S3776ê"SRefactor this method to reduce its Cognitive Complexity from 126 to the 15 allowed.(§Ê“ˆıÿÿÿÿ8ÕòÊ/
 wkotlin:S3776Ì"RRefactor this method to reduce its Cognitive Complexity from 29 to the 15 allowed.(›Æáÿÿÿÿÿ8ÕòÊ/
+Lkotlin:S1144“",Remove this unused private "promote" method.(Ã›¸ó8éõ¥¼Š/
+Skotlin:S1066".Merge this "if" statement with the nested one.(—×¡×ÿÿÿÿÿ8¬¬¦/
+rkotlin:S3776ó"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(¸·«ğ8ÕòÊ/
+Nkotlin:S1066†".Merge this "if" statement with the nested one.(Ä¢…ƒ8ÚÆ·¨/
+Nkotlin:S1066æ".Merge this "if" statement with the nested one.(§‚äŠ8éõ¥¼Š/
+Skotlin:S1066ğ".Merge this "if" statement with the nested one.(óÚšˆÿÿÿÿÿ8õ§™¦/
+wkotlin:S3776İ"RRefactor this method to reduce its Cognitive Complexity from 24 to the 15 allowed.(¦ã«èÿÿÿÿÿ8éõ¥¼Š/
+Wkotlin:S1135¶"2Complete the task associated to this TODO comment.(Å¼°ÿÿÿÿÿ8ÕòÊ/
+wkotlin:S3776«"RRefactor this method to reduce its Cognitive Complexity from 54 to the 15 allowed.(µ†Ãçÿÿÿÿÿ8éõ¥¼Š/
+wkotlin:S3776"RRefactor this method to reduce its Cognitive Complexity from 17 to the 15 allowed.(âÎœŠşÿÿÿÿ8™œÖ£/
+Skotlin:S1066å".Merge this "if" statement with the nested one.(‰¿œ‡øÿÿÿÿ8éõ¥¼Š/
 Skotlin:S1066Ó".Merge this "if" statement with the nested one.(·„ä¦ûÿÿÿÿ8ò‹ı¤/
 Nkotlin:S1066İ".Merge this "if" statement with the nested one.(©½Ù¡8ò‹ı¤/
-wkotlin:S3776"RRefactor this method to reduce its Cognitive Complexity from 17 to the 15 allowed.(âÎœŠşÿÿÿÿ8™œÖ£/
-Nkotlin:S1066æ".Merge this "if" statement with the nested one.(§‚äŠ8éõ¥¼Š/
-wkotlin:S3776«"RRefactor this method to reduce its Cognitive Complexity from 54 to the 15 allowed.(µ†Ãçÿÿÿÿÿ8éõ¥¼Š/
-Nkotlin:S1066Ö".Merge this "if" statement with the nested one.(¯×àÂ8ò‹ı¤/
-xkotlin:S3776ê"SRefactor this method to reduce its Cognitive Complexity from 126 to the 15 allowed.(§Ê“ˆıÿÿÿÿ8ÕòÊ/
-Skotlin:S1066".Merge this "if" statement with the nested one.(—×¡×ÿÿÿÿÿ8¬¬¦/
-Skotlin:S1066å".Merge this "if" statement with the nested one.(‰¿œ‡øÿÿÿÿ8éõ¥¼Š/
-Wkotlin:S1135¶"2Complete the task associated to this TODO comment.(Å¼°ÿÿÿÿÿ8ÕòÊ/
 Skotlin:S1066¶".Merge this "if" statement with the nested one.(·§…Âşÿÿÿÿ8¬¬¦/

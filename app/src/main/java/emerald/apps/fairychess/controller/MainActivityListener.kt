@@ -1,9 +1,12 @@
 package emerald.apps.fairychess.controller
 
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
 import android.content.Context
 import android.content.DialogInterface.OnShowListener
 import android.content.Intent
+import android.net.Uri
 import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,6 +20,7 @@ import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
 
@@ -60,6 +64,27 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         const val gameNameExtra = "name"
         const val gameTimeExtra = "gameTime"
         const val playerColorExtra = "playerColor"
+
+        var clipboardCopyJob : Job? = null
+
+        /**
+         * copy string to clipboard
+         */
+        fun copyTextToClipboard(activity: Activity, text: String) {
+            if(text.isNotEmpty()){
+                clipboardCopyJob = CoroutineScope(Dispatchers.Main).launch {
+                    val clipboard =
+                        activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = ClipData.newPlainText("Copied Text", text)
+                    clipboard.setPrimaryClip(clip)
+                    withContext(Dispatchers.Main){
+                        activity.runOnUiThread{ //bug solution?
+                            Toast.makeText(activity,"text copied",Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     constructor(mainActivity: MainActivity) : this(){
@@ -79,13 +104,17 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     override fun onClick(v: View?) {
         when(v?.id){
-            R.id.btn_online -> {
+            R.id.btn_quickmatch -> {
                 gameParameters.playMode = "human"
-                display_alertDialogGameParameters("human")
+                quickMatch()
             }
-            R.id.btn_local -> {
+            R.id.btn_searchGame -> {
                 gameParameters.playMode = "human"
-                display_alertDialogGameParameters("ai")
+                displayAlertDialogSearchForGames()
+            }
+            R.id.btn_createGame -> {
+                gameParameters.playMode = "human"
+                displayAlertDialogCreateGames()
             }
             R.id.tv_playerstats -> {
                 if(this::playerStats.isInitialized) {
@@ -124,15 +153,15 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         playerStatsDialogBuilder.show()
     }
 
-    /** alert dialog to search for online games or start an offline game with parameters. */
-    fun display_alertDialogGameParameters(mode: String){
+    /** alert dialog to search for online games  */
+    fun displayAlertDialogSearchForGames(){
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
         val inflater = LayoutInflater.from(mainActivity)
 
         //inflate the layout (depending on mode)
         val searchDialogView = inflater.inflate(
-            R.layout.alertdialog_game_parameters,
+            R.layout.alertdialog_search_game,
             null,
             false
         )
@@ -156,25 +185,48 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         btn_search_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString()
             gameParameters.time = spinner_timemode.selectedItem.toString()
-            if(mode == "human"){
-                searchForGames(gameParameters.name,gameParameters.time)
-            } else {
-                gameParameters = GameParameters(
-                    spinner_gameName.selectedItem.toString(),
-                    "ai",
-                    spinner_timemode.selectedItem.toString(),
-                    "white"
-                )
-                opponentStats = MultiplayerDB.PlayerStats(0,0,0,800.0)
-                start_gameWithParameters(
-                    MultiplayerDB.GameData("", userName, "ai", playerStats.ELO, opponentStats.ELO),
-                    gameParameters
-                )
-                searchDialog.dismiss()
-            }
+            searchForGames(gameParameters.name,gameParameters.time)
         }
         searchDialog.show()
     }
+
+    /** alert dialog to create online game  */
+    fun displayAlertDialogCreateGames(){
+        val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
+        val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
+        val inflater = LayoutInflater.from(mainActivity)
+
+        //inflate the layout (depending on mode)
+        val searchDialogView = inflater.inflate(
+            R.layout.alertdialog_create_game,
+            null,
+            false
+        )
+
+        //create dialog
+        val spinner_gameName : Spinner = searchDialogView.findViewById(R.id.spinner_gameName)
+        spinner_gameName.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            gameModes
+        )
+        val spinner_timemode : Spinner = searchDialogView.findViewById(R.id.spinner_timemode)
+        spinner_timemode.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            timeModes
+        )
+        val btn_search_game = searchDialogView.findViewById<Button>(R.id.btn_search_game)
+        val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
+
+        btn_search_game.setOnClickListener{
+            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.time = spinner_timemode.selectedItem.toString()
+            multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
+        }
+        searchDialog.show()
+    }
+
 
     /** display a simple alert dialog to input a username. */
     fun openCreateUserNameDialog(takenUserName: String){
@@ -202,6 +254,10 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             }
         })
         userNameDialog.show()
+    }
+
+    fun quickMatch(){
+        multiplayerDB.searchForOpenGames(player2ID = userName)
     }
 
     fun searchForGames(gameName: String, timeMode: String){
@@ -289,6 +345,9 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             if(fairGames.isNotEmpty()){
                 //chose random game
                 val chosenGame = gameSearchResultList[(Math.random()*fairGames.size).toInt()]
+                gameParameters.time = chosenGame.timeMode //assign because in case of quickmatch this is unknown
+                gameParameters.name = chosenGame.gameName
+
                 Log.d(TAG, "gameMode found => join gameMode")
                 if(DEBUG)println("gameMode found => join gameMode")
                 gameParameters.playerColor = chosenGame.player2Color
@@ -365,6 +424,12 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                 }
             }
         }
+        val btn_createDynLink = joinWaitDialog!!.findViewById<Button>(R.id.btn_createDynamicLink)
+        btn_createDynLink.setOnClickListener{_ ->
+            run{
+               multiplayerDB.createDynamicLink(createdGameID)
+            }
+        }
     }
 
     /** call back method after after game was changed,
@@ -379,6 +444,11 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     override fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats) {
         this.playerStats = playerStats
         mainActivity.tv_playerstats.text = userName
+    }
+
+    override fun processShortLink(shortLink: Uri?, flowchartLink: Uri?) {
+        Toast.makeText(mainActivity,"Link Copied!",Toast.LENGTH_LONG).show()
+        copyTextToClipboard(mainActivity,shortLink.toString())
     }
 
     /** call back method after joining game

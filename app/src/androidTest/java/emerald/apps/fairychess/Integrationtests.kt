@@ -1,20 +1,14 @@
 package emerald.apps.fairychess
 
 import android.app.Activity
-import android.view.View
 import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.RootMatchers
 import androidx.test.espresso.matcher.RootMatchers.*
-import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
-import emerald.apps.fairychess.model.Chessboard
-import emerald.apps.fairychess.model.Chessgame
 import emerald.apps.fairychess.view.MainActivity
-import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.core.Is.`is`
 import org.junit.Before
@@ -79,7 +73,7 @@ class Integrationtests {
 
     private fun helperStartNormalLocalChessGame(){
         //select local game
-        onView(withId(R.id.btn_local)).perform(click())
+        onView(withId(R.id.btn_quickmatch)).perform(click())
         //select game name parameter
         onView(withId(R.id.spinner_gameName)).perform(click())
         onView(withText("normal chess")).inRoot(isPlatformPopup()).perform(click())

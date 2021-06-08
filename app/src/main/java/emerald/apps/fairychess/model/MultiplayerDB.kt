@@ -1,8 +1,11 @@
 package emerald.apps.fairychess.model
 
+import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import com.google.firebase.dynamiclinks.DynamicLink
+import com.google.firebase.dynamiclinks.ktx.*
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
@@ -11,6 +14,9 @@ import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.model.Chessboard.Companion.oppositeColor
 import emerald.apps.fairychess.model.Chessboard.Companion.randomColor
 import java.io.Serializable
+
+import com.google.firebase.dynamiclinks.ktx.component1
+import com.google.firebase.dynamiclinks.ktx.component2
 
 /** MultiplayerDB adds/changes FirebaseFirestore-Database like
  *
@@ -84,6 +90,44 @@ class MultiplayerDB {
         this.multiplayerDBGameInterface = multiplayerDBGameInterface
     }
 
+    fun createDynamicLink(gameId: String) {
+        Firebase.dynamicLinks.shortLinkAsync {
+            link = Uri.parse("https://www.example.com?game_id=$gameId")
+            domainUriPrefix = "https://example.page.link"
+            // Open links with this app on Android
+            androidParameters {
+                DynamicLink.AndroidParameters.Builder("com.example.android")
+                    .setMinimumVersion(1)
+                    .build()
+            }
+            socialMetaTagParameters {
+                DynamicLink.SocialMetaTagParameters.Builder()
+                    .setTitle("Example of a Dynamic Link")
+                    .setDescription("This link works whether the app is installed or not!")
+                    //.setImageUrl("https://www.example.com/icon.png") TODO create image url
+                    .build()
+            }
+            googleAnalyticsParameters {
+                DynamicLink.GoogleAnalyticsParameters.Builder()
+                    .setSource("orkut")
+                    .setMedium("social")
+                    .setCampaign("example-promo")
+                    .build()
+            }
+        }
+        .addOnSuccessListener { (shortLink, flowchartLink) ->
+            // Short link created
+            Log.e("MultiplayerDB","dynamic link was created!")
+            multiplayerDBSearchInterface?.processShortLink(shortLink, flowchartLink)
+        }.addOnFailureListener {
+            error:
+                "com.google.android.gms.common.api.ApiException: 400: Your project does not own Dynamic Links domain"
+            update google-services.json  (firebase)
+            Log.e("MultiplayerDB","dynamic link could not be created: "+it.cause)
+        }
+
+    }
+
     fun writePlayerMovement(gameId: String, movement: ChessPiece.Movement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
         gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(movement)));
@@ -99,7 +143,7 @@ class MultiplayerDB {
      * field finished = false and player1ID not matching player2ID. When search was successful call callback function
      * (onGameSearchComplete in MainActivityListener)
      */
-    fun searchForOpenGames(gameName: String, timeMode: String, player2ID: String) {
+    fun searchForOpenGames(gameName: String = "", timeMode: String = "", player2ID: String) {
         val resultList = mutableListOf<MainActivityListener.GameSearchResult>()
         Log.d(TAG, "search for games $gameName, $timeMode, $player2ID")
         val collection = db.collection(GAMECOLLECTIONPATH)
@@ -107,9 +151,9 @@ class MultiplayerDB {
             .whereEqualTo(GAMEFIELD_PLAYER2ID,"")
             .whereNotEqualTo(GAMEFIELD_PLAYER1ID,player2ID)
 
-        if(!gameName.startsWith("all"))
+        if(gameName.isNotEmpty() && !gameName.startsWith("all"))
             collection.whereIn(GAMEFIELD_GAMENAME, listOf("all game modes",gameName))
-        if(!timeMode.startsWith("all"))
+        if(gameName.isNotEmpty() && !timeMode.startsWith("all"))
             collection.whereEqualTo(GAMEFIELD_TIMEMODE, timeMode)
 
         collection
@@ -468,6 +512,7 @@ interface MultiplayerDBSearchInterface {
     fun onGameChanged(gameId : String)
 
     fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats)
+    fun processShortLink(shortLink: Uri?, flowchartLink: Uri?)
 }
 
 interface MultiplayerDBGameInterface {

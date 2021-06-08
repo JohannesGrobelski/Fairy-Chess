@@ -12,7 +12,7 @@
     tools:context=".view.MainActivity">
 
     <Button
-        android:id="@+id/btn_local"
+        android:id="@+id/btn_quickmatch"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_marginLeft="20dp"
@@ -21,12 +21,26 @@
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:background="#A97C7C7C"
-        android:text="@string/play_local"
+        android:text="@string/quickmatch"
         android:textColor="#FFFFFF"
         android:textSize="50sp" />
 
     <Button
-        android:id="@+id/btn_online"
+        android:id="@+id/btn_searchGame"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_weight="1"
+        android:background="#A97C7C7C"
+        android:text="@string/search_game"
+        android:textColor="#FFFFFF"
+        android:textSize="50sp" />
+
+    <Button
+        android:id="@+id/btn_createGame"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_marginLeft="20dp"
@@ -35,7 +49,7 @@
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:background="#A97C7C7C"
-        android:text="@string/play_online"
+        android:text="@string/create_game"
         android:textColor="#FFFFFF"
         android:textSize="50sp" />
 

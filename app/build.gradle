@@ -27,6 +27,11 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 
 }
 
@@ -60,4 +65,13 @@ dependencies {
 
     testImplementation "org.robolectric:robolectric:4.2.1"
     testImplementation "androidx.test.ext:junit:1.1.2"
+
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:28.1.0')
+
+    // Declare the dependencies for the Dynamic Links and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-dynamic-links-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
 }

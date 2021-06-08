@@ -1,5 +1,6 @@
 package emerald.apps.fairychess
 
+import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
@@ -232,6 +233,10 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
     override fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats) {
         this.playerStats = playerStats
         signal.countDown();
+    }
+
+    override fun processShortLink(shortLink: Uri?, flowchartLink: Uri?) {
+        
     }
 
     override fun onFinishGame(gameId: String, cause: String) {
