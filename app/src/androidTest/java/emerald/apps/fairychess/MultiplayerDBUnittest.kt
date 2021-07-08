@@ -1,7 +1,10 @@
 package emerald.apps.fairychess
 
 import android.net.Uri
+import android.service.autofill.Validators.not
+import androidx.test.espresso.matcher.ViewMatchers.assertThat
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.common.base.Predicates.equalTo
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -10,7 +13,7 @@ import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDBGameInterface
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
-import junit.framework.Assert.assertTrue
+import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,6 +42,7 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
     private var gameFinished = false
     private var secondPlayerJoined = false
     private lateinit var gameWritePlayerMovementChangeGameState : MultiplayerDB.GameState
+    private var dynamicLinkCreated = ""
 
     @Before
     fun before(){
@@ -165,8 +169,39 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
         signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
         assertTrue(gameChanged)
         assertTrue(gameWritePlayerMovementChangeGameState.moves.isNotEmpty())
+    }
 
+    @Test
+    fun testCreateGameAndCreateDynamicLink(){
+        gameChanged = false
+        dynamicLinkCreated = ""
+        secondPlayerJoined = false
+        gameSearchResultList = listOf()
+        val randomGameName = "test_chess_game" + ((Math.random() * 1000000).toInt())
+        //create game
+        signal = CountDownLatch(1);
+        multiplayerDB.createGame(randomGameName, "Bullet (2 minutes)", "test_player1", 0.0)
+        signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
+        //verify by searching for it
+        signal = CountDownLatch(1);
+        multiplayerDB.searchForOpenGames(randomGameName, "Bullet (2 minutes)", "test_player2")
+        signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
+        var testGameFound = false
+        for(game in gameSearchResultList){
+            if(game.id == createdGameID)testGameFound = true
+        }
+        assertTrue(testGameFound)
+        //listen for game changes
+        signal = CountDownLatch(1);
+        multiplayerDB.listenToGameIngame(createdGameID)
+        signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
+        assertTrue(gameChanged)
 
+        //create dynamic link
+        signal = CountDownLatch(1);
+        multiplayerDB.createDynamicLink(createdGameID)
+        signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
+        assertFalse(dynamicLinkCreated.isNotEmpty())
     }
 
     @Test
@@ -236,7 +271,9 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
     }
 
     override fun processShortLink(shortLink: Uri?, flowchartLink: Uri?) {
-        
+        this.dynamicLinkCreated = shortLink.toString()
+        assertTrue(this.dynamicLinkCreated.isNotEmpty())
+        signal.countDown()
     }
 
     override fun onFinishGame(gameId: String, cause: String) {

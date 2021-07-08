@@ -332,6 +332,10 @@ class ChessPiece(
 
 
         companion object{
+            fun emptyMovement() : Movement {
+                return Movement(sourceFile = 0,sourceRank = 0,targetFile = 0,targetRank = 0)
+            }
+
             fun fromMovementToString(movement: Movement) : String {
                 return movement.sourceFile.toString()+"_"+movement.sourceRank+"_"+movement.targetFile.toString()+"_"+movement.targetRank
             }

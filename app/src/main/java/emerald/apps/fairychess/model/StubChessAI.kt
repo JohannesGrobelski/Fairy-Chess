@@ -1,19 +1,18 @@
 package emerald.apps.fairychess.model
 
 import java.util.*
-import kotlin.math.sign
 
 class StubChessAI {
     //Settings
-    private val algorithm = "alphabeta"
+    private val algorithm = "minimax"
     private val recursionDepth = 2
     private var cntHashHits = 0
     private var cntHashFails = 0
 
     //Fields
-    private var cnt_movements = 0
+    var cnt_movements = 0
 
-    private var color: String
+    var color: String
 
     constructor(color: String) {
         this.color = color
@@ -22,221 +21,108 @@ class StubChessAI {
     //Fields for move ordering
     private val transpositionTable = Hashtable<String, MovementValue>()
 
-
-    fun moveFigure(chessgame: Chessgame){
-        var movementValue : MovementValue? = null
+    fun calcMove(chessboard: Chessboard) : ChessPiece.Movement?{
+        cnt_movements = 0
         when (algorithm) {
-            "alphabeta" -> movementValue = alpha_beta(
-                recursionDepth, color,
-                chessgame.getChessboard(), Int.MIN_VALUE, Int.MAX_VALUE
-            )
-            "alphabetatrans" -> movementValue = alpha_beta_trans(
-                recursionDepth, color,
-                chessgame.getChessboard(), Int.MIN_VALUE, Int.MAX_VALUE
-            )
+            "random" -> {
+                return calcRandomMove(chessboard)
+            }
+            "nextBestMoveAlgorithm" -> {
+                return nextBestMoveAlgorithm(chessboard)
+            }
+            "minimax" -> {
+                return minimax(chessboard,2)!!.movement
+            }
+           /* "alphabeta" -> {
+                return minimax_alphabeta(chessboard,2)!!.movement
+            }*/
         }
-        if(movementValue?.movement != null){
+        return ChessPiece.Movement(sourceFile = 0,sourceRank = 0,targetFile = 0,targetRank = 0)
+    }
 
+    fun nextBestMoveAlgorithm(chessboard: Chessboard) : ChessPiece.Movement?{
+        val allMoves = chessboard.getAllPossibleMoves(color)
+        if(allMoves.isNotEmpty()){
+            var targetMove = allMoves[0]
+            val originalValue = getPointDif(chessboard)
+            val originalBoard = chessboard.clone()
+            var maxValue = originalValue
+            //find best move (highest points for black)
+            //go through all possible moves
+            for(possibleMove in allMoves){
+                chessboard.reset(originalBoard)
+                //chessboard.moveColor = color
+                chessboard.move(color,possibleMove)
+                if(getPointDif(chessboard) > maxValue){
+                    targetMove = possibleMove
+                    maxValue = getPointDif(chessboard)
+                }
+            }
+            chessboard.reset(originalBoard)
+            return targetMove
+        } else {
+            return null
         }
     }
+
+    class MinimaxResult(val movement: ChessPiece.Movement?, val value: Int)
+    fun minimax(chessboard: Chessboard, level: Int) : MinimaxResult?{
+        if(level <= 0){
+            return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
+        } else {
+            val allMoves = chessboard.getAllPossibleMoves(chessboard.moveColor)
+            if(allMoves.isNotEmpty()){
+                var targetMove = allMoves[0]
+                val originalBoard = chessboard.clone()
+                var bestValue : Int
+                if(chessboard.moveColor == "black"){
+                    //find best move (highest points for black) by going through all possible moves
+                    bestValue = Int.MIN_VALUE
+                    for(possibleMove in allMoves){
+                        chessboard.reset(originalBoard)
+                        chessboard.move(chessboard.moveColor,possibleMove)
+                        val valuePosition = minimax(chessboard,level-1)!!.value
+                        if(valuePosition > bestValue){
+                            targetMove = possibleMove
+                            bestValue = getPointDif(chessboard)
+                        }
+                    }
+                } else {
+                    //find best move (highest points for white) by going through all possible moves
+                    bestValue = Int.MAX_VALUE
+                    for(possibleMove in allMoves){
+                        chessboard.reset(originalBoard)
+                        chessboard.move(chessboard.moveColor,possibleMove)
+                        val valuePosition = minimax(chessboard,level-1)!!.value
+                        if(valuePosition < bestValue){
+                            targetMove = possibleMove
+                            bestValue = getPointDif(chessboard)
+                        }
+                    }
+                }
+                chessboard.reset(originalBoard)
+                return MinimaxResult(targetMove,bestValue)
+            } else {
+                return null
+            }
+        }
+    }
+
+
+    fun getPointDif(chessboard: Chessboard) : Int{
+        ++cnt_movements
+        return chessboard.pointsBlack() - chessboard.pointsWhite()
+    }
+
+
+
+    fun calcRandomMove(chessboard: Chessboard) : ChessPiece.Movement{
+        val allMoves = chessboard.getAllPossibleMoves(color)
+        return allMoves[(Math.random()*allMoves.size).toInt()]
+    }
+
 
 
     class MovementValue(val movement: ChessPiece.Movement?, val value: Int)
 
-    private fun alpha_beta_trans(
-        depth: Int,
-        color: String,
-        chessboard: Chessboard,
-        alpha: Int,
-        beta: Int
-    ): MovementValue? {
-        var _chessboard = chessboard
-        var alpha = alpha
-        var beta = beta
-        ++cnt_movements
-        var bestValue = 0
-        var bestMove : MovementValue? = null
-        var currentValue: Int
-        if (!transpositionTable.containsKey(color + _chessboard.hashCode())) {
-            ++cntHashFails
-            val possible_moves: List<ChessPiece.Movement> = _chessboard.getAllPossibleMoves(color)
-            if (depth == 0 || possible_moves.isEmpty()) {
-                return MovementValue(null, _chessboard.pointsBlack() - _chessboard.pointsWhite())
-            }
-            if (color == this.color) {
-                bestValue = Int.MIN_VALUE
-                for (zug in possible_moves) {
-                    val geschlagen: ChessPiece? = _chessboard.moveAndReturnCapture(color, zug)
-                    val chessboardCopy = _chessboard.copy()
-                    val currentBestMove = alpha_beta_trans(
-                        depth - 1,
-                        Chessboard.oppositeColor(color),
-                        _chessboard,
-                        alpha,
-                        beta
-                    )
-                    currentValue = currentBestMove?.value ?: 0
-                    _chessboard = chessboardCopy.copy()
-                    if (currentValue > bestValue) {
-                        bestValue = currentValue
-                        bestMove = MovementValue(zug, bestValue)
-                    }
-                    alpha = Math.max(alpha, currentValue)
-                    if (alpha >= beta) break
-                }
-            } else {
-                bestValue = Int.MAX_VALUE
-                for (zug in possible_moves) {
-                    val geschlagen: ChessPiece? = _chessboard.moveAndReturnCapture(color, zug)
-                    val chessboardCopy = _chessboard.copy()
-                    val currentBestMove = alpha_beta_trans(
-                        depth - 1,
-                        Chessboard.oppositeColor(color),
-                        _chessboard,
-                        alpha,
-                        beta
-                    )
-                    currentValue = currentBestMove?.value ?: 0
-                    _chessboard = chessboardCopy.copy()
-                    if (currentValue < bestValue) {
-                        bestValue = currentValue
-                        bestMove = MovementValue(zug, bestValue)
-                    }
-                    beta = Math.min(beta, currentValue)
-                    if (alpha >= beta) break
-                }
-            }
-            transpositionTable.put(color + _chessboard.hashCode(), bestMove)
-        } else {
-            ++cntHashHits
-            bestMove = transpositionTable[color + _chessboard.hashCode()]!!
-        }
-        return bestMove
-    }
-
-    private fun alpha_beta(
-        tiefe: Int,
-        color: String,
-        chessboard: Chessboard,
-        alpha: Int,
-        beta: Int
-    ): MovementValue? {
-        var _chessboard = chessboard
-        var alpha = alpha
-        var beta = beta
-        ++cnt_movements
-        val possible_moves: List<ChessPiece.Movement> = _chessboard.getAllPossibleMoves(color)
-        if (tiefe == 0 || possible_moves.isEmpty()) {
-            return MovementValue(null, _chessboard.pointsBlack() - _chessboard.pointsWhite())
-        }
-        var bestValue = 0
-        var bestMove : MovementValue? = null
-        var currentValue: Int
-        if (color == this.color) {
-            bestValue = Int.MIN_VALUE
-            for (zug in possible_moves) {
-                val geschlagen: ChessPiece? = _chessboard.moveAndReturnCapture(color, zug)
-                val chessboardCopy = _chessboard.copy()
-                val currentBestMove = alpha_beta_trans(
-                    tiefe - 1,
-                    Chessboard.oppositeColor(color),
-                    _chessboard,
-                    alpha,
-                    beta
-                )
-                currentValue = currentBestMove?.value ?: 0
-                _chessboard = chessboardCopy.copy()
-                if (currentValue > bestValue) {
-                    bestValue = currentValue
-                    bestMove = MovementValue(zug, bestValue)
-                }
-                alpha = Math.max(alpha, currentValue)
-                if (alpha >= beta) break
-            }
-        } else {
-            bestValue = Int.MAX_VALUE
-            for (zug in possible_moves) {
-                val geschlagen: ChessPiece? = _chessboard.moveAndReturnCapture(color, zug)
-                val chessboardCopy = _chessboard.copy()
-                val currentBestMove = alpha_beta_trans(
-                    tiefe - 1,
-                    Chessboard.oppositeColor(color),
-                    _chessboard,
-                    alpha,
-                    beta
-                )
-                currentValue = currentBestMove?.value ?: 0
-                _chessboard = chessboardCopy.copy()
-                if (currentValue < bestValue) {
-                    bestValue = currentValue
-                    bestMove = MovementValue(zug, bestValue)
-                }
-                beta = Math.min(beta, currentValue)
-                if (alpha >= beta) break
-            }
-        }
-        return bestMove
-    }
-
-    fun Chessboard.moveAndReturnCapture(color: String, movement: ChessPiece.Movement) : ChessPiece?{
-        var capturedChessPiece : ChessPiece?
-        if(color != moveColor)return null
-        //check movement
-        var userMovement : ChessPiece.Movement? = null
-        if(pieces[movement.sourceFile][movement.sourceRank].color == "")return null
-        else if(pieces[movement.sourceFile][movement.sourceRank].color == pieces[movement.targetFile][movement.targetRank].color)return null
-        else if(pieces[movement.sourceFile][movement.sourceRank].color != moveColor)return null
-        else {
-            val targetMovements = getTargetMovements(movement.sourceFile, movement.sourceRank,true)
-            for(targetMovement in targetMovements){
-                if(targetMovement.targetFile == movement.targetFile && targetMovement.targetRank == movement.targetRank){
-                    userMovement = targetMovement
-                }
-            }
-            if(userMovement == null)return null
-        }
-
-        //valid movement
-        if (userMovement.movementNotation.movetype == "g") {
-            //capture the piece hopped over
-            val signFile = sign((userMovement.targetFile - userMovement.sourceFile).toDouble()).toInt()
-            val signRank = sign((userMovement.targetRank - userMovement.sourceRank).toDouble()).toInt()
-            val captureFile = userMovement.targetFile-signFile
-            val captureRank = userMovement.targetRank-signRank
-            if(pieces[captureFile][captureRank].color != moveColor){
-                pieces[captureFile][captureRank] = ChessPiece(
-                    "",
-                    movement.sourceFile,
-                    movement.sourceRank,
-                    0,
-                    "",
-                    "",
-                    0,
-                )
-            }
-        }
-        capturedChessPiece = pieces[movement.targetFile][movement.targetRank]
-        pieces[movement.targetFile][movement.targetRank] = ChessPiece(
-            pieces[movement.sourceFile][movement.sourceRank].name,
-            movement.targetFile,
-            movement.targetRank,
-            pieces[movement.sourceFile][movement.sourceRank].value,
-            pieces[movement.sourceFile][movement.sourceRank].color,
-            pieces[movement.sourceFile][movement.sourceRank].movingPatternString,
-            pieces[movement.sourceFile][movement.sourceRank].moveCounter + 1,
-        )
-        pieces[movement.sourceFile][movement.sourceRank] = ChessPiece(
-            "",
-            movement.sourceFile,
-            movement.sourceRank,
-            0,
-            "",
-            "",
-            0,
-        )
-
-        ++moveCounter
-        switchMoveColor()
-        return capturedChessPiece
-    }
 }

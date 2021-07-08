@@ -77,6 +77,7 @@ import kotlinx.android.synthetic.main.activity_chess_white_perspective.H5
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H6
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H7
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
+import kotlinx.coroutines.*
 
 /** controller that propagates inputs from view to model and changes from model to view */
 class ChessActivityListener() : MultiplayerDBGameInterface
@@ -86,6 +87,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private lateinit var chessActivity : ChessActivity
     private lateinit var chessgame: Chessgame
     private lateinit var multiplayerDB: MultiplayerDB
+    private lateinit var stubChessAI: StubChessAI
 
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
@@ -107,6 +109,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private lateinit var playerStats : MultiplayerDB.PlayerStats
     private lateinit var opponentStats : MultiplayerDB.PlayerStats
     private var playerStatsUpdated = false
+
+    private var calcMoveJob : Job? = null
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
@@ -155,6 +159,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         if(gameParameters.playMode == "human"){
             multiplayerDB = MultiplayerDB(this, chessgame)
             multiplayerDB.listenToGameIngame(gameData.gameId)
+        } else {
+            stubChessAI = StubChessAI("black")
         }
     }
 
@@ -180,30 +186,38 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     targetFile = clickedFile,
                     targetRank = clickedRank
                 )
-                var moveResult:String
-                if(gameParameters.playMode=="ai"){
-                    moveResult = chessgame.movePlayer(movement, chessgame.getChessboard().moveColor)
-                    if(chessgame.gameFinished){
-                        if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
-                            finishGame(chessgame.getChessboard().gameWinner + " won", true)
-                        } else {
-                            finishGame(chessgame.getChessboard().gameWinner + " won", false)
-                        }
-                    } //check for winner
-                    if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
-                        offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
+                var moveResult = ""
+                moveResult = chessgame.movePlayer(movement, gameParameters.playerColor)
+
+                if(chessgame.gameFinished){
+                    if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
+                        finishGame(chessgame.getChessboard().gameWinner + " won", true)
+                    } else {
+                        finishGame(chessgame.getChessboard().gameWinner + " won", false)
                     }
-                } else {
-                    moveResult = chessgame.movePlayer(movement, gameParameters.playerColor)
+                } //check for winner
+                if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
+                    offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
                 }
+
                 moveResult += handlePromotion()
                 if(gameParameters.playMode=="human" && moveResult==""){
                     multiplayerDB.writePlayerMovement(gameData.gameId, movement)
                 }
-                displayFigures()
                 if(moveResult.isNotEmpty()){
                     Toast.makeText(chessActivity, moveResult, Toast.LENGTH_LONG).show()
                 }
+
+                if(gameParameters.playMode=="ai"){
+                    calcMoveJob = CoroutineScope(Dispatchers.Main).launch {
+                        try{
+                            chessgame.movePlayer(stubChessAI.calcMove(chessgame.getChessboard()), stubChessAI.color)
+                        } catch (e: Exception) {
+                            throw RuntimeException("To catch any exception thrown for yourTask", e)
+                        }
+                    }
+                }
+                displayFigures()
             }
             //mark the clicked view
             markFigure(clickedView)
@@ -212,6 +226,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             }
         }
     }
+
+
 
     fun handlePromotion() : String{
         if(chessgame.getChessboard().promotion != null){
@@ -284,16 +300,19 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         val sourceFile = chessPiece.positionFile
         val sourceRank = 6
         if(chessPiece.color == "white") chessPiece.positionRank = 1
-        multiplayerDB.writePlayerMovement(
-            gameData.gameId,
-            ChessPiece.PromotionMovement(
-                sourceFile = sourceFile,
-                sourceRank = sourceRank,
-                targetFile = chessPiece.positionFile,
-                targetRank = chessPiece.positionRank,
-                promotion = promotion
+        if(gameParameters.playMode == "human"){
+            multiplayerDB.writePlayerMovement(
+                gameData.gameId,
+                ChessPiece.PromotionMovement(
+                    sourceFile = sourceFile,
+                    sourceRank = sourceRank,
+                    targetFile = chessPiece.positionFile,
+                    targetRank = chessPiece.positionRank,
+                    promotion = promotion
+                )
             )
-        )
+        }
+
     }
 
     /** display figures from chess board in imageViews of chessActivity-layout */
@@ -333,7 +352,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** create alert dialog for player that has a right for draw*/
     private fun offerDraw(color: String){
-        if(color == gameParameters.playerColor){
+        if(gameParameters.playMode == "human" && color == gameParameters.playerColor){
             // create an alert builder
             val builder = AlertDialog.Builder(chessActivity)
             builder.setTitle("Do you want to draw?") // set the custom layout

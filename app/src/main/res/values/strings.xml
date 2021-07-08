@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">Schach</string>
     <string name="title_activity_chess">ChessActivity</string>
+    <string name="ai_match">play against ai</string>
     <string name="quickmatch">quickmatch</string>
     <string name="search_game">search for game</string>
     <string name="create_game">open new game</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

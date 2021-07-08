@@ -5,19 +5,25 @@
     android:orientation="vertical">
 
     <Spinner
-        android:id="@+id/spinner_gameName"
+        android:id="@+id/spinner_createGame_gameName"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_weight="1" />
 
     <Spinner
-        android:id="@+id/spinner_timemode"
+        android:id="@+id/spinner_createGame_timemode"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_weight="1" />
+
+    <Spinner
+        android:id="@+id/spinner_createGame_difficulty"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_weight="1" />
 
     <Button
-        android:id="@+id/btn_search_game"
+        android:id="@+id/btn_createGame_create_game"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="create game" />

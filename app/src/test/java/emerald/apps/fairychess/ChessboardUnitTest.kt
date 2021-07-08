@@ -3,6 +3,7 @@ package emerald.apps.fairychess.model
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
+import junit.framework.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -18,6 +19,16 @@ import kotlin.math.max
 @RunWith(AndroidJUnit4::class)
 class ChessboardUnitTest {
 
+    @Test
+    fun simpleChessGame(){
+        val chessFormationArray = parseChessFormation("normal_chess")
+        val figureMap = parseFigureMapFromFile()
+        val chessBoardNormal = Chessboard(chessFormationArray, figureMap)
+        assertTrue(chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("3_1_3_3")).isEmpty())
+        assertTrue(chessBoardNormal.move("black", ChessPiece.Movement.fromStringToMovement("4_6_4_4")).isEmpty())
+        assertTrue(chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("3_3_4_4")).isEmpty())
+
+    }
 
     @Test
     fun simpleCheckmate() {

@@ -17,9 +17,7 @@ class ChessboardUnitTest {
     private lateinit var games : Array<Array<ChessPiece.Movement>>
 
     @Before
-    fun parseGamesDB(){
-        games = ChessgameParser.parseGamesDB()
-    }
+    fun parseGamesDB(){}
 
     @Test
     fun testGamesDB(){

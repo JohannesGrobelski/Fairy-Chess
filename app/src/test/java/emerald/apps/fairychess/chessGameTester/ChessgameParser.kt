@@ -3,6 +3,7 @@ package emerald.apps.fairychess.chessGameTester
 import android.content.Context
 import android.util.Log
 import emerald.apps.fairychess.model.ChessPiece
+import emerald.apps.fairychess.model.Chessboard
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import java.io.File
@@ -16,26 +17,24 @@ class ChessgameParser {
         private val TAG: String = "ChessFormationParser"
 
         /** parse chessFormation string by splitting brackets and then, comma's */
-        private fun parseChessFormationString(chessGamesString: String) : List<Array<ChessPiece.Movement>> {
-            var gameList = mutableListOf<Array<ChessPiece.Movement>>()
+        private fun parseChessFormationString(chessGamesString: String) : List<Array<String>> {
+            val gameList = mutableListOf<Array<String>>()
             for (matchedText in chessGamesString.split("\n")) {
+                //val chessboard = Chessboard()
                 val moveStrings = matchedText.split("\\d+\\. ".toRegex()).toTypedArray()
-                val moves = mutableListOf<ChessPiece.Movement>()
+                val moves = mutableListOf<String>()
                 for(move in moveStrings){
-                    moves.add(convertStringToMovement(move))
+                    val parts = move.split(" ".toRegex())
+                    moves.add(parts[0])
+                    moves.add(parts[1])
                 }
                 gameList.add(moves.toTypedArray())
             }
             return gameList.toList()
         }
 
-        private fun convertStringToMovement(movementString: String) : ChessPiece.Movement {
-            val moveArray = movementString.trim().split(" ")
-            return ChessPiece.Movement.fromStringToMovement("")
-        }
-
         /** create inputstream from file and then parse JSON string from inputstream */
-         fun parseGamesDB() : Array<Array<ChessPiece.Movement>> {
+         fun parseGamesDB() : Array<Array<String>> {
             try {
                 val absPath = "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\gamesdb"
                 val initialFile = File(absPath)

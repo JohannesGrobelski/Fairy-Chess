@@ -13,4 +13,10 @@
         <item>rapid (10 minutes)</item>
         <item>infinite</item>
     </string-array>
+    <string-array name="difficultyModes">
+        <item>400</item>
+        <item>600</item>
+        <item>800</item>
+        <item>1000</item>
+    </string-array>
 </resources>

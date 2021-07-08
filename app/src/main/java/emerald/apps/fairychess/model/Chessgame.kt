@@ -45,21 +45,25 @@ class Chessgame() {
     }
 
     /** execute movement and check if color allows movement */
-    fun movePlayer(movement: ChessPiece.Movement, color: String): String {
-        var returnValue = chessboard.move(color, movement)
-        gameFinished = chessboard.gameFinished
-        if(returnValue == ""){
-            when(gameParameters.playMode){
-                "ai" -> {
-                    /*val ai = StubChessAI(opponentColor,this)
-                    ai.moveFigure(this)*/
-                }
-                "human" -> {
+    fun movePlayer(movement: ChessPiece.Movement?, color: String): String {
+        if(movement != null){
+            var returnValue = chessboard.move(color, movement)
+            gameFinished = chessboard.gameFinished
+            if(returnValue == ""){
+                when(gameParameters.playMode){
+                    "ai" -> {
+                        /*val ai = StubChessAI(opponentColor,this)
+                        ai.moveFigure(this)*/
+                    }
+                    "human" -> {
 
+                    }
                 }
             }
+            return returnValue
+        } else {
+            return "no move made"
         }
-        return returnValue
     }
 
     fun getTargetMovements(sourceFile: Int, sourceRank: Int): List<ChessPiece.Movement> {
@@ -77,6 +81,11 @@ class Chessgame() {
     fun getChessboard() : Chessboard {
         return chessboard
     }
+
+    fun setChessboard(chessboard: Chessboard) {
+        this.chessboard = chessboard
+    }
+
 
     fun makeMove(moveString: String) {
         when(moveString.count{ "_".contains(it) }){

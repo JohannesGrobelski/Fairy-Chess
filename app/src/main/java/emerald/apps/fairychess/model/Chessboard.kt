@@ -2,6 +2,7 @@ package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.model.ChessPiece.MovementNotation.Companion.CASTLING_MOVEMENT
 import emerald.apps.fairychess.utility.FigureParser
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -66,7 +67,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
     }
 
     companion object {
-        const val DEBUG = true
+        const val DEBUG = false
         /**
          * returns white or black randomly
          */
@@ -88,6 +89,18 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             }
         }
 
+    }
+
+    fun clone() : Chessboard{
+        val chessboard = Chessboard(chessFormationArray,figureMap)
+        chessboard.moveColor = moveColor
+        //clone 2d array pieces
+        for(line in chessboard.pieces.indices){
+            for(row in chessboard.pieces[line].indices){
+                chessboard.pieces[line][row] = pieces[line][row]
+            }
+        }
+        return chessboard
     }
 
     /**
@@ -173,7 +186,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                     && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
                     && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
             //en passante
-            returnValue = specialMoveCheckEnpassante(movement) != null
+            if(!returnValue)returnValue = specialMoveCheckEnpassante(movement) != null
         }
         if(movement.movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
             returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
@@ -685,6 +698,13 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         }
         return cStringBuilder.toString()
     }
+
+    fun reset(originalBoard: Chessboard) {
+        this.pieces =  originalBoard.pieces.copy()
+        this.moveColor = originalBoard.moveColor
+    }
+
+    private fun Array<Array<ChessPiece>>.copy() = map { it.clone() }.toTypedArray()
 
 
 }

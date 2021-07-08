@@ -57,3 +57,5 @@ y
 Iapp/src/androidTest/java/emerald/apps/fairychess/MultiplayerDBUnittest.kt,f\7\f76f267a91ec292149824213b5d62e3f34bad315
 t
 Dapp/src/androidTest/java/emerald/apps/fairychess/Integrationtests.kt,0\0\0005c444058bd43b2b663c1cf92d82e90072043b
+k
+;app/src/test/java/emerald/apps/fairychess/StubAIUnitTest.kt,8\b\8bbeb7b16d632a22c1922cb7b249a3473d7d1ae1

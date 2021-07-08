@@ -21,7 +21,6 @@ import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
-import kotlin.math.roundToInt
 
 
 class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface {
@@ -95,6 +94,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     }
 
     fun loadPlayerStats(){
+        playerStats = MultiplayerDB.PlayerStats.getDefault()
         multiplayerDB.getPlayerStats(userName)
     }
 
@@ -104,6 +104,10 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
 
     override fun onClick(v: View?) {
         when(v?.id){
+            R.id.btn_ai -> {
+                gameParameters.playMode = "ai"
+                displayAlertDialogAIMatch()
+            }
             R.id.btn_quickmatch -> {
                 gameParameters.playMode = "human"
                 quickMatch()
@@ -151,6 +155,56 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         val playerStatsDialogBuilder = AlertDialog.Builder(mainActivity).setView(playerStatsDialogView)
         playerStatsDialogBuilder.setPositiveButton("OK",null)
         playerStatsDialogBuilder.show()
+    }
+
+    /** alert dialog to search for online games  */
+    fun displayAlertDialogAIMatch(){
+        val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
+        val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
+        val difficultyModes = mainActivity.resources.getStringArray(R.array.difficultyModes)
+
+        val inflater = LayoutInflater.from(mainActivity)
+
+        //inflate the layout (depending on mode)
+        val createDialogView = inflater.inflate(
+            R.layout.alertdialog_create_game,
+            null,
+            false
+        )
+
+        //create dialog
+        val spinner_gameName : Spinner = createDialogView.findViewById(R.id.spinner_createGame_gameName)
+        spinner_gameName.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            gameModes
+        )
+        val spinner_timemode : Spinner = createDialogView.findViewById(R.id.spinner_createGame_timemode)
+        spinner_timemode.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            timeModes
+        )
+        val spinner_diff : Spinner = createDialogView.findViewById(R.id.spinner_createGame_difficulty)
+        spinner_diff.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            difficultyModes
+        )
+        val btn_create_game = createDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
+        val createDialog = AlertDialog.Builder(mainActivity).setView(createDialogView).create()
+
+        btn_create_game.setOnClickListener{
+            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.time = spinner_timemode.selectedItem.toString()
+            gameParameters.playerColor = "white"
+            val diffAi = spinner_diff.selectedItem.toString().toDouble()
+            this.opponentStats = MultiplayerDB.PlayerStats(0L,0L,0L,diffAi)
+            val gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi)
+            start_gameWithParameters(gameData,gameParameters)
+        }
+
+        createDialog.show()
     }
 
     /** alert dialog to search for online games  */

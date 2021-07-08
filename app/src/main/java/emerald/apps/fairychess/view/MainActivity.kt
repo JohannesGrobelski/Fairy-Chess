@@ -1,5 +1,6 @@
 package emerald.apps.fairychess.view
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +12,8 @@ import kotlinx.android.synthetic.main.alertdialog_create_game.*
 class MainActivity : AppCompatActivity() {
     lateinit var mainActivityListener : MainActivityListener
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -19,6 +22,7 @@ class MainActivity : AppCompatActivity() {
         btn_createGame.setOnClickListener(mainActivityListener)
         btn_searchGame.setOnClickListener(mainActivityListener)
         btn_quickmatch.setOnClickListener(mainActivityListener)
+        btn_ai.setOnClickListener(mainActivityListener)
     }
 
     override fun onResume() {

@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import android.widget.Toast
 import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.ktx.*
 import com.google.firebase.firestore.FieldValue
@@ -104,7 +105,7 @@ class MultiplayerDB {
                 DynamicLink.SocialMetaTagParameters.Builder()
                     .setTitle("Example of a Dynamic Link")
                     .setDescription("This link works whether the app is installed or not!")
-                    //.setImageUrl("https://www.example.com/icon.png") TODO create image url
+                    //.setImageUrl("https://www.example.com/icon.png") TODO create image
                     .build()
             }
             googleAnalyticsParameters {
@@ -115,14 +116,18 @@ class MultiplayerDB {
                     .build()
             }
         }
+        .addOnCompleteListener{
+            Log.d("MultiplayerDB","dynamic link task completed")
+
+        }
         .addOnSuccessListener { (shortLink, flowchartLink) ->
             // Short link created
             Log.e("MultiplayerDB","dynamic link was created!")
             multiplayerDBSearchInterface?.processShortLink(shortLink, flowchartLink)
-        }.addOnFailureListener {
-            error:
-                "com.google.android.gms.common.api.ApiException: 400: Your project does not own Dynamic Links domain"
-            update google-services.json  (firebase)
+        }
+        .addOnFailureListener {
+            /*previous error: "com.google.android.gms.common.api.ApiException: 400: Your project does not own Dynamic Links domain"
+            solution: update google-services.json (firebase)*/
             Log.e("MultiplayerDB","dynamic link could not be created: "+it.cause)
         }
 
@@ -430,6 +435,10 @@ class MultiplayerDB {
 
             override fun newArray(size: Int): Array<PlayerStats?> {
                 return arrayOfNulls(size)
+            }
+
+            fun getDefault() : PlayerStats{
+                return MultiplayerDB.PlayerStats(0L,0L,0L,0.0)
             }
         }
     }
