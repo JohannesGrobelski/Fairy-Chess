@@ -15,8 +15,6 @@ y
 Iapp/src/main/java/emerald/apps/fairychess/utility/ChessFormationParser.kt,0\1\014bfeb84afd28ddf1b6627ec1d93823023fe1ba
 q
 Aapp/src/main/java/emerald/apps/fairychess/utility/FigureParser.kt,7\e\7ec25044130d93e7df803f207c02a6934fab28d8
-n
->app/src/main/java/emerald/apps/fairychess/model/StubChessAI.kt,b\a\bab9bec6dd91cfd984f20f35ed766121fadef9d2
 <
 build.gradle,f\0\f07866736216be0ee2aba49e392191aeae700a35
 X
@@ -59,3 +57,7 @@ t
 Dapp/src/androidTest/java/emerald/apps/fairychess/Integrationtests.kt,0\0\0005c444058bd43b2b663c1cf92d82e90072043b
 k
 ;app/src/test/java/emerald/apps/fairychess/StubAIUnitTest.kt,8\b\8bbeb7b16d632a22c1922cb7b249a3473d7d1ae1
+j
+:app/src/main/java/emerald/apps/fairychess/model/ChessAI.kt,2\b\2b8bfef6d2ef948e8b445c7fab60a38bb30ecaf2
+k
+;app/src/main/java/emerald/apps/fairychess/model/Bitboard.kt,0\a\0af38bfadebd84dcf33c66c4a2a77887ee977b8a

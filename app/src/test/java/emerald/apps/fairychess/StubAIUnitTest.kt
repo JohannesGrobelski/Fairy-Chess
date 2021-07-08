@@ -3,14 +3,9 @@ package emerald.apps.fairychess
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.model.Chessboard
-import emerald.apps.fairychess.model.StubChessAI
+import emerald.apps.fairychess.model.ChessAI
 import emerald.apps.fairychess.utility.ChessFormationParser
-import emerald.apps.fairychess.utility.ChessFormationParser.Companion.parseChessFormation
 import emerald.apps.fairychess.utility.FigureParser
-import emerald.apps.fairychess.utility.FigureParser.Companion.parseFigureMapFromFile
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
-import org.apache.tools.ant.taskdefs.Move
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -25,7 +20,7 @@ class StubAIUnitTest {
         val chessFormationArray = parseChessFormation("normal_chess")
         val figureMap = parseFigureMapFromFile()
         val chessBoardNormal = Chessboard(chessFormationArray, figureMap)
-        val stubChessAI = StubChessAI("black")
+        val stubChessAI = ChessAI("black")
         //open
         assert(chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("4_1_4_3")).isEmpty())
         assert(chessBoardNormal.move("black",stubChessAI.calcMove(chessBoardNormal)!!).isEmpty())
@@ -44,7 +39,7 @@ class StubAIUnitTest {
         val chessFormationArray = parseChessFormation("normal_chess")
         val figureMap = parseFigureMapFromFile()
         val chessBoardNormal = Chessboard(chessFormationArray, figureMap)
-        val stubChessAI = StubChessAI("black")
+        val stubChessAI = ChessAI("black")
 
         assert(chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("1_1_1_3")).isEmpty())
         assert(chessBoardNormal.move("black", ChessPiece.Movement.fromStringToMovement("0_6_0_5")).isEmpty())

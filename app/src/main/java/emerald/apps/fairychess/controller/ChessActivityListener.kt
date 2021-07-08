@@ -87,7 +87,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private lateinit var chessActivity : ChessActivity
     private lateinit var chessgame: Chessgame
     private lateinit var multiplayerDB: MultiplayerDB
-    private lateinit var stubChessAI: StubChessAI
+    private lateinit var chessAI: ChessAI
 
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
@@ -160,7 +160,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             multiplayerDB = MultiplayerDB(this, chessgame)
             multiplayerDB.listenToGameIngame(gameData.gameId)
         } else {
-            stubChessAI = StubChessAI("black")
+            chessAI = ChessAI("black")
         }
     }
 
@@ -211,7 +211,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 if(gameParameters.playMode=="ai"){
                     calcMoveJob = CoroutineScope(Dispatchers.Main).launch {
                         try{
-                            chessgame.movePlayer(stubChessAI.calcMove(chessgame.getChessboard()), stubChessAI.color)
+                            chessgame.movePlayer(chessAI.calcMove(chessgame.getChessboard()), chessAI.color)
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)
                         }

@@ -1,10 +1,12 @@
 package emerald.apps.fairychess.model
 
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
-class StubChessAI {
+class ChessAI {
     //Settings
-    private val algorithm = "minimax"
+    private val algorithm = "alphabeta"
     private val recursionDepth = 2
     private var cntHashHits = 0
     private var cntHashFails = 0
@@ -21,11 +23,15 @@ class StubChessAI {
     //Fields for move ordering
     private val transpositionTable = Hashtable<String, MovementValue>()
 
+    fun transformChessboardToArray(chessboard: Chessboard) : Array<Array<Int>>{
+
+    }
+
     fun calcMove(chessboard: Chessboard) : ChessPiece.Movement?{
         cnt_movements = 0
         when (algorithm) {
             "random" -> {
-                return calcRandomMove(chessboard)
+                return calcRandomMove(transformChessboardToArray(chessboard))
             }
             "nextBestMoveAlgorithm" -> {
                 return nextBestMoveAlgorithm(chessboard)
@@ -33,9 +39,9 @@ class StubChessAI {
             "minimax" -> {
                 return minimax(chessboard,2)!!.movement
             }
-           /* "alphabeta" -> {
-                return minimax_alphabeta(chessboard,2)!!.movement
-            }*/
+            "alphabeta" -> {
+                return alphabeta(chessboard,2,Int.MIN_VALUE,Int.MAX_VALUE)!!.movement
+            }
         }
         return ChessPiece.Movement(sourceFile = 0,sourceRank = 0,targetFile = 0,targetRank = 0)
     }
@@ -103,7 +109,57 @@ class StubChessAI {
                 chessboard.reset(originalBoard)
                 return MinimaxResult(targetMove,bestValue)
             } else {
-                return null
+                return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
+            }
+        }
+    }
+
+    fun alphabeta(chessboard: Chessboard, level: Int, alpha:Int, beta:Int) : MinimaxResult?{
+        var _alpha = alpha
+        var _beta = beta
+        if(level <= 0){
+            return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
+        } else {
+            val allMoves = chessboard.getAllPossibleMoves(chessboard.moveColor)
+            if(allMoves.isNotEmpty()){
+                var targetMove = allMoves[0]
+                val originalBoard = chessboard.clone()
+                var bestValue : Int
+                if(chessboard.moveColor == "black"){
+                    //find best move (highest points for black) by going through all possible moves
+                    bestValue = Int.MIN_VALUE
+                    for(possibleMove in allMoves){
+                        chessboard.reset(originalBoard)
+                        chessboard.move(chessboard.moveColor,possibleMove)
+                        val valuePosition = alphabeta(chessboard,level-1,_alpha,_beta)!!.value
+                        if(valuePosition > bestValue){
+                            targetMove = possibleMove
+                            bestValue = getPointDif(chessboard)
+                        }
+                        //beta cutoff
+                        if(valuePosition >= _beta)break
+                        _alpha = max(_alpha,valuePosition)
+                    }
+                } else {
+                    //find best move (highest points for white) by going through all possible moves
+                    bestValue = Int.MAX_VALUE
+                    for(possibleMove in allMoves){
+                        chessboard.reset(originalBoard)
+                        chessboard.move(chessboard.moveColor,possibleMove)
+                        val valuePosition = alphabeta(chessboard,level-1,_alpha,_beta)!!.value
+                        if(valuePosition < bestValue){
+                            targetMove = possibleMove
+                            bestValue = getPointDif(chessboard)
+                        }
+                        //alpha cutoff
+                        if(valuePosition <= _alpha)break
+                        _beta = min(_beta,valuePosition)
+                    }
+                }
+                chessboard.reset(originalBoard)
+                return MinimaxResult(targetMove,bestValue)
+            } else {
+                return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
             }
         }
     }
