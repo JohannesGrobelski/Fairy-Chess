@@ -40,39 +40,43 @@ class ChessGameUnitTest {
         println(chessBoardNormal.toString())
     }
 
-    fun parseFigureMapFromFile() : Map<String, FigureParser.Figure> {
-        try {
-            val absPath = "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\figures.json"
-            val initialFile = File(absPath)
-            val inputStream: InputStream = FileInputStream(initialFile)
-            return FigureParser.parseFigureMapFromJSONString(
-                ChessFormationParser.convertStreamToString(
-                    inputStream
-                )
-            )
-        } catch (e: Exception){
-            println(e.message.toString())
-        }
-        return mapOf()
-    }
-
-    private fun parseChessFormation(mode:String) : Array<Array<String>> {
-        try {
-            val absPath =
-                "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\$mode.chessformation"
-            val initialFile = File(absPath)
-            val inputStream: InputStream = FileInputStream(initialFile)
-            return ChessFormationParser.rotate2DArray(
-                ChessFormationParser.parseChessFormationString(
+    companion object {
+        fun parseFigureMapFromFile() : Map<String, FigureParser.Figure> {
+            try {
+                val absPath = "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\figures.json"
+                val initialFile = File(absPath)
+                val inputStream: InputStream = FileInputStream(initialFile)
+                return FigureParser.parseFigureMapFromJSONString(
                     ChessFormationParser.convertStreamToString(
                         inputStream
                     )
                 )
-            )
-        } catch (e: Exception){
-            println(e.message.toString())
+            } catch (e: Exception){
+                println(e.message.toString())
+            }
+            return mapOf()
         }
-        return arrayOf()
+
+        fun parseChessFormation(mode:String) : Array<Array<String>> {
+            try {
+                val absPath =
+                    "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\$mode.chessformation"
+                val initialFile = File(absPath)
+                val inputStream: InputStream = FileInputStream(initialFile)
+                return ChessFormationParser.rotate2DArray(
+                    ChessFormationParser.parseChessFormationString(
+                        ChessFormationParser.convertStreamToString(
+                            inputStream
+                        )
+                    )
+                )
+            } catch (e: Exception){
+                println(e.message.toString())
+            }
+            return arrayOf()
+        }
     }
+
+
 
 }

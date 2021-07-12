@@ -23,15 +23,13 @@ class ChessAI {
     //Fields for move ordering
     private val transpositionTable = Hashtable<String, MovementValue>()
 
-    fun transformChessboardToArray(chessboard: Chessboard) : Array<Array<Int>>{
 
-    }
 
     fun calcMove(chessboard: Chessboard) : ChessPiece.Movement?{
         cnt_movements = 0
         when (algorithm) {
             "random" -> {
-                return calcRandomMove(transformChessboardToArray(chessboard))
+                return calcRandomMove(chessboard)
             }
             "nextBestMoveAlgorithm" -> {
                 return nextBestMoveAlgorithm(chessboard)
