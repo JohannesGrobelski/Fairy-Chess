@@ -108,159 +108,105 @@ class Bitboard(
         val pos = ("black" == color).toInt()
         for(file in 0..7){
             for(rank in 0..7){
-                val bbPosition = generate64BPositionFromCoordinates(file,rank)
-                if(bbColorComposite[pos] and bbPosition == bbPosition){
-                    allPossibleMoves[file*10 + rank] = getTargetMovements(color,file,rank,true)
+                val bbFigure = generate64BPositionFromCoordinates(file,rank)
+                val name = getNameOfFigure(pos, bbFigure)
+                if(name.isEmpty())continue //empty field
+                if(bbColorComposite[pos] and bbFigure == bbFigure){
+                    allPossibleMoves[file*10 + rank] = getTargetMovements(name,color,file,rank,bbFigure,true)
                 }
             }
         }
         return allPossibleMoves.toMap()
     }
 
-    /** generate a bitboard representing the target squares of the non relative movement for a piece */
-    fun generateNonRelativeMovements(color: String, sourceFile:Int, sourceRank:Int) : ULong {
-        val name = ""
-        val bitboard = 0uL
-        val
-        return BitboardChessPiece.generateNonRelativeMovements(name,bitboard)
+    fun getNameOfFigure(pos: Int, bbFigure:ULong) : String{
+        for(name in bbFigures.keys){
+            if(bbFigures[name]!![pos] and bbFigure == bbFigure){
+                return name
+            }
+        }
+        return ""
     }
 
     /**
      * return a list of possible movements of the figure at (sourceFile,sourceRank)
      * */
-    fun getTargetMovements(color: String,sourceFile:Int, sourceRank:Int, genCastlingMoves:Boolean) : ULong {
-        val nonRelativeMovements = generateNonRelativeMovements(color,sourceFile,sourceRank)
-        val relativeMovements = mutableListOf<ChessPiece.Movement>()
-        //filter target squares
-        for(nonRelativeMovement in nonRelativeMovements){
-            if(!(
-                        nonRelativeMovement.sourceFile !in 0..7 || nonRelativeMovement.sourceRank !in 0..7
-                                || nonRelativeMovement.targetFile !in 0..7 || nonRelativeMovement.targetRank !in 0..7
-                                || pieces[nonRelativeMovement.targetFile][nonRelativeMovement.targetRank].color == pieces[sourceFile][sourceRank].color)
-                && !isShadowedByFigure(sourceFile,sourceRank,nonRelativeMovement.targetFile,nonRelativeMovement.targetRank)
-                && fullfillsCondition(nonRelativeMovement)){
-                relativeMovements.add(nonRelativeMovement)
-            }
-        }
+    fun getTargetMovements(name:String, color: String, sourceFile:Int, sourceRank: Int, bbFigure: ULong, genCastlingMoves:Boolean) : ULong {
+        val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
+        val bbTargetsNonRelative = BitboardChessPiece(color,sourceFile,sourceRank,bbFigure,movementString).generateNonRelativeMovements()
+        var bbTargetsRelative = bbTargetsNonRelative
+
+        //filter target squares by deleting target squares that either
+        //a) are shadowed by other figures
+        bbTargetsRelative = deleteShadowedTargetSquares(bbFigure,bbTargetsNonRelative,movementString)
+        //b) or are violating the a context relevant condition in movementString (e.g. rules just applies for first move of figure (e.g. two step forward on first move for pawn))
+        bbTargetsRelative = deleteViolatesCondition(bbFigure,bbTargetsNonRelative,movementString)
+
         //add special movements
         if(genCastlingMoves){
-            for(moveArray in generateSpecialMoveCheckCastling(pieces[sourceFile][sourceRank].color)){
-                relativeMovements.add(moveArray[0])//king move
-            }
+            bbTargetsRelative = generateSpecialMoveCheckCastling(color,bbTargetsNonRelative)
         }
-        return relativeMovements
+        return bbTargetsRelative
     }
 
     /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) or not
      * (is shadowed by a figure between both of them)*/
-    fun isShadowedByFigure(sourceFile:Int,sourceRank:Int,targetFile: Int,targetRank: Int) : Boolean{
-        for(movement in pieces[sourceFile][sourceRank].movingPatternString.split(",")){
+    fun deleteShadowedTargetSquares(bbFigure: ULong,bbFigureNonRelativeTargets: ULong,movementString: String ) : ULong{
+        var bbNewTargets = bbFigureNonRelativeTargets
+        for(movement in movementString.split(",")){
             when {
                 movement.contains(">") -> {
-                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
                 }
                 movement.contains("<") -> {
-                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
                 }
                 movement.contains("=") -> {
-                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
                 }
                 movement.contains("+") -> {
-                    return isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
+                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
                 }
                 movement.contains("X") -> {
-                    return isShadowedByFigureDiagonal(sourceFile,sourceRank,targetFile,targetRank)
+                    bbNewTargets = bbNewTargets and isShadowedByFigureDiagonal(bbFigure,bbFigureNonRelativeTargets)
                 }
                 movement.contains("*") -> {
-                    return(isShadowedByFigureOrthogonal(sourceFile,sourceRank,targetFile,targetRank)
-                            || isShadowedByFigureDiagonal(sourceFile,sourceRank,targetFile,targetRank))
+                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets
+                            and isShadowedByFigureDiagonal(bbFigure,bbFigureNonRelativeTargets))
                 }
             }
         }
-        return false
+        return bbNewTargets
     }
 
     /**
      * does the movement fullfil condition in Movement.MovementNotation.Condition?
      */
-    fun fullfillsCondition(movement : ChessPiece.Movement) : Boolean {
-        var returnValue = true
-        if(movement.movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
-            returnValue = returnValue && !(pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
-                    && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
-                    && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
-        }
-        if(movement.movementNotation.conditions.contains("c")) {//May only be made on a capture (e.g. pawn's diagonal capture)
-            returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
-                    && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
-                    && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
-            //en passante
-            if(!returnValue)returnValue = specialMoveCheckEnpassante(movement) != null
-        }
-        if(movement.movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
-            returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
-        }
-        if(movement.movementNotation.movetype == "g") {//moves by leaping over piece to an empty square (if leaped over enemy => capture)
-            val signFile = sign((movement.targetFile - movement.sourceFile).toDouble()).toInt()
-            val signRank = sign((movement.targetRank - movement.sourceRank).toDouble()).toInt()
-            returnValue = pieces[movement.targetFile][movement.targetRank].color.isEmpty()
-                    && pieces[movement.targetFile-signFile][movement.targetRank-signRank].color.isNotEmpty()
-                    && (Math.abs(movement.targetFile-movement.sourceFile) > 1 || Math.abs(movement.targetRank-movement.sourceRank) > 1)
-        }
+    fun deleteViolatesCondition(bbFigure: ULong,bbFigureNonRelativeTargets: ULong,movementString: String ) : ULong{
+        var returnValue = bbFigureNonRelativeTargets
         return returnValue
     }
 
     /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) with a orthogonal movement
      * or not (is shadowed by a figure between both of them)*/
-    fun isShadowedByFigureOrthogonal(sourceFile:Int,sourceRank:Int,targetFile:Int,targetRank: Int) : Boolean{
-        if(sourceRank == targetRank && (Math.abs(targetFile-sourceFile) > 1)){//distance > 1 because a figure has to stand between them for shadow
-            //move on file (horizontal)
-            val signDifFile = sign((targetFile-sourceFile).toDouble()).toInt()
-            var file = sourceFile + signDifFile
-            while(file != targetFile){
-                if(pieces[file][sourceRank].color != ""){
-                    return true
-                }
-                file += signDifFile
-            }
-        }
-        if(sourceFile == targetFile && (Math.abs(targetRank-sourceRank) > 1)){
-            //move on rank (vertical)
-            val signDifRank = sign((targetRank-sourceRank).toDouble()).toInt()
-            var rank = sourceRank + signDifRank
-            while(rank != targetRank){
-                if(pieces[sourceFile][rank].color != ""){
-                    return true
-                }
-                rank += signDifRank
-            }
-        }
-        return false
+    fun isShadowedByFigureOrthogonal(bbFigure:ULong, bbFigureNonRelativeTargets:ULong) : ULong{
+        var returnValue = bbFigureNonRelativeTargets
+        return returnValue
     }
 
 
 
     /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) with a diagonal movement
      * or not (is shadowed by a figure between both of them)*/
-    fun isShadowedByFigureDiagonal(sourceFile:Int,sourceRank:Int,targetFile:Int,targetRank: Int) : Boolean{
-        if(Math.abs(targetRank-sourceRank)>1 && Math.abs(targetFile-sourceFile)>1){
-            val difRank = sign((targetRank-sourceRank).toDouble()).toInt()
-            val difFile = sign((targetFile-sourceFile).toDouble()).toInt()
-            if(Math.abs(targetRank-sourceRank) - Math.abs(targetFile-sourceFile) == 0){
-                for(i in 1..Math.abs(targetFile-sourceFile)){
-                    val rank = sourceRank+(difRank*i)
-                    val file = sourceFile+(difFile*i)
-                    if(rank in 0..7 && file in 0..7){
-                        if(pieces[file][rank].color != ""){
-                            if(rank != targetRank && file != targetFile){
-                                return true
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false
+    fun isShadowedByFigureDiagonal(bbFigure:ULong, bbFigureNonRelativeTargets:ULong) : ULong{
+        var returnValue = bbFigureNonRelativeTargets
+        return returnValue
+    }
+
+
+    private fun generateSpecialMoveCheckCastling(color : String, bbFigureNonRelativeTargets:ULong) : ULong{
+        var returnValue = bbFigureNonRelativeTargets
+        return returnValue
     }
 
     override fun toString(): String {
@@ -371,8 +317,8 @@ class Bitboard(
             return pos         // pos = 2 ^ (line*8) * 2 ^ row
         }
 
-        fun add64BPositionFromCoordinates(_64B: ULong, line: Int, row: Int) : ULong {
-            return _64B or generate64BPositionFromCoordinates(line, row)
+        fun add64BPositionFromCoordinates(_64B: ULong, file: Int, row: Int) : ULong {
+            return _64B or generate64BPositionFromCoordinates(file, row)
         }
 
         class Coordinate(val line: Int, val row: Int){

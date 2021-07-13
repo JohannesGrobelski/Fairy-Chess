@@ -32,6 +32,8 @@ class BitboardTest {
 
 
 
+
+
     @Test
     fun bitboardCoordinateTransformation(){
     //test bitboards with one figure

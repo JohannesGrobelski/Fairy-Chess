@@ -214,7 +214,7 @@ class ChessPiece(
         return inputSquares
     }
 
-    /** generate all orthogonal movements horizontal (WEST,EAST movements) and vertical (NORTH,SOUTH) movements*/
+    /** generate all orthogonal movements: horizontal (WEST,EAST movements) and vertical (NORTH,SOUTH)*/
     fun generateOrthogonalMovement(movementNotation: MovementNotation) : List<Movement>{
         val targetSquares = mutableListOf<Movement>()
         var distance = 7
