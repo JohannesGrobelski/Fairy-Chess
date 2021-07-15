@@ -55,7 +55,7 @@ class ChessgameParser {
 
         private fun convertStreamToString(inputStream: InputStream): String {
             //create bufferedreader from InputStreamReader
-            //and get input line by line from InputStream through bufferedReader
+            //and get input file by file from InputStream through bufferedReader
             val stringBuilder = StringBuilder("")
             val bufferedReader = inputStream.bufferedReader()
             try {

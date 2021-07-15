@@ -5,13 +5,14 @@ import emerald.apps.fairychess.utility.FigureParser
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
+import kotlin.math.abs
 import kotlin.math.pow
-import kotlin.math.sign
 
 class Bitboard(
     private val chessFormationArray: Array<Array<String>>,
     private val figureMap: Map<String, FigureParser.Figure>
 ) {
+
 
     //map from name of figure to 2D-Array
     //2D-array of chesspieces to represents board (starting with H8 moving rows first und lines down to A1)
@@ -25,7 +26,7 @@ class Bitboard(
     var gameWinner = ""
     var promotion = arrayOf<Int>()
     var moveColor = ""
-    val moveHistory = mutableListOf<ChessPiece.Movement>()
+    val moveHistory = mutableListOf<MutableMap<String, Array<ULong>>>() //move history, for each move map (figureName -> Bitboard)
 
 
     init {
@@ -98,6 +99,8 @@ class Bitboard(
             val pos = (color == "black").toInt()
             bbColorComposite[pos] = bbColorComposite[pos] and newPosition
             bbColorComposite[pos] = bbColorComposite[pos] or newPosition
+            //add current position (as map bbFigures) to history
+            moveHistory.add(bbFigures)
         }
     }
 
@@ -112,7 +115,7 @@ class Bitboard(
                 val name = getNameOfFigure(pos, bbFigure)
                 if(name.isEmpty())continue //empty field
                 if(bbColorComposite[pos] and bbFigure == bbFigure){
-                    allPossibleMoves[file*10 + rank] = getTargetMovements(name,color,file,rank,bbFigure,true)
+                    allPossibleMoves[file*10 + rank] = getTargetMovements(name,color,file,rank,true)
                 }
             }
         }
@@ -128,85 +131,356 @@ class Bitboard(
         return ""
     }
 
+
     /**
      * return a list of possible movements of the figure at (sourceFile,sourceRank)
      * */
-    fun getTargetMovements(name:String, color: String, sourceFile:Int, sourceRank: Int, bbFigure: ULong, genCastlingMoves:Boolean) : ULong {
+    fun getTargetMovements(name:String, color: String, sourceFile:Int, sourceRank: Int, genCastlingMoves:Boolean) : ULong {
         val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
-        val bbTargetsNonRelative = BitboardChessPiece(color,sourceFile,sourceRank,bbFigure,movementString).generateNonRelativeMovements()
-        var bbTargetsRelative = bbTargetsNonRelative
+        val movementNotationList = getMovementNotation(movementString)
+        val bbTargets = generateMovements(color,sourceFile,sourceRank,genCastlingMoves,movementNotationList)
 
-        //filter target squares by deleting target squares that either
-        //a) are shadowed by other figures
-        bbTargetsRelative = deleteShadowedTargetSquares(bbFigure,bbTargetsNonRelative,movementString)
-        //b) or are violating the a context relevant condition in movementString (e.g. rules just applies for first move of figure (e.g. two step forward on first move for pawn))
-        bbTargetsRelative = deleteViolatesCondition(bbFigure,bbTargetsNonRelative,movementString)
-
-        //add special movements
-        if(genCastlingMoves){
-            bbTargetsRelative = generateSpecialMoveCheckCastling(color,bbTargetsNonRelative)
+        var resultMovement = 0uL
+        for(key in bbTargets){
+            resultMovement = resultMovement or bbTargets[key]!!
         }
-        return bbTargetsRelative
+        return resultMovement
     }
 
-    /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) or not
-     * (is shadowed by a figure between both of them)*/
-    fun deleteShadowedTargetSquares(bbFigure: ULong,bbFigureNonRelativeTargets: ULong,movementString: String ) : ULong{
-        var bbNewTargets = bbFigureNonRelativeTargets
-        for(movement in movementString.split(",")){
-            when {
-                movement.contains(">") -> {
-                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
-                }
-                movement.contains("<") -> {
-                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
-                }
-                movement.contains("=") -> {
-                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
-                }
-                movement.contains("+") -> {
-                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets)
-                }
-                movement.contains("X") -> {
-                    bbNewTargets = bbNewTargets and isShadowedByFigureDiagonal(bbFigure,bbFigureNonRelativeTargets)
-                }
-                movement.contains("*") -> {
-                    bbNewTargets = bbNewTargets and isShadowedByFigureOrthogonal(bbFigure,bbFigureNonRelativeTargets
-                            and isShadowedByFigureDiagonal(bbFigure,bbFigureNonRelativeTargets))
+    /** generate a bitboard representing the target squares of the non relative movement for a piece */
+    fun generateMovements(
+        color: String,
+        sourceFile:Int,
+        sourceRank: Int,
+        genCastlingMoves:Boolean,
+        movementNotationList: List<ChessPiece.MovementNotation>
+    ) : Map<ChessPiece.MovementNotation,ULong> {
+        val bbMovementMap = mutableMapOf<ChessPiece.MovementNotation,ULong>()
+        for (movementNotation in movementNotationList) {
+            bbMovementMap[movementNotation] = 0uL
+            if (movementNotation.movetype == "~" || movementNotation.movetype == "^" || movementNotation.movetype == "g") { //leaper
+                generateLeaperMovements(bbMovementMap,sourceFile,sourceRank,color,movementNotation)
+            } else { //rider
+                generateRiderMovements(bbMovementMap,sourceFile,sourceRank,color,movementNotation)
+            }
+        }
+        return bbMovementMap
+    }
+
+
+    /** generate a list of movement matching the movementNotation (Leaper) */
+    fun generateLeaperMovements(bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                                sourceFile: Int,
+                                sourceRank: Int,
+                                color: String,
+                                movementNotation : ChessPiece.MovementNotation){
+        if (movementNotation.grouping == "/" && movementNotation.distances.size == 2) { //for now leaper movement consist of 2 subsequent movements
+            //leaper-movements always have 8 sub-moves:
+            //(2: increase/decrease)*(2: value1/value2)*(2: on File / on Rank) = 8 permutations
+            val distance1 = movementNotation.distances[0]
+            val distance2 = movementNotation.distances[1]
+            if (distance1.matches("[0-9]".toRegex()) && distance2.matches("[0-9]".toRegex())) {
+                val d1 = distance1.toInt()
+                val d2 = distance2.toInt()
+                /** generate all (8) leaper movements matching movementNotation (Leaper) */
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,d1, d2)
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,-d1, d2)
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,d1, -d2)
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,-d1, -d2)
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,d2, d1)
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,-d2, d1)
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,d2, -d1)
+                generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,-d2, -d1)
+            } else {
+                if (distance1 == "x" && distance2 == "x") {//only in pairs (x,x): any distance in the given direction equal to its twin or zero
+                    for (distance in -7..7) {
+                        //orthogonal
+                        generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,0, distance)
+                        generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,distance, 0)
+                        //diagonal
+                        generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,distance, distance)
+                        generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,-distance, distance)
+                        generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,distance, -distance)
+                        generateLeaperMovement(color,bbMovementMap,movementNotation,sourceFile,sourceRank,-distance, -distance)
+                    }
                 }
             }
         }
-        return bbNewTargets
     }
 
-    /**
-     * does the movement fullfil condition in Movement.MovementNotation.Condition?
-     */
-    fun deleteViolatesCondition(bbFigure: ULong,bbFigureNonRelativeTargets: ULong,movementString: String ) : ULong{
-        var returnValue = bbFigureNonRelativeTargets
-        return returnValue
+    /** add a leaper movement to targetSquares defined by an delta (fileDif,rankDif) */
+    fun generateLeaperMovement(
+        color: String,
+        bbMovementMap : MutableMap<ChessPiece.MovementNotation,ULong>,
+        movementNotation: ChessPiece.MovementNotation,
+        positionFile: Int,
+        positionRank: Int,
+        fileDif: Int,
+        rankDif: Int
+    ) {
+        val newFile = positionFile + fileDif
+        val newRank = positionRank + rankDif
+        if (newFile in 0..7 && newRank in 0..7) {
+            val bbNewTarget = generate64BPositionFromCoordinates(newFile,newRank)
+            val pos = (color =="black").toInt() //opponent color
+            if(bbNewTarget and bbColorComposite[pos].inv() == bbNewTarget){//check if there is no figure of self color at targets
+                addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
+            }
+        }
     }
 
-    /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) with a orthogonal movement
-     * or not (is shadowed by a figure between both of them)*/
-    fun isShadowedByFigureOrthogonal(bbFigure:ULong, bbFigureNonRelativeTargets:ULong) : ULong{
-        var returnValue = bbFigureNonRelativeTargets
-        return returnValue
+    /** generate a list of rider-movements matching the movementNotation (rider) */
+    fun generateRiderMovements(bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                               positionFile: Int,
+                               positionRank: Int,
+                               color: String,
+                               movementNotation : ChessPiece.MovementNotation) {
+        if (movementNotation.distances.isNotEmpty()) {
+            if(arrayOf(">","<","<>","=","<=",">=","+","*").contains(movementNotation.direction)){
+                generateOrthogonalMovement(bbMovementMap, positionFile, positionRank, color, movementNotation)
+            }
+            if(arrayOf("X","X<","X>","*").contains(movementNotation.direction)){
+                generateDiagonalMovement(bbMovementMap, positionFile, positionRank, color, movementNotation)
+            }
+        }
     }
 
+    /** generate all orthogonal movements: horizontal (WEST,EAST movements) and vertical (NORTH,SOUTH)*/
+    fun generateOrthogonalMovement(bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                                   positionFile: Int,
+                                   positionRank: Int,
+                                   color: String,
+                                   movementNotation : ChessPiece.MovementNotation)  {
+        var distance = 7
+        val posOwnColor = (color == "black").toInt()
+        if(movementNotation.distances[0].matches("[1-9]+".toRegex()))distance = movementNotation.distances[0].toInt()
+        //forward(>) and backwards(<) are color-dependent because they are depending on direction of the figures
+        //color-independent movements
+        if(movementNotation.direction.contains("=") || movementNotation.direction == "+" || movementNotation.direction == "*") {
+            generateWestMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+            generateEastMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+        }
+        if(movementNotation.direction == "+" || movementNotation.direction == "*" || movementNotation.direction == "<>"
+            || movementNotation.direction.contains(">") || movementNotation.direction.contains("<")){
+            //color-dependent movements
+            if(movementNotation.direction.contains(">") && !movementNotation.direction.contains("<")){
+                //forwards but not backwards
+                if(color == "black"){
+                    generateSouthMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                } else {
+                    generateNorthMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                }
+            } else if(movementNotation.direction.contains("<") && !movementNotation.direction.contains(">")){
+                //backwards but not forwards
+                if(color == "black"){
+                    generateNorthMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                } else {
+                    generateSouthMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                }
+            } else { //color-independent movements
+                generateNorthMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                generateSouthMovement(posOwnColor,bbMovementMap, positionFile, positionRank, movementNotation, distance)
+            }
 
-
-    /** return if figure at (targetFile,targetRank) can be reached by figure at (sourceFile,sourceRank) with a diagonal movement
-     * or not (is shadowed by a figure between both of them)*/
-    fun isShadowedByFigureDiagonal(bbFigure:ULong, bbFigureNonRelativeTargets:ULong) : ULong{
-        var returnValue = bbFigureNonRelativeTargets
-        return returnValue
+        }
     }
 
+    /** forward: increase rank */
+    fun generateNorthMovement(posOwnColor: Int,
+                              bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                              positionFile: Int,
+                              positionRank: Int,
+                              movementNotation: ChessPiece.MovementNotation,
+                              distance : Int) {
+        for(newFile in positionFile+1..7){// ... inside board (between 0 and 7)
+            if(abs(positionFile-newFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                val bbNewTarget = generate64BPositionFromCoordinates(newFile,positionRank)
+                if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
+                    break
+                }
+                if(bbNewTarget and bbColorComposite[1-posOwnColor] == bbNewTarget){//figure of your opponent color => add position, then stop
+                    addCoordinateToMovementBitboard(bbMovementMap,newFile,positionRank,movementNotation)
+                    break
+                }
+            }
+            else break
+        }
+    }
 
-    private fun generateSpecialMoveCheckCastling(color : String, bbFigureNonRelativeTargets:ULong) : ULong{
-        var returnValue = bbFigureNonRelativeTargets
-        return returnValue
+    /** backward: decrease rank */
+    fun generateSouthMovement(posOwnColor: Int,
+                              bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                              positionFile: Int,
+                              positionRank: Int,
+                              movementNotation: ChessPiece.MovementNotation,
+                              distance : Int) {
+        for(newFile in positionFile-1 downTo 0){// ... inside board (between 0 and 7)
+            if(abs(positionFile-newFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                val bbNewTarget = generate64BPositionFromCoordinates(newFile,positionRank)
+                if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
+                    break
+                }
+                if(bbNewTarget and bbColorComposite[1-posOwnColor] == bbNewTarget){//figure of your opponent color => add position, then stop
+                    addCoordinateToMovementBitboard(bbMovementMap,newFile,positionRank,movementNotation)
+                    break
+                }
+            }
+            else break
+        }
+    }
+
+    /** right: increase file */
+    fun generateEastMovement(posOwnColor: Int,
+                             bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                             positionFile: Int,
+                             positionRank: Int,
+                             movementNotation: ChessPiece.MovementNotation,
+                             distance : Int) {
+        for(newRank in positionRank+1..7){// ... inside board (between 0 and 7)
+            if(abs(positionRank-newRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                val bbNewTarget = generate64BPositionFromCoordinates(positionFile,newRank)
+                if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
+                    break
+                }
+                if(bbNewTarget and bbColorComposite[1-posOwnColor] == bbNewTarget){//figure of your opponent color => add position, then stop
+                    addCoordinateToMovementBitboard(bbMovementMap,positionFile,newRank,movementNotation)
+                    break
+                }
+            }
+            else break
+        }
+    }
+
+    /** left: decrease file */
+    fun generateWestMovement(posOwnColor: Int,
+                             bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                             positionFile: Int,
+                             positionRank: Int,
+                             movementNotation: ChessPiece.MovementNotation,
+                             distance : Int) {
+        //if coordinate is ...
+        for(newRank in positionRank-1 downTo 0){// ... inside board (between 0 and 7)
+            if(abs(positionRank-newRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                val bbNewTarget = generate64BPositionFromCoordinates(positionFile,newRank)
+                if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
+                    break
+                }
+                if(bbNewTarget and bbColorComposite[1-posOwnColor] == bbNewTarget){//figure of your opponent color => add position, then stop
+                    addCoordinateToMovementBitboard(bbMovementMap,positionFile,newRank,movementNotation)
+                    break
+                }
+            }
+            else break
+        }
+    }
+
+    /** generate all diagonal rider movements */
+    fun generateDiagonalMovement(bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                                 positionFile: Int,
+                                 positionRank: Int,
+                                 color: String,
+                                 movementNotation : ChessPiece.MovementNotation)  {
+        var distance = 7
+        if(movementNotation.distances[0].matches("[0-9]".toRegex())){
+            distance = movementNotation.distances[0].toInt()
+        }
+        if(movementNotation.direction == "*" || movementNotation.direction == "X" || movementNotation.direction == "X>"){
+            if (color == "black" && movementNotation.direction == "X>"){
+                generateSouthEastDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                generateSouthWestDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+            } else {
+                generateNorthEastDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                generateNorthWestDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+            }
+        }
+        if(movementNotation.direction == "*" || movementNotation.direction == "X" || movementNotation.direction == "X<") {
+            if (color == "black" && movementNotation.direction == "X>"){
+                generateNorthEastDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                generateNorthWestDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+            } else {
+                generateSouthEastDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+                generateSouthWestDiagonalMovement(bbMovementMap, positionFile, positionRank, movementNotation, distance)
+            }
+        }
+    }
+
+    /** NorthEastDiagonalMovement: right,forward: increase file, increase rank*/
+    fun generateNorthEastDiagonalMovement(
+        bbMovementMap : MutableMap<ChessPiece.MovementNotation,ULong>,
+        positionFile: Int,
+        positionRank: Int,
+        movementNotation: ChessPiece.MovementNotation,
+        distance : Int)  {
+        var difFile = 1; var difRank = 1
+        //if coordinate is ...
+        while(positionFile+difFile <= 7 && positionRank+difRank <= 7) {// ... inside board (between 0 and 7)
+            if(abs(difRank) <= distance && abs(difFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                addCoordinateToMovementBitboard(bbMovementMap,positionFile+difFile,positionRank+difRank,movementNotation)
+                ++difFile
+                ++difRank
+            } else break
+        }
+    }
+
+    /** NorthWestDiagonalMovement: left,forward: increase file, decrease rank*/
+    fun generateNorthWestDiagonalMovement(bbMovementMap : MutableMap<ChessPiece.MovementNotation,ULong>,
+                                          positionFile: Int,
+                                          positionRank: Int,
+                                          movementNotation: ChessPiece.MovementNotation,
+                                          distance : Int)  {
+        var difFile = 1; var difRank = -1
+        //if coordinate is ...
+        while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {// ... inside board (between 0 and 7)
+            if(abs(difFile) <= distance && abs(difRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                addCoordinateToMovementBitboard(bbMovementMap,positionFile+difFile,positionRank+difRank,movementNotation)
+                ++difFile
+                --difRank
+            } else break
+        }
+    }
+
+    /** SouthEastDiagonalMovement: right,backward: decrease file, increase rank*/
+    fun generateSouthEastDiagonalMovement(bbMovementMap : MutableMap<ChessPiece.MovementNotation,ULong>,
+                                          positionFile: Int,
+                                          positionRank: Int,
+                                          movementNotation: ChessPiece.MovementNotation,
+                                          distance : Int)  {
+        var difFile = -1; var difRank = -1
+        //if coordinate is ...
+        while(positionFile+difFile <= 7 && positionRank+difRank >= 0) {// ... inside board (between 0 and 7)
+            if(abs(difRank) <= distance && abs(difFile) <= distance){ // ... and difference smaller than allowed distance add Coordinate to bitboard
+                addCoordinateToMovementBitboard(bbMovementMap,positionFile+difFile,positionRank+difRank,movementNotation)
+                --difFile
+                ++difRank
+            } else break
+        }
+    }
+
+    /** SouthWestDiagonalMovement: left,backward: decrease file, decrease rank*/
+    fun generateSouthWestDiagonalMovement(bbMovementMap : MutableMap<ChessPiece.MovementNotation,ULong>,
+                                          positionFile: Int,
+                                          positionRank: Int,
+                                          movementNotation: ChessPiece.MovementNotation,
+                                          distance : Int)  {
+        var difRank = -1; var difFile = -1
+        //if coordinate is ...
+        while(positionFile+difFile >= 0 && positionRank+difRank >= 0) {// ... inside board (between 0 and 7)
+            if(abs(difRank) <= distance && abs(difFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                addCoordinateToMovementBitboard(bbMovementMap,positionFile+difFile,positionRank+difRank,movementNotation)
+                --difRank
+                --difFile
+            } else break
+        }
+    }
+
+    fun addCoordinateToMovementBitboard(bbMovementMap : MutableMap<ChessPiece.MovementNotation,ULong>,
+                                        positionFile: Int,
+                                        positionRank: Int,
+                                        movementNotation: ChessPiece.MovementNotation){
+        bbMovementMap[movementNotation] = bbMovementMap[movementNotation]!! or Bitboard.generate64BPositionFromCoordinates(
+            positionFile,
+            positionRank,
+        )
     }
 
     override fun toString(): String {
@@ -267,7 +541,7 @@ class Bitboard(
     }
 
     private fun addMoveToMoveHistory(movement: ChessPiece.Movement){
-        moveHistory.add(movement)
+       // moveHistory.add(movement)
     }
 
     private fun checkForPromotion() {
@@ -311,20 +585,49 @@ class Bitboard(
 
     companion object {
 
+        val movingStringTomovementNotationsMap = mutableMapOf<String, List<ChessPiece.MovementNotation>>()
+
+        fun getMovementNotation(movingPatternString : String) : List<ChessPiece.MovementNotation>{
+            val movementNotations = mutableListOf<ChessPiece.MovementNotation>()
+            if (movingStringTomovementNotationsMap.containsKey(movingPatternString)) {
+                movementNotations.addAll(movingStringTomovementNotationsMap[movingPatternString]!!)
+            } else {
+                movementNotations.addAll(
+                    ChessPiece.MovementNotation.parseMovementString(
+                        movingPatternString
+                    )
+                )
+                movingStringTomovementNotationsMap[movingPatternString] = movementNotations
+            }
+            return movementNotations
+        }
+
         fun generate64BPositionFromCoordinates(file: Int, rank: Int) : ULong {
-            var pos : ULong = 1uL shl file*8 // pos = 2 ^ (line*8)
-            pos = pos shl rank       // pos = pos * 2 ^ row
-            return pos         // pos = 2 ^ (line*8) * 2 ^ row
+            var pos : ULong = 1uL shl file*8 // pos = 2 ^ (file*8)
+            pos = pos shl rank       // pos = pos * 2 ^ rank
+            return pos         // pos = 2 ^ (file*8) * 2 ^ rank
         }
 
-        fun add64BPositionFromCoordinates(_64B: ULong, file: Int, row: Int) : ULong {
-            return _64B or generate64BPositionFromCoordinates(file, row)
+        fun add64BPositionFromCoordinates(_64B: ULong, file: Int, rank: Int) : ULong {
+            return _64B or generate64BPositionFromCoordinates(file, rank)
         }
 
-        class Coordinate(val line: Int, val row: Int){
+        fun generate64BPositionFromCoordinateList(list: List<Coordinate>) : ULong{
+            var result = 0uL
+            for(i in list.indices){
+                result = if(i==0){
+                    generate64BPositionFromCoordinates(list[i].file,list[i].rank)
+                } else {
+                    add64BPositionFromCoordinates(result,list[i].file,list[i].rank)
+                }
+            }
+            return result
+        }
+
+        class Coordinate(val file: Int, val rank: Int){
             override fun equals(other: Any?): Boolean {
                 if(other is Coordinate){
-                    return (line == other.line) && (row == other.row)
+                    return (file == other.file) && (rank == other.rank)
                 }
                 return super.equals(other)
             }
@@ -360,6 +663,19 @@ class Bitboard(
             return mapOf()
         }
 
+        fun bitboardToString(bitboard : ULong) : String {
+            val picture = java.lang.StringBuilder("")
+            var pointer = 1uL
+            for(i in 63 downTo 0){
+                if((2.0).pow(i.toDouble()).toULong() and bitboard == (2.0).pow(i.toDouble()).toULong()){
+                    picture.append("X")
+                } else {
+                    picture.append(".")
+                }
+                if((i-1) % 8 == 0)picture.append("\n")
+            }
+            return picture.toString()
+        }
 
         private fun parseChessFormation(mode: String) : Array<Array<String>> {
             try {

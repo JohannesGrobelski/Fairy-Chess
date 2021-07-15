@@ -33,7 +33,7 @@ class ChessPiece(
         return targetCoordinates
     }
 
-    /** generate a list of movement matching the movingPattern (Leaper) */
+    /** generate a list of movement matching the movementNotation (Leaper) */
     fun generateLeaperMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
         if(movingPattern.grouping == "/" && movingPattern.distances.size == 2){ //for now leaper movement consist of 2 subsequent movements
@@ -61,7 +61,7 @@ class ChessPiece(
         return targetSquares
     }
 
-    /** generate all (8) leaper movements matching movingPattern (Leaper) */
+    /** generate all (8) leaper movements matching movementNotation (Leaper) */
     fun generate8LeaperMovements(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, m1: Int, m2: Int) {
         generateLeaperMovement(movingPattern,targetSquares,m1,m2)
         generateLeaperMovement(movingPattern,targetSquares,-m1,m2)
@@ -86,7 +86,7 @@ class ChessPiece(
         }
     }
 
-    /** generate a list of rider-movements matching the movingPattern (rider) */
+    /** generate a list of rider-movements matching the movementNotation (rider) */
     fun generateRiderMovements(movingPattern: MovementNotation) : List<Movement> {
         val targetSquares = mutableListOf<Movement>()
         if(movingPattern.distances.isNotEmpty()){

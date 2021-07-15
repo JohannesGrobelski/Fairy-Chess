@@ -512,7 +512,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                         var shortCastlingPossible = true
                         for(move in allEnemyMoves){
                             if(move.targetRank == 7 && (move.targetFile == 4 //rule: king is not attacked
-                                        || move.targetFile == 5 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 5 //rule: transfer file of castling is not attacked
                                         || move.targetFile == 6)){ //rule: future position of king is not attacked
                                 shortCastlingPossible = false
                             }
@@ -534,9 +534,9 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                         var longCastlingPossible = true
                         for(move in allEnemyMoves){
                             if(move.targetRank == 7 && (move.targetFile == 4 //rule: king is not attacked
-                                        || move.targetFile == 3 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 3 //rule: transfer file of castling is not attacked
                                         || move.targetFile == 2 //rule: future position of king is not attacked
-                                        || move.targetFile == 1)){ //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 1)){ //rule: transfer file of castling is not attacked
                                 longCastlingPossible = false
                             }
                         }
@@ -560,7 +560,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                         var shortCastlingPossible = true
                         for(move in allEnemyMoves){
                             if(move.targetRank == 0 && (move.targetFile == 4 //rule: king is not attacked
-                                        || move.targetFile == 5 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 5 //rule: transfer file of castling is not attacked
                                         || move.targetFile == 6)){ //rule: future position of king is not attacked
                                 shortCastlingPossible = false
                             }
@@ -582,9 +582,9 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                         var longCastlingPossible = true
                         for(move in allEnemyMoves){
                             if(move.targetRank == 0 && (move.targetFile == 4 //rule: king is not attacked
-                                        || move.targetFile == 3 //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 3 //rule: transfer file of castling is not attacked
                                         || move.targetFile == 2 //rule: future position of king is not attacked
-                                        || move.targetFile == 1)){ //rule: transfer line of castling is not attacked
+                                        || move.targetFile == 1)){ //rule: transfer file of castling is not attacked
                                 longCastlingPossible = false
                             }
                         }

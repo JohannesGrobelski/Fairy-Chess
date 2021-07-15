@@ -3,7 +3,6 @@ package emerald.apps.fairychess
 import emerald.apps.fairychess.model.Bitboard
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
-import emerald.apps.fairychess.model.Chessboard
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import kotlin.math.pow
@@ -27,8 +26,8 @@ class BitboardTest {
 
         println(bitboard.pointsBlack())
         println(bitboard.pointsWhite())
-
     }
+
 
 
 
@@ -54,12 +53,12 @@ class BitboardTest {
         for(line in 0..7){
             for(row in 0..7){
                 assertEquals(2.0.pow(line*8 + row).toULong(),Bitboard.generate64BPositionFromCoordinates(line,row))
-                assertEquals(Bitboard.Companion.Coordinate(line,row).line,
+                assertEquals(Bitboard.Companion.Coordinate(line,row).file,
                     Bitboard.generateCoordinatesFrom64BPosition(
-                        Bitboard.generate64BPositionFromCoordinates(line,row))[0].line)
-                assertEquals(Bitboard.Companion.Coordinate(line,row).row,
+                        Bitboard.generate64BPositionFromCoordinates(line,row))[0].file)
+                assertEquals(Bitboard.Companion.Coordinate(line,row).rank,
                     Bitboard.generateCoordinatesFrom64BPosition(
-                        Bitboard.generate64BPositionFromCoordinates(line,row))[0].row)
+                        Bitboard.generate64BPositionFromCoordinates(line,row))[0].rank)
             }
         }
 
