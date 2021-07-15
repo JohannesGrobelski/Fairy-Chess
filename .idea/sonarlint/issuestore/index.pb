@@ -61,3 +61,7 @@ j
 :app/src/main/java/emerald/apps/fairychess/model/ChessAI.kt,2\b\2b8bfef6d2ef948e8b445c7fab60a38bb30ecaf2
 k
 ;app/src/main/java/emerald/apps/fairychess/model/Bitboard.kt,0\a\0af38bfadebd84dcf33c66c4a2a77887ee977b8a
+i
+9app/src/test/java/emerald/apps/fairychess/BitboardTest.kt,7\6\763fc9f1b2035d39fcfe63f58c3e70cd1ad297e1
+s
+Capp/src/test/java/emerald/apps/fairychess/BitboardChessPieceTest.kt,3\b\3b772d477fc01dffffb70944a2385449c931713e
