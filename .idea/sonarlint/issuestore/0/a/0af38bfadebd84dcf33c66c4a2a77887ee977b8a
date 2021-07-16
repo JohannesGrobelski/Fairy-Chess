@@ -1,17 +1,23 @@
 
-Ykotlin:S1144Ç"9Remove this unused private "addMoveToMoveHistory" method.(„¥•‘8¥·¶Õª/
-]kotlin:S1144Ğ"8Remove this unused private "parseChessFormation" method.(®Æáÿÿÿÿÿ8¥·¶Õª/
-wkotlin:S3776"RRefactor this method to reduce its Cognitive Complexity from 30 to the 15 allowed.(âÎœŠşÿÿÿÿ8¥·¶Õª/
-Qkotlin:S1481Ä",Remove this unused "pointer" local variable.(¾ñ¡ıùÿÿÿÿ8¥·¶Õª/
-Lkotlin:S1172Z"(Remove these unused function parameters.(Õ¸±øÿÿÿÿ8¦”ËÈª/
-Skotlin:S1144·"3Remove this unused private "checkForWinner" method.(¸·«ğ8¥·¶Õª/
-rkotlin:S3776ù"RRefactor this method to reduce its Cognitive Complexity from 19 to the 15 allowed.(ÏÑ±8ù›Ôª/
-Vkotlin:S1144Ë"6Remove this unused private "checkForPromotion" method.(öÉ§»8¥·¶Õª/
-Skotlin:S1144Z"/Remove this unused private "moveFigure" method.(Õ¸±øÿÿÿÿ8¦”ËÈª/
-Qkotlin:S1172Ç"1Remove this unused function parameter "movement".(„¥•‘8¥·¶Õª/
-Rkotlin:S1135ã"2Complete the task associated to this TODO comment.(…ïœ†8ĞÂ¿Õª/
-rkotlin:S3776ò"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(„²‰®8ĞÂ¿Õª/
-Skotlin:S1066…".Merge this "if" statement with the nested one.(¾ëˆñùÿÿÿÿ8ĞÂ¿Õª/
-Qkotlin:S1172À"1Remove this unused function parameter "bbFigure".(ŞŸ”–8ĞÂ¿Õª/
-Hkotlin:S1172ß"(Remove these unused function parameters.(‹Á•ã8ĞÂ¿Õª/
-Nkotlin:S1172ë".Remove this unused function parameter "color".(ú¬Şê8ĞÂ¿Õª/
+Ykotlin:S1144Ç"9Remove this unused private "addMoveToMoveHistory" method.(„¥•‘8û¼çñª/
+Rkotlin:S1135„"2Complete the task associated to this TODO comment.(…ïœ†8û¼çñª/
+Vkotlin:S1135"2Complete the task associated to this TODO comment.(ìÁ„¡ùÿÿÿÿ8¥”ñª/
+Nkotlin:S1172¨".Remove this unused function parameter "color".(ú¬Şê8û¼çñª/
+rkotlin:S3776ì"RRefactor this method to reduce its Cognitive Complexity from 19 to the 15 allowed.(ÏÑ±8û¼çñª/
+Qkotlin:S1481Ï",Remove this unused "pointer" local variable.(¾ñ¡ıùÿÿÿÿ8û¼çñª/
+Skotlin:S1066Î".Merge this "if" statement with the nested one.(Îùï¸ùÿÿÿÿ8õ°Šùª/
+Mkotlin:S1172ÿ"(Remove these unused function parameters.(Ÿ¸Ïîúÿÿÿÿ8û¼çñª/
+Qkotlin:S1172Ç"1Remove this unused function parameter "movement".(„¥•‘8û¼çñª/
+Lkotlin:S1172a"(Remove these unused function parameters.(Õ¸±øÿÿÿÿ8¦”ËÈª/
+Skotlin:S1066Ï".Merge this "if" statement with the nested one.(¾ëˆñùÿÿÿÿ8û¼çñª/
+Ckotlin:S125‰"Remove this commented out code.(›Â·´üÿÿÿÿ8û¼çñª/
+dkotlin:S1144ß"?Remove this unused private "specialMoveCheckEnpassante" method.(ª…¼­üÿÿÿÿ8õ°Šùª/
+Skotlin:S1144a"/Remove this unused private "moveFigure" method.(Õ¸±øÿÿÿÿ8¦”ËÈª/
+]kotlin:S1144Û"8Remove this unused private "parseChessFormation" method.(®Æáÿÿÿÿÿ8û¼çñª/
+Vkotlin:S1144Ë"6Remove this unused private "checkForPromotion" method.(öÉ§»8û¼çñª/
+Qkotlin:S1172à"1Remove this unused function parameter "bbFigure".(ŞŸ”–8¦Ö‡ùª/
+Qkotlin:S1135"2Complete the task associated to this TODO comment.(“ğµŸ8˜–ñª/
+qkotlin:S3776¼"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(¯àh8û¼çñª/
+Skotlin:S1144·"3Remove this unused private "checkForWinner" method.(¸·«ğ8û¼çñª/
+wkotlin:S3776‰"RRefactor this method to reduce its Cognitive Complexity from 32 to the 15 allowed.(âÎœŠşÿÿÿÿ8û¼çñª/
+Mkotlin:S1172‚"(Remove these unused function parameters.(ÕºÂÉøÿÿÿÿ8û¼çñª/

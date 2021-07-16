@@ -6,6 +6,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
+import emerald.apps.fairychess.model.Bitboard.Companion.chessboardToBitboard
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
@@ -67,7 +68,8 @@ class Chessgame() {
     }
 
     fun getTargetMovements(sourceFile: Int, sourceRank: Int): List<ChessPiece.Movement> {
-        return chessboard.getTargetMovements(sourceFile, sourceRank,true)
+        //return chessboard.getTargetMovements(sourceFile, sourceRank,true)
+        return chessboardToBitboard(chessboard).getTargetMovementsAsMovementList(gameParameters.playerColor,sourceFile, sourceRank,true)
     }
 
     fun getPieceName(file: Int, rank: Int) : String{

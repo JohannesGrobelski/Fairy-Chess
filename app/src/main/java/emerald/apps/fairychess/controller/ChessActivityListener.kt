@@ -464,7 +464,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             selectionFile = -1
             selectionRank = -1
         } else {
-            imageViews[file][rank].setBackgroundColor(
+            imageViews[rank][file].setBackgroundColor(
                 getMixedColor(file, rank, Color.RED)
             )
             selectionFile = file
@@ -473,8 +473,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     fun markSquare(file: Int, rank: Int) {
-        imageViews[file][rank].setBackgroundColor(
-            getMixedColor(file, rank, Color.YELLOW)
+        imageViews[rank][file].setBackgroundColor(
+            getMixedColor(rank, file, Color.YELLOW)
         )
     }
 
@@ -497,8 +497,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     /** helper functions for highlighting square */
-    private fun getMixedColor(x: Int, y: Int, color: Int): Int {
-        return if ((x + y) % 2 == 0) ColorUtils.blendARGB(
+    private fun getMixedColor(file: Int, rank: Int, color: Int): Int {
+        return if ((file + rank) % 2 == 0) ColorUtils.blendARGB(
             color,
             chessActivity.resources.getColor(R.color.colorWhite),
             0.8f
@@ -509,11 +509,11 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         )
     }
 
-    private fun nameToRank(name: String): Int {
+    private fun nameToFile(name: String): Int {
         return Integer.valueOf(name.substring(1, 2)) - 1
     }
 
-    private fun nameToFile(name: String): Int {
+    private fun nameToRank(name: String): Int {
         return name.toLowerCase()[0] - 'a'
     }
 

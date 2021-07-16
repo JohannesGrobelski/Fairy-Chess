@@ -9,9 +9,22 @@ import kotlin.math.abs
 import kotlin.math.pow
 
 class Bitboard(
-    private val chessFormationArray: Array<Array<String>>,
+    private val chessFormationArray: Array<Array<String>>?,
     private val figureMap: Map<String, FigureParser.Figure>
 ) {
+
+    /* TODO: implementation
+        1. fullfillsCondition einbinden
+        2. enpassante
+        3. castling
+        4. in chessgame einbinden und so movegeneration prüfen
+        5. draw rules implen
+     */
+
+    /* TODO: performance improvements
+    - HashTable of calculated moves for each tuple (color,figureName,file,rank)
+
+     */
 
 
     //map from name of figure to 2D-Array
@@ -19,8 +32,8 @@ class Bitboard(
     //thus a bitboard represents H8H7H6H5H4H3H2H1G8G7G6....B2B1A8A7A6A5A4A3A2A1
     //first element are white figures, second black figures
     private var bbFigures : MutableMap<String, Array<ULong>> = mutableMapOf()
-    private var bbComposite : ULong = 0uL
-    private var bbColorComposite : Array<ULong> = arrayOf(0uL,0uL)
+    var bbComposite : ULong = 0uL
+    var bbColorComposite : Array<ULong> = arrayOf(0uL,0uL)
 
     var gameFinished = false
     var gameWinner = ""
@@ -28,36 +41,39 @@ class Bitboard(
     var moveColor = ""
     val moveHistory = mutableListOf<MutableMap<String, Array<ULong>>>() //move history, for each move map (figureName -> Bitboard)
 
+    constructor(figureMap: Map<String, FigureParser.Figure>) : this(null,figureMap) {
+
+    }
 
     init {
-        //pass a string representing the chess formation here and update chessFormationArray
-        if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
-            for (file in 0..7) {
-                for (rank in 0..7) {
-                    var color = ""
-                    val name = chessFormationArray[file][rank]
-                    if(rank <= 4 && name.isNotEmpty())color = "white"
-                    if (rank > 4 && name.isNotEmpty())color = "black"
-                    if(figureMap.containsKey(name)){
-                        val movement = figureMap[name]?.movementParlett
-                        val value =  figureMap[name]?.value!!
-                        if(movement != null){
-                            if(!bbFigures.containsKey(name)){
-                                bbFigures[name] = arrayOf(0uL, 0uL)
+        if(chessFormationArray != null && figureMap != null){
+            //pass a string representing the chess formation here and update chessFormationArray
+            if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
+                for (file in 0..7) {
+                    for (rank in 0..7) {
+                        var color = ""
+                        val name = chessFormationArray[file][rank]
+                        if(rank <= 4 && name.isNotEmpty())color = "white"
+                        if (rank > 4 && name.isNotEmpty())color = "black"
+                        if(figureMap.containsKey(name)){
+                            val movement = figureMap[name]?.movementParlett
+                            val value =  figureMap[name]?.value!!
+                            if(movement != null){
+                                if(!bbFigures.containsKey(name)){
+                                    bbFigures[name] = arrayOf(0uL, 0uL)
+                                }
+                                setFigure(name,color,file, rank)
                             }
-                            setFigure(name,color,file, rank)
                         }
                     }
                 }
             }
+            val fList = mutableListOf<Coordinate>()
+            for(key in bbFigures.keys){
+                fList.addAll(generateCoordinatesFrom64BPosition(bbFigures[key]?.get(0) ?: 0uL))
+                fList.addAll(generateCoordinatesFrom64BPosition(bbFigures[key]?.get(1) ?: 0uL))
+            }
         }
-
-        val fList = mutableListOf<Coordinate>()
-        for(key in bbFigures.keys){
-            fList.addAll(generateCoordinatesFrom64BPosition(bbFigures[key]?.get(0) ?: 0uL))
-            fList.addAll(generateCoordinatesFrom64BPosition(bbFigures[key]?.get(1) ?: 0uL))
-        }
-        println(fList.size)
     }
 
     /** @param color of the piece set
@@ -65,23 +81,14 @@ class Bitboard(
      * sets figure at coordinate */
     fun setFigure(name:String,color: String,file:Int,rank:Int){
         val pos = (color == "black").toInt()
-        bbFigures[name]?.set(
-            pos, add64BPositionFromCoordinates(
-                bbFigures[name]?.get(
-                    pos
-                )!!, file, rank
-            )
-        )
-        bbComposite = add64BPositionFromCoordinates(
-            bbFigures[name]?.get(
-                pos
-            )!!, file, rank
-        )
-        bbColorComposite[pos] = add64BPositionFromCoordinates(
-            bbFigures[name]?.get(
-                pos
-            )!!, file, rank
-        )
+        val bbFigure = generate64BPositionFromCoordinates(file,rank)
+        if(!bbFigures.containsKey(name)){
+            val value = arrayOf(0uL,0uL)
+            value[pos] = bbFigure
+            bbFigures[name] = value
+        } else bbFigures[name]!![pos] = add64BPositionFromCoordinates(bbFigures[name]!![pos],file,rank)
+        bbComposite = add64BPositionFromCoordinates(bbComposite,file,rank)
+        bbColorComposite[pos] = add64BPositionFromCoordinates(bbColorComposite[pos],file,rank)
     }
 
     /** @param color of the piece set
@@ -132,20 +139,128 @@ class Bitboard(
     }
 
 
+
+
     /**
      * return a list of possible movements of the figure at (sourceFile,sourceRank)
      * */
     fun getTargetMovements(name:String, color: String, sourceFile:Int, sourceRank: Int, genCastlingMoves:Boolean) : ULong {
-        val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
+        if(!(sourceFile in 0..7 && sourceRank in 0..7))return 0uL
+        val movementString = (figureMap.get(name) as FigureParser.Figure).movementParlett
         val movementNotationList = getMovementNotation(movementString)
-        val bbTargets = generateMovements(color,sourceFile,sourceRank,genCastlingMoves,movementNotationList)
+        val bbFigure = generate64BPositionFromCoordinates(sourceFile,sourceRank)
+        var bbTargets = generateMovements(color,sourceFile,sourceRank,genCastlingMoves,movementNotationList)
+        bbTargets = deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
 
         var resultMovement = 0uL
-        for(key in bbTargets){
-            resultMovement = resultMovement or bbTargets[key]!!
+        for(key in bbTargets.keys){
+            val targets : ULong = bbTargets[key]!!
+            resultMovement = resultMovement or targets
         }
         return resultMovement
     }
+
+    /**
+     * return a list of possible movements of the figure at (sourceFile,sourceRank)
+     * */
+    fun getTargetMovementsAsMovementList(color: String, sourceFile:Int, sourceRank: Int, genCastlingMoves:Boolean) : List<ChessPiece.Movement> {
+        val pos = ("black" == color).toInt()
+        val bbFigure = generate64BPositionFromCoordinates(sourceFile,sourceRank)
+        val name = getNameOfFigure(pos, bbFigure)
+        val movementString = (figureMap.get(name) as FigureParser.Figure).movementParlett
+        val movementNotationList = getMovementNotation(movementString)
+        var bbTargets = generateMovements(color,sourceFile,sourceRank,genCastlingMoves,movementNotationList)
+        bbTargets = deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
+
+        val movementList = mutableListOf<ChessPiece.Movement>()
+        for(movementNotation in bbTargets.keys){
+            val moveList = generateCoordinatesFrom64BPosition(bbTargets[movementNotation]!!)
+            for(move in moveList){
+                movementList.add(ChessPiece.Movement(movementNotation,sourceFile,sourceRank,move.file,move.rank))
+            }
+        }
+        return movementList
+    }
+
+    /**
+     * does the movement fullfil condition in Movement.MovementNotation.Condition?
+     */
+    fun deleteIllegalMoves(figureName : String,
+                           color: String,
+                           bbFigure: ULong,
+                           bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
+                           movementNotationList: List<ChessPiece.MovementNotation> ) : MutableMap<ChessPiece.MovementNotation,ULong>{
+        var newBBFigureNonRelativeTargets = bbFigureNonRelativeTargets
+        val pos = (color != "black").toInt()
+        for(movementNotation in movementNotationList){
+            if(movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
+                //thus bbFigureNonRelativeTargets and bbColorComposite must be bitwise different
+                newBBFigureNonRelativeTargets[movementNotation] =
+                    newBBFigureNonRelativeTargets[movementNotation]!! and bbColorComposite[pos].inv()
+            }
+            if(movementNotation.conditions.contains("c")) {//May only be made on a capture (e.g. pawn's diagonal capture)
+                //thus bbFigureNonRelativeTargets and bbColorComposite must be bitwise the same
+                newBBFigureNonRelativeTargets[movementNotation] =
+                    newBBFigureNonRelativeTargets[movementNotation]!! and bbColorComposite[pos]
+            }
+            if(movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
+                if(moveHistory.isNotEmpty()){
+                    /* current position of the figure must match initial position (first entry of the movehistory)
+                       or move history is empty (first movement) */
+                    if(bbFigure and moveHistory[0][figureName]!![1-pos] == 0uL){ //1-pos is the index of player color (ai)
+                        newBBFigureNonRelativeTargets[movementNotation] = 0uL
+                    }
+                }
+            }
+            if(movementNotation.movetype == "g") {//moves by leaping over piece to an empty square (if leaped over enemy => capture)
+                newBBFigureNonRelativeTargets = leapMoveCheck(figureName,color,bbFigure,bbFigureNonRelativeTargets,movementNotation)
+            }
+        }
+        return newBBFigureNonRelativeTargets
+    }
+
+    /** deletes the calculated enpassante moves that are illegal */
+    private fun specialMoveCheckEnpassante(pos: Int,
+                                           bbFigure: ULong,
+                                           bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
+                                           color: String,
+                                           movementNotation: ChessPiece.MovementNotation) : MutableMap<ChessPiece.MovementNotation,ULong> {
+        if(moveHistory.isNotEmpty()){
+            bbFigureNonRelativeTargets[movementNotation] = 0uL//en passante moves must be illegal
+        } else {
+            //try to match the former position of pawn to the target position by moving it one line up/down (depending on the color)
+            var bbFormerToTargetPositionOpponent = 0uL
+            if(color == "white"){
+                bbFormerToTargetPositionOpponent = moveHistory[moveHistory.size-1]["pawn"]!!.get(pos) shr 8 //one line down
+            } else if(color == "black"){
+                bbFormerToTargetPositionOpponent = moveHistory[moveHistory.size-1]["pawn"]!!.get(pos)  shl 8 //one line up
+            }
+
+            //try to match the former position of pawn to the target position by moving it one line up/down (depending on the color)
+            var bbCurrentToTargetPositionOpponent = 0uL //provides the admissible former positions of the opponent in order to make the en passante movement legal
+            if(color == "white"){
+                bbCurrentToTargetPositionOpponent = bbFigures["pawn"]!!.get(pos) shl 8 //one line down
+            } else if(color == "black"){
+                bbCurrentToTargetPositionOpponent = bbFigures["pawn"]!!.get(pos)  shr 8 //one line up
+            }
+
+            //connect the three masks (matching the masks shows that the two requirements are met)
+            bbFigureNonRelativeTargets[movementNotation] = bbFormerToTargetPositionOpponent and
+                    bbCurrentToTargetPositionOpponent and bbFigureNonRelativeTargets[movementNotation]!!
+        }
+        return bbFigureNonRelativeTargets
+    }
+
+    /** deletes the leap moves that are illegal */
+    private fun leapMoveCheck(figureName : String,
+                              color: String,
+                              bbFigure: ULong,
+                              bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
+                              movementNotation: ChessPiece.MovementNotation) : MutableMap<ChessPiece.MovementNotation,ULong>{
+        //TODO
+        return bbFigureNonRelativeTargets
+    }
+
 
     /** generate a bitboard representing the target squares of the non relative movement for a piece */
     fun generateMovements(
@@ -292,7 +407,7 @@ class Bitboard(
                               positionRank: Int,
                               movementNotation: ChessPiece.MovementNotation,
                               distance : Int) {
-        for(newFile in positionFile+1..7){// ... inside board (between 0 and 7)
+        for(newFile in (positionFile+1)..7){// ... inside board (between 0 and 7)
             if(abs(positionFile-newFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
                 val bbNewTarget = generate64BPositionFromCoordinates(newFile,positionRank)
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
@@ -302,6 +417,7 @@ class Bitboard(
                     addCoordinateToMovementBitboard(bbMovementMap,newFile,positionRank,movementNotation)
                     break
                 }
+                addCoordinateToMovementBitboard(bbMovementMap,newFile,positionRank,movementNotation)
             }
             else break
         }
@@ -324,6 +440,7 @@ class Bitboard(
                     addCoordinateToMovementBitboard(bbMovementMap,newFile,positionRank,movementNotation)
                     break
                 }
+                addCoordinateToMovementBitboard(bbMovementMap,newFile,positionRank,movementNotation)
             }
             else break
         }
@@ -346,6 +463,7 @@ class Bitboard(
                     addCoordinateToMovementBitboard(bbMovementMap,positionFile,newRank,movementNotation)
                     break
                 }
+                addCoordinateToMovementBitboard(bbMovementMap,positionFile,newRank,movementNotation)
             }
             else break
         }
@@ -369,6 +487,7 @@ class Bitboard(
                     addCoordinateToMovementBitboard(bbMovementMap,positionFile,newRank,movementNotation)
                     break
                 }
+                addCoordinateToMovementBitboard(bbMovementMap,positionFile,newRank,movementNotation)
             }
             else break
         }
@@ -405,6 +524,34 @@ class Bitboard(
         }
     }
 
+    /** NorthWestDiagonalMovement: left,forward: increase file, decrease rank*/
+    fun generateNorthWestDiagonalMovement(posOwnColor: Int,
+                                          bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
+                                          positionFile: Int,
+                                          positionRank: Int,
+                                          movementNotation: ChessPiece.MovementNotation,
+                                          distance : Int) {
+        var difFile = 1; var difRank = -1
+        //if coordinate is ...
+        while(positionFile+difFile <= 7 && positionRank+difRank >= 0) {// ... inside board (between 0 and 7)
+            if(abs(difFile) <= distance && abs(difRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
+                val newFile = positionFile+difFile
+                val newRank = positionRank+difRank
+                val bbNewTarget = generate64BPositionFromCoordinates(newFile,newRank)
+                if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
+                    break
+                }
+                if(bbNewTarget and bbColorComposite[1-posOwnColor] == bbNewTarget){//figure of your opponent color => add position, then stop
+                    addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
+                    break
+                }
+                addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
+                ++difFile
+                --difRank
+            } else break
+        }
+    }
+
     /** NorthEastDiagonalMovement: right,forward: increase file, increase rank*/
     fun generateNorthEastDiagonalMovement(posOwnColor: Int,
                                           bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
@@ -426,35 +573,9 @@ class Bitboard(
                     addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
                     break
                 }
+                addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
                 ++difFile
                 ++difRank
-            } else break
-        }
-    }
-
-    /** NorthWestDiagonalMovement: left,forward: increase file, decrease rank*/
-    fun generateNorthWestDiagonalMovement(posOwnColor: Int,
-                                          bbMovementMap: MutableMap<ChessPiece.MovementNotation, ULong>,
-                                          positionFile: Int,
-                                          positionRank: Int,
-                                          movementNotation: ChessPiece.MovementNotation,
-                                          distance : Int) {
-        var difFile = 1; var difRank = -1
-        //if coordinate is ...
-        while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {// ... inside board (between 0 and 7)
-            if(abs(difFile) <= distance && abs(difRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
-                val newFile = positionFile+difFile
-                val newRank = positionRank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinates(newFile,newRank)
-                if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
-                    break
-                }
-                if(bbNewTarget and bbColorComposite[1-posOwnColor] == bbNewTarget){//figure of your opponent color => add position, then stop
-                    addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
-                    break
-                }
-                ++difFile
-                --difRank
             } else break
         }
     }
@@ -466,9 +587,9 @@ class Bitboard(
                                           positionRank: Int,
                                           movementNotation: ChessPiece.MovementNotation,
                                           distance : Int) {
-        var difFile = -1; var difRank = -1
+        var difFile = -1; var difRank = 1
         //if coordinate is ...
-        while(positionFile+difFile <= 7 && positionRank+difRank >= 0) {// ... inside board (between 0 and 7)
+        while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {// ... inside board (between 0 and 7)
             if(abs(difRank) <= distance && abs(difFile) <= distance){ // ... and difference smaller than allowed distance add Coordinate to bitboard
                 val newFile = positionFile+difFile
                 val newRank = positionRank+difRank
@@ -480,6 +601,7 @@ class Bitboard(
                     addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
                     break
                 }
+                addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
                 --difFile
                 ++difRank
             } else break
@@ -507,6 +629,7 @@ class Bitboard(
                     addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
                     break
                 }
+                addCoordinateToMovementBitboard(bbMovementMap,newFile,newRank,movementNotation)
                 --difRank
                 --difFile
             } else break
@@ -532,34 +655,39 @@ class Bitboard(
         println(fList.size)
         val str = StringBuilder("")
         var cnt = 0
-        for(row in 0..7){
-             loop@ for(file in 0..7){
-                for(key in bbFigures.keys){
-                    val num = 2.0.pow(file * 8 + row).toULong()
+        for(rank in 0..7){
+             str.append(rank.toString()+" | ")
+             for(file in 0..7){
+                 var empty = true
+                 for(key in bbFigures.keys){
+                    if(key.isEmpty())continue
+                    val num = 2.0.pow(file * 8 + rank).toULong()
                     val white = bbFigures[key]?.get(0) ?: 0uL
                     val black = bbFigures[key]?.get(1) ?: 0uL
                     if(white and num == num){
-                        str.append(key[0].toUpperCase())
-                        if(file < 7)str.append(" | ")
+                        if(key.isNotEmpty())str.append(key[0].toUpperCase())
+                        str.append(" | ")
                         ++cnt
-                        continue@loop
+                        empty = false
                     }
                     if(black and num == num){
-                        str.append(key[0])
-                        if(file < 7)str.append(" | ")
+                        if(key.isNotEmpty())str.append(key[0])
+                        str.append(" | ")
                         ++cnt
-                        continue@loop
+                        empty = false
                     }
                 }
-                str.append(" ")
-                if(file < 7)str.append(" | ")
-                continue
+                if(empty){
+                    str.append("  | ")
+                }
             }
-            str.append("\n")
+            str.append("\n--+---+---+---+---+---+---+---+---+\n")
         }
         println(cnt)
         return str.toString()
     }
+
+
 
 
 
@@ -602,7 +730,7 @@ class Bitboard(
     fun pointsBlack(): Int {
         var points = 0
         for(name in bbFigures.keys){
-            points += figureMap[name]?.value?.times(countSetBits(bbFigures[name]?.get(0)!!)) ?: 0
+            points += figureMap?.get(name)?.value?.times(countSetBits(bbFigures[name]?.get(0)!!)) ?: 0
         }
         return points
     }
@@ -611,7 +739,7 @@ class Bitboard(
     fun pointsWhite(): Int {
         var points = 0
         for(name in bbFigures.keys){
-            points += figureMap[name]?.value?.times(countSetBits(bbFigures[name]?.get(1)!!)) ?: 0
+            points += figureMap?.get(name)?.value?.times(countSetBits(bbFigures[name]?.get(1)!!)) ?: 0
         }
         return points
     }
@@ -624,6 +752,17 @@ class Bitboard(
     }
 
     companion object {
+        fun chessboardToBitboard(chessboard: Chessboard) : Bitboard {
+            val bitboard = Bitboard(chessboard.figureMap)
+            for(rank in chessboard.pieces.indices){
+                for(file in chessboard.pieces[rank].indices) {
+                    val piece = chessboard.pieces[rank][file]
+                    if(piece.name.isEmpty())continue
+                    bitboard.setFigure(piece.name,piece.color,file,rank)
+                }
+            }
+            return bitboard
+        }
 
         val movingStringTomovementNotationsMap = mutableMapOf<String, List<ChessPiece.MovementNotation>>()
 
@@ -748,125 +887,47 @@ private fun Boolean.toInt(): Int {
 
 
 
-/**
- * does the movement fullfil condition in Movement.MovementNotation.Condition?
- */
-fun deleteViolatesCondition(figureName : String,
-                            color: String,
-                            bbFigure: ULong,
-                            bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
-                            movementNotationList: List<ChessPiece.MovementNotation> ) : MutableMap<ChessPiece.MovementNotation,ULong>{
-    var newBBFigureNonRelativeTargets = bbFigureNonRelativeTargets
-    val pos = (color != "black").toInt()
-    for(movementNotation in movementNotationList){
-        if(movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
-            //thus bbFigureNonRelativeTargets and bbColorComposite must be bitwise different
-            newBBFigureNonRelativeTargets[movementNotation] =
-                newBBFigureNonRelativeTargets[movementNotation]!! and bbColorComposite[pos].inv()
-        }
-        if(movementNotation.conditions.contains("c")) {//May only be made on a capture (e.g. pawn's diagonal capture)
-            //thus bbFigureNonRelativeTargets and bbColorComposite must be bitwise the same
-            newBBFigureNonRelativeTargets[movementNotation] =
-                newBBFigureNonRelativeTargets[movementNotation]!! and bbColorComposite[pos]
-        }
-        if(movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
-            if(moveHistory.isNotEmpty()){
-                /* current position of the figure must match initial position (first entry of the movehistory)
-                   or move history is empty (first movement) */
-                if(bbFigure and moveHistory[0][figureName]!![1-pos] == 0uL){ //1-pos is the index of player color (ai)
-                    newBBFigureNonRelativeTargets[movementNotation] = 0uL
-                }
-            }
-            //en passante
-            newBBFigureNonRelativeTargets = specialMoveCheckEnpassante(pos,bbFigure,bbFigureNonRelativeTargets,color,movementNotation)
-        }
-        if(movementNotation.movetype == "g") {//moves by leaping over piece to an empty square (if leaped over enemy => capture)
-            newBBFigureNonRelativeTargets = leapMoveCheck(pos,bbFigure,bbFigureNonRelativeTargets,color,movementNotation)
-        }
-    }
-    return newBBFigureNonRelativeTargets
-}
 
 
 
-todo: 16.07
-1. fullfillsCondition einbinden
-2. enpassante
-3. castling
-4. in chessgame einbinden und so movegeneration prüfen
-5. draw rules implen
+
 
 /**
  * does the movement fullfil condition in Movement.MovementNotation.Condition?
  */
-    fun fullfillsCondition(movement : ChessPiece.Movement) : Boolean {
+    fun fullfillsCondition(color: String,
+                           sourceFile: Int,
+                           sourceRank: Int,
+                           targetFile: Int,
+                           targetRank: Int,
+                           movementNotation: ChessPiece.MovementNotation) : Boolean {
         var returnValue = true
-        if(movement.movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
+        /*if(movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
             returnValue = returnValue && !(pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
                     && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
                     && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
         }
-        if(movement.movementNotation.conditions.contains("c")) {//May only be made on a capture (e.g. pawn's diagonal capture)
+        if(movementNotation.conditions.contains("c")) {//May only be made on a capture (e.g. pawn's diagonal capture)
             returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].color != pieces[movement.targetFile][movement.targetRank].color
                     && pieces[movement.sourceFile][movement.sourceRank].color.isNotEmpty()
                     && pieces[movement.targetFile][movement.targetRank].color.isNotEmpty())
             //en passante
             if(!returnValue)returnValue = specialMoveCheckEnpassante(movement) != null
         }
-        if(movement.movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
+        if(movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
             returnValue = returnValue && (pieces[movement.sourceFile][movement.sourceRank].moveCounter == 0)
         }
-        if(movement.movementNotation.movetype == "g") {//moves by leaping over piece to an empty square (if leaped over enemy => capture)
+        if(movementNotation.movetype == "g") {//moves by leaping over piece to an empty square (if leaped over enemy => capture)
             val signFile = sign((movement.targetFile - movement.sourceFile).toDouble()).toInt()
             val signRank = sign((movement.targetRank - movement.sourceRank).toDouble()).toInt()
             returnValue = pieces[movement.targetFile][movement.targetRank].color.isEmpty()
                     && pieces[movement.targetFile-signFile][movement.targetRank-signRank].color.isNotEmpty()
                     && (Math.abs(movement.targetFile-movement.sourceFile) > 1 || Math.abs(movement.targetRank-movement.sourceRank) > 1)
-        }
-        var returnValue = bbFigureNonRelativeTargets
+        }*/
         return returnValue
     }
 
-/** deletes the calculated enpassante moves that are illegal */
-private fun specialMoveCheckEnpassante(pos: Int,
-                                       bbFigure: ULong,
-                                       bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
-                                       color: String,
-                                       movementNotation: ChessPiece.MovementNotation) : MutableMap<ChessPiece.MovementNotation,ULong> {
-    if(moveHistory.isEmpty()){
-        bbFigureNonRelativeTargets[movementNotation] = 0uL//en passante moves must be illegal
-    } else {
-        //try to match the former position of pawn to the target position by moving it one line up/down (depending on the color)
-        var bbFormerToTargetPositionOpponent = 0uL
-        if(color == "white"){
-            bbFormerToTargetPositionOpponent = moveHistory[moveHistory.size-1]["pawn"]!!.get(pos) shr 8 //one line down
-        } else if(color == "black"){
-            bbFormerToTargetPositionOpponent = moveHistory[moveHistory.size-1]["pawn"]!!.get(pos)  shl 8 //one line up
-        }
 
-        //try to match the former position of pawn to the target position by moving it one line up/down (depending on the color)
-        var bbCurrentToTargetPositionOpponent = 0uL //provides the admissible former positions of the opponent in order to make the en passante movement legal
-        if(color == "white"){
-            bbCurrentToTargetPositionOpponent = bbFigures["pawn"]!!.get(pos) shl 8 //one line down
-        } else if(color == "black"){
-            bbCurrentToTargetPositionOpponent = bbFigures["pawn"]!!.get(pos)  shr 8 //one line up
-        }
-
-        //connect the three masks (matching the masks shows that the two requirements are met)
-        bbFigureNonRelativeTargets[movementNotation] = bbFormerToTargetPositionOpponent and
-                bbCurrentToTargetPositionOpponent and bbFigureNonRelativeTargets[movementNotation]!!
-    }
-    return bbFigureNonRelativeTargets
-}
-
-/** deletes the leap moves that are illegal */
-private fun leapMoveCheck(pos: Int,
-                          bbFigure: ULong,
-                          bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
-                          color: String) : MutableMap<ChessPiece.MovementNotation,ULong> {
-    //TODO
-    return bbFigureNonRelativeTargets
-}
 
 
 
