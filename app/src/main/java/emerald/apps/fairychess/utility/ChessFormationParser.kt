@@ -5,7 +5,8 @@ import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 
-/** parse chessformation-File to a 2D-Array of figure-String (Array<Array<String>>)*/
+/** parse chessformation-File to a 2D-Array of figure-String (Array<Array<String>>)
+ * in (row,file) format */
 class ChessFormationParser {
     companion object {
         private val TAG: String = "ChessFormationParser"

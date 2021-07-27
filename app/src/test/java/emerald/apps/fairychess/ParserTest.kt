@@ -3,8 +3,7 @@ package emerald.apps.fairychess
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -13,6 +12,22 @@ import java.io.InputStream
 
 @RunWith(AndroidJUnit4::class)
 class ParserTest {
+
+    @Test
+    fun testNormalChessFormation(){
+        val chessFormationArray: Array<Array<String>> = parseChessFormation("normal_chess")
+        val normalChessFormationArray : Array<Array<String>> =
+            arrayOf(arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"),
+                arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
+                arrayOf("bishop", "pawn", "", "", "", "", "pawn", "bishop"),
+                arrayOf("queen", "pawn", "", "", "", "", "pawn", "queen"),
+                arrayOf("king", "pawn", "", "", "", "", "pawn", "king"),
+                arrayOf("bishop", "pawn", "", "", "", "", "pawn", "bishop"),
+                arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
+                arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"))
+        assertArrayEquals(normalChessFormationArray,chessFormationArray)
+    }
+
     @Test
     fun testParsing() {
         val chessFormationArray: Array<Array<String>> = parseChessFormation("normal_chess")
@@ -45,6 +60,7 @@ class ParserTest {
             }
         }
         assertTrue(chessFormationArray[0][0] == "rook")
+        assertTrue(chessFormationArray[4][1] == "pawn")
     }
 
 

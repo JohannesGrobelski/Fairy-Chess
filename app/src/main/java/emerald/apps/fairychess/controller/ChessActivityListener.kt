@@ -92,13 +92,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
 
-    var selectionFile = -1
-    var selectionRank = -1
+    class PlayerSelectedSquare(var rank:Int, var file:Int)
+    val playerSelectedSquare = PlayerSelectedSquare(-1,-1)
 
     //Views
     var elterLayout: LinearLayout? = null
-    /* chess board layout consists of 64 imageviews:
-       pieces-array: (file,rank)-coordinates
+    /* chess board layout consists of 64 imageviews represent which the chessboard model:
+       At the core of the chessboard model is the pieces-array: representing 64 pieces with
+       (rank,file)-coordinates
        (7,0) ... (7,7)      (A,8) ... (H,8)
        ...        ...    =   ...        ...
        (0,0) ... (0,7)      (A,1) ... (G,1)
@@ -178,13 +179,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             val clickedFile = nameToFile(clickedViewName)
             val clickedRank = nameToRank(clickedViewName)
             //if a file and rank was selected => move from selected square to
-            if(selectionRank != -1 && selectionFile != -1
+            if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1
                 && clickedFile != -1 && clickedRank != -1){
                 val movement = ChessPiece.Movement(
-                    sourceFile = selectionFile,
-                    sourceRank = selectionRank,
-                    targetFile = clickedFile,
-                    targetRank = clickedRank
+                    sourceRank = playerSelectedSquare.rank,
+                    sourceFile = playerSelectedSquare.file,
+                    targetRank = clickedRank,
+                    targetFile = clickedFile
                 )
                 var moveResult = ""
                 moveResult = chessgame.movePlayer(movement, gameParameters.playerColor)
@@ -199,7 +200,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
                     offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
                 }
-
                 moveResult += handlePromotion()
                 if(gameParameters.playMode=="human" && moveResult==""){
                     multiplayerDB.writePlayerMovement(gameData.gameId, movement)
@@ -207,8 +207,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 if(moveResult.isNotEmpty()){
                     Toast.makeText(chessActivity, moveResult, Toast.LENGTH_LONG).show()
                 }
-
                 if(gameParameters.playMode=="ai"){
+                    //calculate ai move in coroutine to avoid blocking the ui thread
                     calcMoveJob = CoroutineScope(Dispatchers.Main).launch {
                         try{
                             chessgame.movePlayer(chessAI.calcMove(chessgame.getChessboard()), chessAI.color)
@@ -221,7 +221,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             }
             //mark the clicked view
             markFigure(clickedView)
-            if(selectionRank != -1 && selectionFile != -1){
+            if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1){
                 displayTargetMovements()
             }
         }
@@ -242,13 +242,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private fun pawnPromotion(pawnPromotionCandidate: ChessPiece) {
         //handle pawn promotion of ai (exchange pawn with queen)
         if(pawnPromotionCandidate.color != gameParameters.playerColor && gameParameters.playMode=="ai"){
-            val value = chessgame.figureMap["queen"]!!.value
-            val movingPattern = chessgame.figureMap["queen"]!!.movementParlett
-            chessgame.getChessboard().pieces[pawnPromotionCandidate.positionFile][pawnPromotionCandidate.positionRank] =
+            val value = (chessgame.figureMap["queen"] ?: error("")).value
+            val movingPattern = (chessgame.figureMap["queen"] ?: error("")).movementParlett
+            chessgame.getChessboard().pieces[pawnPromotionCandidate.positionRank][pawnPromotionCandidate.positionFile] =
                 ChessPiece(
                     "queen",
-                    pawnPromotionCandidate.positionFile,
                     pawnPromotionCandidate.positionRank,
+                    pawnPromotionCandidate.positionFile,
                     value,
                     Chessboard.oppositeColor(gameParameters.playerColor),
                     movingPattern,
@@ -256,7 +256,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 )
             displayFigures()
         }
-        //handle user pawn promotion by create alert dialog
+        //handle user pawn promotion by creating and handling alert dialog
         else {
             if(pawnPromotionCandidate.color == gameParameters.playerColor){
                 // create an alert builder
@@ -266,10 +266,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     chessActivity.layoutInflater.inflate(R.layout.promotion_layout, null)
                 builder.setView(customLayout) // add a button
                 val radioGroup = customLayout.findViewById<RadioGroup>(R.id.radiogroup)
-                builder.setPositiveButton("OK") { dialog, which ->
+                builder.setPositiveButton("OK") { _, _ ->
                     val radioButton =
                         customLayout.findViewById<RadioButton>(radioGroup.checkedRadioButtonId)
-                    promote(radioButton.text.toString().toLowerCase(), pawnPromotionCandidate)
+                    promotePawn(radioButton.text.toString().toLowerCase(), pawnPromotionCandidate)
                 }
                 // create and show the alert dialog
                 val dialog = builder.create()
@@ -279,35 +279,35 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     //propagate promotion information from the AlertDialog onto chessboard
-    private fun promote(promotion: String, chessPiece: ChessPiece) {
+    private fun promotePawn(promotion: String, chessPiece: ChessPiece) {
         if (chessPiece.positionFile < 0 || chessPiece.positionFile > 7 || chessPiece.positionRank < 0 || chessPiece.positionRank > 7) return
-        val color: String = chessgame.getChessboard().pieces[chessPiece.positionFile][chessPiece.positionRank].color
-        val value = chessgame.figureMap[promotion]!!.value
-        val movingPattern = chessgame.figureMap[promotion]!!.movementParlett
+        val chesspieceColor: String = chessgame.getChessboard().pieces[chessPiece.positionRank][chessPiece.positionFile].color
+        val chesspieceValue = (chessgame.figureMap[promotion] ?: error("")).value
+        val chesspieceMovingPattern = (chessgame.figureMap[promotion] ?: error("")).movementParlett
 
-        chessgame.getChessboard().pieces[chessPiece.positionFile][chessPiece.positionRank] =
+        chessgame.getChessboard().pieces[chessPiece.positionRank][chessPiece.positionFile] =
             ChessPiece(
                 promotion,
-                chessPiece.positionFile,
                 chessPiece.positionRank,
-                value,
-                color,
-                movingPattern,
+                chessPiece.positionFile,
+                chesspieceValue,
+                chesspieceColor,
+                chesspieceMovingPattern,
                 0
             )
         displayFigures()
 
-        val sourceFile = chessPiece.positionFile
-        val sourceRank = 6
-        if(chessPiece.color == "white") chessPiece.positionRank = 1
+        val sourceRank = chessPiece.positionRank
+        var sourceFile = 1
+        if(chessPiece.color == "white")sourceFile = 6
         if(gameParameters.playMode == "human"){
             multiplayerDB.writePlayerMovement(
                 gameData.gameId,
                 ChessPiece.PromotionMovement(
-                    sourceFile = sourceFile,
                     sourceRank = sourceRank,
-                    targetFile = chessPiece.positionFile,
+                    sourceFile = sourceFile,
                     targetRank = chessPiece.positionRank,
+                    targetFile = chessPiece.positionFile,
                     promotion = promotion
                 )
             )
@@ -317,13 +317,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** display figures from chess board in imageViews of chessActivity-layout */
     fun displayFigures() {
-        for (file in 0..7) {
-            for (rank in 0..7) {
+        for (rank in 0..7) {
+            for (file in 0..7) {
                 val x: Int = getDrawableFromName(
-                    chessgame.getPieceName(file, rank),
-                    chessgame.getPieceColor(file, rank)
+                    chessgame.getPieceName(rank, file),
+                    chessgame.getPieceColor(rank, file)
                 )
-                if (x != -1) imageViews[file][rank].setImageResource(x)
+                if (x != -1) imageViews[rank][file].setImageResource(x)
             }
         }
         //display captures
@@ -369,9 +369,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** highlight the square from */
     private fun displayTargetMovements() {
-        val targetMovements = chessgame.getTargetMovements(selectionFile, selectionRank)
+        val targetMovements = chessgame.getTargetMovements(playerSelectedSquare.rank, playerSelectedSquare.file)
         for (targetMovement in targetMovements){
-            markSquare(targetMovement.targetFile, targetMovement.targetRank)
+            markSquare(targetMovement.targetRank, targetMovement.targetFile)
         }
     }
 
@@ -457,22 +457,22 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     fun markFigure(v: View) {
         val fullName: String = chessActivity.resources.getResourceName(v.id)
         val name: String = fullName.substring(fullName.lastIndexOf("/") + 1)
-        val file = nameToFile(name)
         val rank = nameToRank(name)
+        val file = nameToFile(name)
         resetFieldColor()
-        if(selectionFile != -1 && selectionRank != -1){ //unselect
-            selectionFile = -1
-            selectionRank = -1
+        if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1){ //unselect
+            playerSelectedSquare.rank = -1
+            playerSelectedSquare.file = -1
         } else {
             imageViews[rank][file].setBackgroundColor(
-                getMixedColor(file, rank, Color.RED)
+                getMixedColor(rank, file, Color.RED)
             )
-            selectionFile = file
-            selectionRank = rank
+            playerSelectedSquare.rank = rank
+            playerSelectedSquare.file = file
         }
     }
 
-    fun markSquare(file: Int, rank: Int) {
+    fun markSquare(rank: Int, file: Int) {
         imageViews[rank][file].setBackgroundColor(
             getMixedColor(rank, file, Color.YELLOW)
         )
@@ -482,12 +482,12 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private fun resetFieldColor() {
         for(rank in 0..7){
             for(file in 0..7){
-                if ((rank + file) % 2 != 0) imageViews[file][rank].setBackgroundColor(
+                if ((rank + file) % 2 != 0) imageViews[rank][file].setBackgroundColor(
                     chessActivity.resources.getColor(
                         R.color.colorWhite
                     )
                 )
-                if ((rank + file) % 2 == 0) imageViews[file][rank].setBackgroundColor(
+                if ((rank + file) % 2 == 0) imageViews[rank][file].setBackgroundColor(
                     chessActivity.resources.getColor(
                         R.color.colorBlack
                     )
@@ -497,7 +497,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     /** helper functions for highlighting square */
-    private fun getMixedColor(file: Int, rank: Int, color: Int): Int {
+    private fun getMixedColor(rank: Int, file: Int, color: Int): Int {
         return if ((file + rank) % 2 == 0) ColorUtils.blendARGB(
             color,
             chessActivity.resources.getColor(R.color.colorWhite),

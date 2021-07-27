@@ -41,7 +41,7 @@ class ChessAI {
                 return alphabeta(chessboard,2,Int.MIN_VALUE,Int.MAX_VALUE)!!.movement
             }
         }
-        return ChessPiece.Movement(sourceFile = 0,sourceRank = 0,targetFile = 0,targetRank = 0)
+        return ChessPiece.Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
     }
 
     fun nextBestMoveAlgorithm(chessboard: Chessboard) : ChessPiece.Movement?{

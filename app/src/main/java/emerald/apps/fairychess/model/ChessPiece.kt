@@ -2,11 +2,12 @@ package emerald.apps.fairychess.model
 
 import java.lang.StringBuilder
 import java.util.*
+import kotlin.math.abs
 
 class ChessPiece(
     var name: String,
-    var positionFile: Int,
     var positionRank: Int,
+    var positionFile: Int,
     var value: Int,
     var color: String,
     var movingPatternString: String,
@@ -45,15 +46,15 @@ class ChessPiece(
                 generate8LeaperMovements(movingPattern,targetSquares,movement1.toInt(), movement2.toInt())
             } else {
                 if(movement1 == "x" && movement2 == "x"){//only in pairs (x,x): any distance in the given direction equal to its twin or zero
-                    for(a in -7..7){
+                    for(distance in -7..7){
                         //orthogonal
-                        generateLeaperMovement(movingPattern,targetSquares,0, a)
-                        generateLeaperMovement(movingPattern,targetSquares,a, 0)
+                        generateLeaperMovement(movingPattern,targetSquares,0, distance)
+                        generateLeaperMovement(movingPattern,targetSquares,distance, 0)
                         //diagonal
-                        generateLeaperMovement(movingPattern,targetSquares,a, a)
-                        generateLeaperMovement(movingPattern,targetSquares,-a, a)
-                        generateLeaperMovement(movingPattern,targetSquares,a, -a)
-                        generateLeaperMovement(movingPattern,targetSquares,-a, -a)
+                        generateLeaperMovement(movingPattern,targetSquares,distance, distance)
+                        generateLeaperMovement(movingPattern,targetSquares,-distance, distance)
+                        generateLeaperMovement(movingPattern,targetSquares,distance, -distance)
+                        generateLeaperMovement(movingPattern,targetSquares,-distance, -distance)
                     }
                 }
             }
@@ -61,27 +62,28 @@ class ChessPiece(
         return targetSquares
     }
 
-    /** generate all (8) leaper movements matching movementNotation (Leaper) */
-    fun generate8LeaperMovements(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, m1: Int, m2: Int) {
-        generateLeaperMovement(movingPattern,targetSquares,m1,m2)
-        generateLeaperMovement(movingPattern,targetSquares,-m1,m2)
-        generateLeaperMovement(movingPattern,targetSquares,m1,-m2)
-        generateLeaperMovement(movingPattern,targetSquares,-m1,-m2)
-        generateLeaperMovement(movingPattern,targetSquares,m2,m1)
-        generateLeaperMovement(movingPattern,targetSquares,-m2,m1)
-        generateLeaperMovement(movingPattern,targetSquares,m2,-m1)
-        generateLeaperMovement(movingPattern,targetSquares,-m2,-m1)
+    /** generate all movement-variations with the 2 distances (8 different leaper movements) matching movementNotation (Leaper)
+     * number of distances * number of sequences * number of sign = 2*2*2 = 8 */
+    fun generate8LeaperMovements(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, dis1: Int, dis2: Int) {
+        generateLeaperMovement(movingPattern,targetSquares,dis1,dis2)
+        generateLeaperMovement(movingPattern,targetSquares,-dis1,dis2)
+        generateLeaperMovement(movingPattern,targetSquares,dis1,-dis2)
+        generateLeaperMovement(movingPattern,targetSquares,-dis1,-dis2)
+        generateLeaperMovement(movingPattern,targetSquares,dis2,dis1)
+        generateLeaperMovement(movingPattern,targetSquares,-dis2,dis1)
+        generateLeaperMovement(movingPattern,targetSquares,dis2,-dis1)
+        generateLeaperMovement(movingPattern,targetSquares,-dis2,-dis1)
     }
 
     /** add a leaper movement to targetSquares defined by an delta (fileDif,rankDif) */
-    fun generateLeaperMovement(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, fileDif: Int, rankDif: Int) {
-        if(positionFile+fileDif in 0..7 && positionRank+rankDif in 0..7){
+    fun generateLeaperMovement(movingPattern: MovementNotation, targetSquares : MutableList<Movement>, rankDif: Int, fileDif: Int) {
+        if(positionRank+rankDif in 0..7 && positionFile+fileDif in 0..7){
             targetSquares.add(
                 Movement(movingPattern,
-                    positionFile,
                     positionRank,
-                    positionFile+fileDif,
-                    positionRank+rankDif)
+                    positionFile,
+                    positionRank+rankDif,
+                    positionFile+fileDif)
             )
         }
     }
@@ -142,13 +144,13 @@ class ChessPiece(
     fun generateNorthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difFile = 1; var difRank = 1;
         while(positionFile+difFile <= 7 && positionRank+difRank <= 7) {
-            if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
+            if(abs(difRank) <= distance && abs(difFile) <= distance){
                 inputSquares.add(
                     Movement(movementNotation,
-                    positionFile,
                     positionRank,
-                    positionFile+difFile,
-                    positionRank+difRank)
+                    positionFile,
+                    positionRank+difRank,
+                    positionFile+difFile)
                 )
                 ++difFile
                 ++difRank
@@ -157,39 +159,39 @@ class ChessPiece(
         return inputSquares
     }
 
-    /** NorthWestDiagonalMovement: left,forward: decrease file, increase rank*/
+    /** NorthWestDiagonalMovement: left,forward: increase file, decrease rank*/
     fun generateNorthWestDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
-        var difFile = -1; var difRank = 1;
-        while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
-            if(Math.abs(difFile) <= distance && Math.abs(difRank) <= distance){
-                inputSquares.add(
-                    Movement(movementNotation,
-                    positionFile,
-                    positionRank,
-                    positionFile+difFile,
-                    positionRank+difRank)
-                )
-                --difFile
-                ++difRank
-            } else break
-        }
-        return inputSquares
-    }
-
-    /** SouthEastDiagonalMovement: right,backward: increase file, decrease rank*/
-    fun generateSouthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
-        var difFile = 1; var difRank = -1
+        var difFile = 1; var difRank = -1;
         while(positionFile+difFile <= 7 && positionRank+difRank >= 0) {
-            if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
+            if(abs(difFile) <= distance && abs(difRank) <= distance){
                 inputSquares.add(
                     Movement(movementNotation,
-                    positionFile,
                     positionRank,
-                    positionFile+difFile,
-                    positionRank+difRank)
+                    positionFile,
+                    positionRank+difRank,
+                    positionFile+difFile)
                 )
                 ++difFile
                 --difRank
+            } else break
+        }
+        return inputSquares
+    }
+
+    /** SouthEastDiagonalMovement: right,backward: decrease file, increase rank*/
+    fun generateSouthEastDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
+        var difFile = -1; var difRank = 1
+        while(positionFile+difFile >= 0 && positionRank+difRank <= 7) {
+            if(abs(difRank) <= distance && abs(difFile) <= distance){
+                inputSquares.add(
+                    Movement(movementNotation,
+                    positionRank,
+                    positionFile,
+                    positionRank+difRank,
+                    positionFile+difFile)
+                )
+                --difFile
+                ++difRank
             } else break
         }
         return inputSquares
@@ -199,13 +201,13 @@ class ChessPiece(
     fun generateSouthWestDiagonalMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         var difRank = -1; var difFile = -1
         while(positionFile+difFile >= 0 && positionRank+difRank >= 0) {
-            if(Math.abs(difRank) <= distance && Math.abs(difFile) <= distance){
+            if(abs(difRank) <= distance && abs(difFile) <= distance){
                 inputSquares.add(
                     Movement(movementNotation,
-                    positionFile,
                     positionRank,
-                    positionFile+difFile,
-                    positionRank+difRank)
+                    positionFile,
+                    positionRank+difRank,
+                    positionFile+difFile)
                 )
                 --difRank
                 --difFile
@@ -220,7 +222,7 @@ class ChessPiece(
         var distance = 7
         if(movementNotation.distances[0].matches("[1-9]+".toRegex()))distance = movementNotation.distances[0].toInt()
         //forward(>) and backwards(<) are color-dependent because they are depending on direction of the figures
-        //color-independent movements
+        //forward-backwards(=), orthogonal (+) and orthogonal-diagonal (*) are color-independent movements
         if(movementNotation.direction.contains("=") || movementNotation.direction == "+" || movementNotation.direction == "*") {
             generateWestMovement(targetSquares,movementNotation,distance)
             generateEastMovement(targetSquares,movementNotation,distance)
@@ -251,16 +253,16 @@ class ChessPiece(
         return targetSquares
     }
 
-    /** forward: increase rank */
+    /** forward: increase file */
     fun generateNorthMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
         if(movementNotation.direction == "*" || movementNotation.direction == "+" || movementNotation.direction == "<>" || movementNotation.direction == ">=" || movementNotation.direction == ">"){
-            for(i in positionRank+1..7){
-                if(Math.abs(positionRank-i) <= distance)inputSquares.add(
+            for(newFile in positionFile+1..7){
+                if(abs(positionFile-newFile) <= distance)inputSquares.add(
                     Movement(movementNotation,
-                    positionFile,
                     positionRank,
                     positionFile,
-                    i)
+                    positionRank,
+                    newFile)
                 )
                 else break
             }
@@ -268,29 +270,32 @@ class ChessPiece(
         return inputSquares
     }
 
-    /** backward: decrease rank */
+    /** backward: decrease file */
     fun generateSouthMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
-        for(i in positionRank-1 downTo 0){
-            if(Math.abs(positionRank-i) <= distance)inputSquares.add(
-                Movement(movementNotation,
-                positionFile,
-                positionRank,
-                positionFile,
-                i)
-            )
+        if(movementNotation.direction == "*" || movementNotation.direction == "+" || movementNotation.direction == "<>" || movementNotation.direction == ">=" || movementNotation.direction == ">"){
+            for(newFile in positionFile-1 downTo 0){
+                if(abs(positionFile-newFile) <= distance)inputSquares.add(
+                    Movement(movementNotation,
+                        positionRank,
+                        positionFile,
+                        positionRank,
+                        newFile)
+                )
+                else break
+            }
         }
         return inputSquares
     }
 
-    /** right: increase file */
+    /** right: increase rank */
     fun generateEastMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
-        for(i in positionFile+1..7){
-            if(Math.abs(positionFile-i) <= distance)inputSquares.add(
+        for(newRank in positionRank+1..7){
+            if(abs(positionRank-newRank) <= distance)inputSquares.add(
                 Movement(movementNotation,
-                positionFile,
                 positionRank,
-                i,
-                positionRank)
+                positionFile,
+                newRank,
+                positionFile)
             )
             else break
         }
@@ -299,13 +304,13 @@ class ChessPiece(
 
     /** left: decrease file */
     fun generateWestMovement(inputSquares : MutableList<Movement>, movementNotation: MovementNotation, distance : Int) : List<Movement> {
-        for(i in positionFile-1 downTo 0){
-            if(Math.abs(positionFile-i) <= distance)inputSquares.add(
+        for(newRank in positionRank-1 downTo 0){
+            if(abs(positionRank-newRank) <= distance)inputSquares.add(
                 Movement(movementNotation,
-                positionFile,
-                positionRank,
-                i,
-                positionRank)
+                    positionRank,
+                    positionFile,
+                    newRank,
+                    positionFile)
             )
             else break
         }
@@ -313,19 +318,19 @@ class ChessPiece(
     }
 
     open class Movement(val movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")
-                        , val sourceFile : Int
                         , val sourceRank : Int
-                        , val targetFile : Int
-                        , val targetRank : Int) {
+                        , val sourceFile : Int
+                        , val targetRank : Int
+                        , val targetFile : Int) {
 
         override fun equals(other: Any?) : Boolean {
             return if(other is Movement){
-                (sourceFile == other.sourceFile
-                && sourceRank == other.sourceRank
+                (sourceRank == other.sourceRank
+                && sourceFile == other.sourceFile
                 && targetRank == other.targetRank
                 && targetFile == other.targetFile
-                && movementNotation.equals(other.movementNotation)
-            )
+                && movementNotation == other.movementNotation
+                )
             } else super.equals(other)
         }
 
@@ -343,21 +348,21 @@ class ChessPiece(
             fun fromStringToMovement(string: String) : Movement {
                 val coordinates = string.split("_")
                 if(coordinates.size == 4){
-                    val sourceFile = coordinates[0].toInt()
-                    val sourceRank = coordinates[1].toInt()
-                    val targetFile = coordinates[2].toInt()
-                    val targetRank = coordinates[3].toInt()
-                    return Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank)
+                    val sourceRank = coordinates[0].toInt()
+                    val sourceFile = coordinates[1].toInt()
+                    val targetRank = coordinates[2].toInt()
+                    val targetFile = coordinates[3].toInt()
+                    return Movement(sourceRank = sourceRank,sourceFile = sourceFile,targetRank = targetRank,targetFile = targetFile)
                 }
-                return Movement(sourceFile = -1,sourceRank = -1,targetFile = -1,targetRank = -1)
+                return Movement(sourceRank = -1,sourceFile = -1,targetRank = -1,targetFile = -1)
             }
 
             fun fromMovementListToString(movements: List<Movement>) : String {
                 val returnString = StringBuilder("")
                 for(movement in movements){
                     returnString.append(
-                        movement.sourceFile.toString()+"_"+movement.sourceRank
-                                +"_"+movement.targetFile.toString()+"_"+movement.targetRank)
+                        movement.sourceRank.toString()+"_"+movement.sourceFile
+                                +"_"+movement.targetRank.toString()+"_"+movement.targetFile)
                     if(movement != movements.last())returnString.append(";")
                 }
                 return returnString.toString()
@@ -367,12 +372,11 @@ class ChessPiece(
                 val movementList = mutableListOf<Movement>()
                 for(substring in string.split(";")){
                     if(substring.split("_").size == 4){
-                        val sourceFile = substring.split("_")[0].toInt()
-                        val sourceRank = substring.split("_")[1].toInt()
-                        val targetFile = substring.split("_")[2].toInt()
-                        val targetRank = substring.split("_")[3].toInt()
-                        movementList.add(Movement(sourceFile = sourceFile,sourceRank = sourceRank,targetFile = targetFile,targetRank = targetRank))
-
+                        val sourceRank = substring.split("_")[0].toInt()
+                        val sourceFile = substring.split("_")[1].toInt()
+                        val targetRank = substring.split("_")[2].toInt()
+                        val targetFile = substring.split("_")[3].toInt()
+                        movementList.add(Movement(sourceRank = sourceRank,sourceFile = sourceFile,targetRank = targetRank,targetFile = targetFile))
                     }
                 }
                 return movementList
@@ -380,11 +384,11 @@ class ChessPiece(
         }
 
         fun asString(playerColor : String): String {
-            return playerColor+": "+sourceFile.toString()+"_"+sourceRank+"_"+targetFile+"_"+targetRank
+            return playerColor+": "+sourceRank.toString()+"_"+sourceFile+"_"+targetRank+"_"+targetFile
         }
 
         fun asString2(playerColor : String): String {
-            return playerColor+": "+getLetterFromInt(sourceFile)+sourceRank+"_"+getLetterFromInt(targetFile)+targetRank
+            return playerColor+": "+getLetterFromInt(sourceRank)+sourceFile+"_"+getLetterFromInt(targetRank)+targetFile
         }
 
         fun getLetterFromInt(int: Int) : String{
@@ -403,35 +407,35 @@ class ChessPiece(
     }
 
     class PromotionMovement(movementNotation : MovementNotation = MovementNotation("", emptyList(),"",emptyList(),"")
-                            , sourceFile : Int
-                            , sourceRank : Int
-                            , targetFile : Int
-                            , targetRank : Int
-                            , var promotion : String)  : Movement(movementNotation,sourceFile,sourceRank,targetFile,targetRank) {
+                            , sourceRank: Int
+                            , sourceFile: Int
+                            , targetRank: Int
+                            , targetFile: Int
+                            , var promotion : String)  : Movement(movementNotation,sourceRank,sourceFile,targetRank,targetFile) {
 
         companion object {
             fun fromMovementToString(promotionMovement: PromotionMovement): String {
-                return promotionMovement.sourceFile.toString() + "_" + promotionMovement.sourceRank + "_" +
-                       promotionMovement.targetFile.toString() + "_" + promotionMovement.targetRank+"_"+promotionMovement.promotion
+                return promotionMovement.sourceRank.toString() + "_" + promotionMovement.sourceFile + "_" +
+                       promotionMovement.targetRank.toString() + "_" + promotionMovement.targetFile+"_"+promotionMovement.promotion
             }
 
             fun fromStringToMovement(string: String): Movement {
                 val coordinates = string.split("_")
                 if (coordinates.size == 5) {
-                    val sourceFile = coordinates[0].toInt()
-                    val sourceRank = coordinates[1].toInt()
-                    val targetFile = coordinates[2].toInt()
-                    val targetRank = coordinates[3].toInt()
+                    val sourceRank = coordinates[0].toInt()
+                    val sourceFile = coordinates[1].toInt()
+                    val targetRank = coordinates[2].toInt()
+                    val targetFile = coordinates[3].toInt()
                     val promotion = coordinates[4]
                     return PromotionMovement(
-                        sourceFile = sourceFile,
                         sourceRank = sourceRank,
-                        targetFile = targetFile,
+                        sourceFile = sourceFile,
                         targetRank = targetRank,
+                        targetFile = targetFile,
                         promotion = promotion
                     )
                 }
-                return Movement(sourceFile = -1, sourceRank = -1, targetFile = -1, targetRank = -1)
+                return Movement(sourceRank = -1, sourceFile = -1, targetRank = -1, targetFile = -1)
             }
         }
 

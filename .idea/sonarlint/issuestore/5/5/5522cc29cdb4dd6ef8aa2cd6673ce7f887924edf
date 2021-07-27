@@ -1,16 +1,16 @@
 
-ukotlin:S117¼"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(€¥â¸8‚Åƒª¨/
-zkotlin:S117ì"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(¬ô€‘şÿÿÿÿ8şÂ¤Õ/
-€kotlin:S100Ä"aRename function "start_gameWithParameters" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(‹¤ÏÔ8şÂ¤Õ/
-zkotlin:S117‘"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(¬ô€‘şÿÿÿÿ8ËÌŒà/
-wkotlin:S3776„"RRefactor this method to reduce its Cognitive Complexity from 29 to the 15 allowed.(‰û×»úÿÿÿÿ8î¿ıó/
-zkotlin:S117×"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Ï°Ìùÿÿÿÿ8şÂ¤Õ/
-ukotlin:S117°"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(å¯øø8¡Œí©¨/
-zkotlin:S117æ"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ÅİÕ„ûÿÿÿÿ8áÌŠø/
-ukotlin:S117Â"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Ê©õå8¡Œí©¨/
-zkotlin:S117‹"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ÅİÕ„ûÿÿÿÿ8ËÌŒà/
-zkotlin:S117à"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Â—Ò³şÿÿÿÿ8áÌŠø/
 zkotlin:S117á"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(¨Âëïÿÿÿÿÿ8§½à/
+€kotlin:S100Ä"aRename function "start_gameWithParameters" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(‹¤ÏÔ8şÂ¤Õ/
+zkotlin:S117×"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Ï°Ìùÿÿÿÿ8şÂ¤Õ/
+wkotlin:S3776„"RRefactor this method to reduce its Cognitive Complexity from 29 to the 15 allowed.(‰û×»úÿÿÿÿ8î¿ıó/
+zkotlin:S117à"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Â—Ò³şÿÿÿÿ8áÌŠø/
+zkotlin:S117ì"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(¬ô€‘şÿÿÿÿ8şÂ¤Õ/
 ukotlin:S117¶"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(©û“­8¡Œí©¨/
+zkotlin:S117‹"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ÅİÕ„ûÿÿÿÿ8ËÌŒà/
+zkotlin:S117æ"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(ÅİÕ„ûÿÿÿÿ8áÌŠø/
 ‹kotlin:S100†"gRename function "display_alertDialogPlayerStats" to match the regular expression ^[a-zA-Z][a-zA-Z0-9]*$(™âÅüÿÿÿÿ8ùúöƒ–/
+ukotlin:S117¼"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(€¥â¸8‚Åƒª¨/
 zkotlin:S117…"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Â—Ò³şÿÿÿÿ8ËÌŒà/
+zkotlin:S117‘"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(¬ô€‘şÿÿÿÿ8ËÌŒà/
+ukotlin:S117°"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(å¯øø8¡Œí©¨/
+ukotlin:S117Â"VRename this local variable to match the regular expression "^`?[_a-z][a-zA-Z0-9]*`?$".(Ê©õå8¡Œí©¨/

@@ -22,11 +22,13 @@ class FigureParser {
                     )
                 )
                 "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\figures"
-                return parseFigureMapFromJSONString(
+                val figureMap : MutableMap<String,Figure> = parseFigureMapFromJSONString(
                     ChessFormationParser.convertStreamToString(
                         inputStream
                     )
-                )
+                ).toMutableMap()
+                figureMap["queen"] = Figure("queen",9,"n*")//ensure queen is in figure map
+                return figureMap
             } catch (e: Exception){
                 println(e.message.toString())
             }

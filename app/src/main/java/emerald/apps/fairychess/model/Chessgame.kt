@@ -1,10 +1,5 @@
 package emerald.apps.fairychess.model
 
-import android.app.AlertDialog
-import android.view.View
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.model.Bitboard.Companion.chessboardToBitboard
 import emerald.apps.fairychess.utility.ChessFormationParser
@@ -67,17 +62,17 @@ class Chessgame() {
         }
     }
 
-    fun getTargetMovements(sourceFile: Int, sourceRank: Int): List<ChessPiece.Movement> {
+    fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<ChessPiece.Movement> {
         //return chessboard.getTargetMovements(sourceFile, sourceRank,true)
-        return chessboardToBitboard(chessboard).getTargetMovementsAsMovementList(gameParameters.playerColor,sourceFile, sourceRank,true)
+        return chessboardToBitboard(chessboard).getTargetMovementsAsMovementList(gameParameters.playerColor,sourceRank, sourceFile,true)
     }
 
-    fun getPieceName(file: Int, rank: Int) : String{
-        return chessboard.pieces[file][rank].name
+    fun getPieceName(rank: Int, file: Int) : String{
+        return chessboard.pieces[rank][file].name
     }
 
-    fun getPieceColor(file: Int, rank: Int) : String{
-        return chessboard.pieces[file][rank].color
+    fun getPieceColor(rank: Int, file: Int) : String{
+        return chessboard.pieces[rank][file].color
     }
 
     fun getChessboard() : Chessboard {

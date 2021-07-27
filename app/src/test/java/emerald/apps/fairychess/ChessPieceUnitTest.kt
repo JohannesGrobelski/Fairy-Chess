@@ -3,7 +3,6 @@ package emerald.apps.fairychess
 import emerald.apps.fairychess.model.ChessPiece
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
-import org.apache.tools.ant.taskdefs.Move
 import org.junit.Test
 
 
@@ -48,10 +47,10 @@ class ChessPieceUnitTest {
         chessPiece.positionRank = sourceRank; chessPiece.positionFile = sourceFile
         generatedMovements = chessPiece.generateMovements()
         expectedMovements = arrayOf(
-            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,1,5),
-            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,1,1),
-            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,2,4),
-            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,2,2)
+            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,4,2),
+            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,2,2),
+            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,5,1),
+            ChessPiece.Movement(movementNotation,sourceFile,sourceRank,1,1)
         )
         assertEquals(expectedMovements.size,generatedMovements.size)
         for(i in expectedMovements.indices){
@@ -191,15 +190,15 @@ class ChessPieceUnitTest {
     @Test
     fun testStringMethods() {
         val movementList = mutableListOf<ChessPiece.Movement>()
-        for(i in 0..5){
-            val a = (Math.random()*100).toInt()
-            val b = (Math.random()*100).toInt()
-            val c = (Math.random()*100).toInt()
-            val d = (Math.random()*100).toInt()
-            val movement = ChessPiece.Movement(sourceFile = a,sourceRank = b,targetFile = c,targetRank = d)
+        for(i in 0..100){
+            val sourceRank = (Math.random()*8).toInt()
+            val sourceFile = (Math.random()*8).toInt()
+            val targetRank = (Math.random()*8).toInt()
+            val targetFile = (Math.random()*8).toInt()
+            val movement = ChessPiece.Movement(sourceRank = sourceRank,sourceFile = sourceFile,targetRank = targetRank,targetFile = targetFile)
             assertEquals(
                 movement
-                ,ChessPiece.Movement.fromStringToMovement(a.toString()+"_"+b+"_"+c+"_"+d)
+                ,ChessPiece.Movement.fromStringToMovement(sourceRank.toString()+"_"+sourceFile+"_"+targetRank+"_"+targetFile)
             )
             movementList.add(movement)
         }
@@ -209,9 +208,7 @@ class ChessPieceUnitTest {
 
         assertEquals(movementListConvert.size,movementList.size)
         for(i in movementListConvert.indices){
-            assertTrue(movementList[i].equals(movementListConvert[i]))
-
+            assertEquals(movementList[i],movementListConvert[i])
         }
-
     }
 }
