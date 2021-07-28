@@ -36,6 +36,7 @@ class Bitboard(
     //first element are white figures, second black figures
     var bbFigures : MutableMap<String, Array<ULong>> = mutableMapOf() //bitboard represents all figures of name and color on chessboard (e.g. all white pawns)
 
+    var bbMovedCaptured : ULong = 0uL //bitboard represents all figures that moved or are captured
     var bbComposite : ULong = 0uL //bitboard represents all figures on chessboard
     var bbColorComposite : Array<ULong> = arrayOf(0uL,0uL) //bitboard represents all figures of one color on chessboard
     var gameFinished = false
@@ -122,6 +123,9 @@ class Bitboard(
             //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
             bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
 
+
+            bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
+
             //add current position (as map bbFigures) to history
             moveHistory.add(bbFigures)
         }
@@ -129,23 +133,37 @@ class Bitboard(
 
 
     /** return a map of all posible moves for player of @color as bitmap*/
-    fun getAllPossibleMoves(color : String) : Map<Coordinate,ULong> {
+    fun getAllPossibleMoves(color : String, generatedCastlingMoves : Boolean) : Map<Coordinate,ULong> {
         val allPossibleMoves = mutableMapOf<Coordinate,ULong>()
         val pos = ("black" == color).toInt()
         for(rank in 0..7){
             for(file in 0..7){
                 val bbFigure = generate64BPositionFromCoordinates(rank,file)
-                val name = getNameOfFigure(pos, bbFigure)
-                if(name.isEmpty())continue //empty field
-                if(bbColorComposite[pos] and bbFigure == bbFigure){
-                    allPossibleMoves[Coordinate(rank,file)] = getTargetMovements(name,color,file,rank)
+                if((bbColorComposite[pos] and bbFigure) == bbFigure){
+                    val name = getNameOfFigure(pos, bbFigure)
+                    if(name.isEmpty())continue //empty field
+                    allPossibleMoves[Coordinate(rank,file)] = getTargetMovements(
+                        name,
+                        color,
+                        rank,
+                        file,
+                        generatedCastlingMoves
+                    )
+                } else {
+                    allPossibleMoves.remove(Coordinate(rank,file))
                 }
             }
         }
         return allPossibleMoves.toMap()
     }
 
-
+    fun moveMapToComposite(moveMap : Map<Coordinate,ULong>) : ULong {
+        var bbMoves = 0uL
+        for(move in moveMap.keys){
+            bbMoves = bbMoves or moveMap[move]!!
+        }
+        return bbMoves
+    }
 
     fun getNameOfFigure(pos: Int, bbFigure:ULong) : String{
         for(name in bbFigures.keys){
@@ -159,14 +177,20 @@ class Bitboard(
     /**
      * return a list of possible movements of the figure at (sourceRank,sourceFile)
      * */
-    fun getTargetMovements(name:String, color: String, sourceRank:Int, sourceFile: Int) : ULong {
+    fun getTargetMovements(
+        name: String,
+        color: String,
+        sourceRank: Int,
+        sourceFile: Int,
+        generateCastlingMoves: Boolean
+    ) : ULong {
         if(!(sourceRank in 0..7 && sourceFile in 0..7))return 0uL
         val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
         val movementNotationList = getMovementNotation(movementString)
         val bbFigure = generate64BPositionFromCoordinates(sourceRank,sourceFile)
         var bbTargets = generateMovements(color,sourceRank,sourceFile,movementNotationList)
         bbTargets = deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
-        if(name == "king"){//create castling moves, if possible
+        if(name == "king" && generateCastlingMoves){//create castling moves, if possible
             bbTargets = genCastlingMoves(color,sourceRank,sourceFile,bbTargets)
         }
         var resultMovement = 0uL
@@ -179,28 +203,41 @@ class Bitboard(
 
     fun genCastlingMoves(color: String, sourceRank:Int, sourceFile: Int,bbTargetsMap: Map<ChessPiece.MovementNotation,ULong>) : Map<ChessPiece.MovementNotation,ULong>{
         val ownColorPos = ("black" == color).toInt()
+        var bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
+
+        //println(bitboardToString(bbEnemyMoves))
+
+
         //1. king has not moved
         if(bbFigures["king"]!![ownColorPos] and generate64BPositionFromCoordinates(sourceRank,sourceFile) == bbFigures["king"]!![ownColorPos]){
+            var bbRook: ULong
+            var bbMoveRoom : ULong
             if(color == "white"){
                 //small castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomSmallWhite and bbColorComposite[1-ownColorPos]!! == bbCastlingRoomSmallBlack){
+                if(bbCastlingRoomSmallWhite and bbEnemyMoves == bbCastlingRoomSmallWhite){
                     //3. check if rook has not moved
-                    if(true){
+                    bbRook = generate64BPositionFromCoordinates(7,0)
+                    if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
-                        if(true){
-
+                        bbMoveRoom = bbCastlingRoomSmallWhite and bbRook.inv()
+                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
+                            moveFigure("rook","white",7,0,5,0)
+                            moveFigure("king","white",4,0,6,0)
                         }
                     }
                 }
                 //large castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomSmallWhite and bbColorComposite[1-ownColorPos]!! == bbCastlingRoomSmallBlack){
+                if(bbCastlingRoomLargeWhite and bbEnemyMoves == bbCastlingRoomLargeWhite){
                     //3. check if rook has not moved
-                    if(true){
+                    bbRook = generate64BPositionFromCoordinates(0,0)
+                    if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
-                        if(true){
-
+                        bbMoveRoom = bbCastlingRoomLargeWhite and bbRook.inv()
+                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
+                            moveFigure("rook","white",0,0,3,0)
+                            moveFigure("king","white",4,0,2,0)
                         }
                     }
                 }
@@ -208,38 +245,35 @@ class Bitboard(
             } else {
                 //small castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomSmallWhite and bbColorComposite[1-ownColorPos]!! == bbCastlingRoomSmallBlack){
+                if(bbCastlingRoomSmallBlack and bbEnemyMoves == bbCastlingRoomSmallBlack){
                     //3. check if rook has not moved
-                    if(true){
+                    bbRook = generate64BPositionFromCoordinates(7,7)
+                    if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
-                        if(true){
-
+                        bbMoveRoom = bbCastlingRoomSmallBlack and bbRook.inv()
+                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
+                            moveFigure("rook","white",7,7,5,7)
+                            moveFigure("king","white",4,7,6,7)
                         }
                     }
                 }
-
-
                 //large castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomSmallWhite and bbColorComposite[1-ownColorPos]!! == bbCastlingRoomSmallBlack){
+                if(bbCastlingRoomLargeBlack and bbEnemyMoves == bbCastlingRoomLargeBlack){
                     //3. check if rook has not moved
-                    if(true){
+                    bbRook = generate64BPositionFromCoordinates(0,7)
+                    if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
-                        if(true){
-
+                        bbMoveRoom = bbCastlingRoomLargeBlack and bbRook.inv()
+                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
+                            moveFigure("rook","white",0,7,3,7)
+                            moveFigure("king","white",4,7,2,7)
                         }
                     }
                 }
-
-            }
-            //2. king,rook or transfer squares are not under attack
-            if(bbColorComposite[1-ownColorPos] and bbFigures["king"]!![ownColorPos] == 0uL){
 
             }
         }
-
-
-
         return bbTargetsMap
     }
 
@@ -1122,20 +1156,6 @@ class Bitboard(
             return mapOf()
         }
 
-        fun bitboardToString(bitboard : ULong) : String {
-            val picture = java.lang.StringBuilder("")
-            var pointer = 1uL
-            for(i in 63 downTo 0){
-                if((2.0).pow(i.toDouble()).toULong() and bitboard == (2.0).pow(i.toDouble()).toULong()){
-                    picture.append("X")
-                } else {
-                    picture.append(".")
-                }
-                if((i-1) % 8 == 0)picture.append("\n")
-            }
-            return picture.toString()
-        }
-
         private fun parseChessFormation(mode: String) : Array<Array<String>> {
             try {
                 val absPath =
@@ -1170,4 +1190,25 @@ private fun generateSpecialMoveCheckCastling(color : String, bbFigureNonRelative
 private fun generateSpecialEnpassante(color : String, bbFigureNonRelativeTargets:ULong) : ULong{
     var returnValue = bbFigureNonRelativeTargets
     return returnValue
+}
+
+
+fun bitboardToString(bitboard: ULong) : String{
+    val str = StringBuilder("")
+    var cnt = 0
+    for(file in 7 downTo 0){
+        str.append(file.toString()+" | ")
+        for(rank in 0..7){
+            val num = 1uL shl rank shl (8*file)
+            if(bitboard and num == num){
+                str.append("X")
+                str.append(" | ")
+                ++cnt
+            } else {
+                str.append("  | ")
+            }
+        }
+        str.append("\n--+---+---+---+---+---+---+---+---+\n")
+    }
+    return str.toString()
 }
