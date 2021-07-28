@@ -23,8 +23,6 @@ class ChessAI {
     //Fields for move ordering
     private val transpositionTable = Hashtable<String, MovementValue>()
 
-
-
     fun calcMove(chessboard: Chessboard) : ChessPiece.Movement?{
         cnt_movements = 0
         when (algorithm) {

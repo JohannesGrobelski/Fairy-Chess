@@ -454,6 +454,10 @@ class ChessPiece(
             } else super.equals(other)
         }
 
+        override fun toString(): String {
+            return grouping+conditions.toString()+movetype+distances+direction
+        }
+
         companion object {
             val CASTLING_MOVEMENT = MovementNotation("", listOf(),"", listOf(),"")
 

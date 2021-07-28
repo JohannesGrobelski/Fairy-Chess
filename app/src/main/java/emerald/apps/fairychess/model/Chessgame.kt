@@ -64,7 +64,7 @@ class Chessgame() {
 
     fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<ChessPiece.Movement> {
         //return chessboard.getTargetMovements(sourceFile, sourceRank,true)
-        return chessboardToBitboard(chessboard).getTargetMovementsAsMovementList(gameParameters.playerColor,sourceRank, sourceFile,true)
+        return chessboardToBitboard(chessboard).getTargetMovementsAsMovementList(gameParameters.playerColor,sourceRank, sourceFile)
     }
 
     fun getPieceName(rank: Int, file: Int) : String{
