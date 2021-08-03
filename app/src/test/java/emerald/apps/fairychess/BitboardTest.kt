@@ -28,12 +28,6 @@ class BitboardTest {
     @Test
     fun testBitboardInit(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
-        var sum = 0.0
-        for(i in 0..1000){
-            sum += measureTimeMillis { bitboard.getAllPossibleMoves("white",false) }
-        }
-        println(sum / 1000)
-
         assertEquals("7 | r | k | b | q | k | b | k | r | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "6 | p | p | p | p | p | p | p | p | \n" +
@@ -104,7 +98,7 @@ class BitboardTest {
 
     @Test
     fun testMovegenerationKings(){
-        val bitboard = Bitboard(chessFormationArray,figureMap)
+        var bitboard = Bitboard(chessFormationArray,figureMap)
         //kings initial position
         assertEquals(0uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
         assertEquals(0uL,bitboard.getTargetMovements("king", "white", 4, 0, true))
@@ -115,22 +109,50 @@ class BitboardTest {
         assertEquals(846636838289408uL,bitboard.getTargetMovements("king", "white", 0, 5, true))
         assertEquals(2211908157440uL,bitboard.getTargetMovements("king", "black", 0, 5, true))
 
-        //TODO: test castling
         //small castling
+        //move knights and bishops
         bitboard.moveFigure("knight","white",6,0,7,2)
         bitboard.moveFigure("knight","black",6,7,7,5)
         bitboard.moveFigure("pawn","white",6,1,6,2)
         bitboard.moveFigure("pawn","black",6,6,6,5)
         bitboard.moveFigure("bishop","white",5,0,6,1)
         bitboard.moveFigure("bishop","black",5,7,6,6)
+        //check if both kings can castle kingside
+        assertEquals(96uL,bitboard.getTargetMovements("king", "white", 4, 0, true))
+        assertEquals(6917529027641081856uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
+        //make castling move and check positions of rook and king
+        bitboard.moveFigure("king","white",4,0,6,0)
+        assertEquals(64uL,bitboard.bbFigures["king"]!![0])
+        assertEquals(33uL,bitboard.bbFigures["rook"]!![0])
+        //make castling move and check positions of rook and king
+        bitboard.moveFigure("king","black",4,7,6,7)
+        assertEquals(4611686018427387904uL,bitboard.bbFigures["king"]!![1])
+        assertEquals(2377900603251621888uL,bitboard.bbFigures["rook"]!![1])
 
-        println(bitboardToString(bitboard.moveMapToComposite(bitboard.getAllPossibleMoves("white",false))))
-        println(bitboard.toString())
-
-        //println(bitboardToString(bitboard.getTargetMovements("king", "white", 4, 0, true)))
-
-        /*println(bitboardToString(bitboard.getTargetMovements("king","black",0, 5)))
-        println(bitboard.getTargetMovements("king","black",0,5))*/
+        //large castling
+        //move knights, bishops and queens
+        bitboard = Bitboard(chessFormationArray,figureMap)
+        bitboard.moveFigure("knight","white",1,0,0,2)
+        bitboard.moveFigure("knight","black",1,7,0,5)
+        bitboard.moveFigure("pawn","white",2,1,2,2)
+        bitboard.moveFigure("pawn","black",2,6,2,5)
+        bitboard.moveFigure("pawn","white",3,1,3,2)
+        bitboard.moveFigure("pawn","black",3,6,3,5)
+        bitboard.moveFigure("bishop","white",2,0,3,1)
+        bitboard.moveFigure("bishop","black",2,7,3,6)
+        bitboard.moveFigure("queen","white",3,0,2,1)
+        bitboard.moveFigure("queen","black",3,7,2,6)
+        //check if both kings can castle queenside
+        assertEquals(12uL,bitboard.getTargetMovements("king", "white", 4, 0, true))
+        assertEquals(864691128455135232uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
+        //make castling move and check positions of rook and king
+        bitboard.moveFigure("king","white",4,0,2,0)
+        assertEquals(4uL,bitboard.bbFigures["king"]!![0])
+        assertEquals(136uL,bitboard.bbFigures["rook"]!![0])
+        //make castling move and check positions of rook and king
+        bitboard.moveFigure("king","black",4,7,2,7)
+        assertEquals(288230376151711744uL,bitboard.bbFigures["king"]!![1])
+        assertEquals(9799832789158199296uL,bitboard.bbFigures["rook"]!![1])
     }
 
     @Test
@@ -227,11 +249,11 @@ class BitboardTest {
 
         //TODO: test enpassante black
         bitboard = Bitboard(chessFormationArray,figureMap)
+        //white enpassante
         bitboard.moveFigure("pawn","white",2,1,2,3)
         bitboard.moveFigure("pawn","black",3,6,3,4)
         bitboard.moveFigure("pawn","white",2,3,2,4)
         bitboard.moveFigure("pawn","black",1,6,1,4)
-
         println(bitboardToString(bitboard.getTargetMovements("pawn", "white", 2, 4, true)))
         //println(bitboardToString(moveMapToCompositeBB(bitboard.getAllPossibleMoves("white"))))
         //test enpassante white

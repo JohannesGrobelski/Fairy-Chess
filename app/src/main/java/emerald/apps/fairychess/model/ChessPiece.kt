@@ -459,6 +459,12 @@ class ChessPiece(
         }
 
         companion object {
+            val KING = MovementNotation("", listOf(),"", listOf("1"),"*")
+            val CASTLING_SMALL_WHITE = MovementNotation("", listOf(),"", listOf(),"")
+            val CASTLING_LARGE_WHITE = MovementNotation("", listOf(),"", listOf(),"")
+            val CASTLING_SMALL_BLACK = MovementNotation("", listOf(),"", listOf(),"")
+            val CASTLING_LARGE_BLACK = MovementNotation("", listOf(),"", listOf(),"")
+
             val CASTLING_MOVEMENT = MovementNotation("", listOf(),"", listOf(),"")
 
             fun parseMovementString(movementString : String) : List<MovementNotation> {

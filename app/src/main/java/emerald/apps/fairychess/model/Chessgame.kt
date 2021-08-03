@@ -33,6 +33,7 @@ class Chessgame() {
         figureMap = FigureParser.parseFigureMapFromFile(chessActivity)
 
         chessboard = Chessboard(chessFormationArray, figureMap)
+
         this.gameData = gameData
         this.gameParameters = gameParameters
         this.opponentColor = Chessboard.oppositeColor(gameParameters.playerColor)
@@ -48,8 +49,7 @@ class Chessgame() {
             if(returnValue == ""){
                 when(gameParameters.playMode){
                     "ai" -> {
-                        /*val ai = StubChessAI(opponentColor,this)
-                        ai.moveFigure(this)*/
+
                     }
                     "human" -> {
 
@@ -63,8 +63,9 @@ class Chessgame() {
     }
 
     fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<ChessPiece.Movement> {
-        //return chessboard.getTargetMovements(sourceFile, sourceRank,true)
-        return chessboardToBitboard(chessboard).getTargetMovementsAsMovementList(gameParameters.playerColor,sourceRank, sourceFile)
+        val bitboard = chessboardToBitboard(chessboard)
+        println(bitboard.toString())
+        return bitboard.getTargetMovementsAsMovementList(bitboard.moveColor,sourceRank, sourceFile)
     }
 
     fun getPieceName(rank: Int, file: Int) : String{

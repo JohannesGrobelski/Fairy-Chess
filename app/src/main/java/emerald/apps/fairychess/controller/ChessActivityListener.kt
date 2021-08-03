@@ -188,8 +188,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     targetFile = clickedFile
                 )
                 var moveResult = ""
-                moveResult = chessgame.movePlayer(movement, gameParameters.playerColor)
-
+                moveResult = chessgame.movePlayer(movement, chessgame.getChessboard().moveColor)
                 if(chessgame.gameFinished){
                     if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
                         finishGame(chessgame.getChessboard().gameWinner + " won", true)
@@ -209,13 +208,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 }
                 if(gameParameters.playMode=="ai"){
                     //calculate ai move in coroutine to avoid blocking the ui thread
-                    calcMoveJob = CoroutineScope(Dispatchers.Main).launch {
+                    /*calcMoveJob = CoroutineScope(Dispatchers.Main).launch {
                         try{
                             chessgame.movePlayer(chessAI.calcMove(chessgame.getChessboard()), chessAI.color)
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)
                         }
-                    }
+                    }*/
                 }
                 displayFigures()
             }

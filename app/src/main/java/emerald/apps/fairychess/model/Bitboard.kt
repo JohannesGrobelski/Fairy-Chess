@@ -128,6 +128,25 @@ class Bitboard(
 
             //add current position (as map bbFigures) to history
             moveHistory.add(bbFigures)
+            if(name == "king" && abs(sourceRank-targetRank) == 2){
+                makeCastlingMove(color,sourceRank, sourceFile, targetRank, targetFile)
+            }
+        }
+    }
+
+    fun makeCastlingMove(color: String, sourceRank:Int, sourceFile:Int, targetRank:Int, targetFile:Int){
+        if(color ==  "white"){
+            if(targetRank == 2){ //large white castling move
+                moveFigure("rook",color,0,0,3,0)
+            } else { //small white castling move
+                moveFigure("rook",color,7,0,5,0)
+            }
+        } else {
+            if(targetRank == 2){ //large black castling move
+                moveFigure("rook",color,0,7,3,7)
+            } else { //small black castling move
+                moveFigure("rook",color,7,7,5,7)
+            }
         }
     }
 
@@ -189,10 +208,8 @@ class Bitboard(
         val movementNotationList = getMovementNotation(movementString)
         val bbFigure = generate64BPositionFromCoordinates(sourceRank,sourceFile)
         var bbTargets = generateMovements(color,sourceRank,sourceFile,movementNotationList)
-        bbTargets = deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
-        if(name == "king" && generateCastlingMoves){//create castling moves, if possible
-            bbTargets = genCastlingMoves(color,sourceRank,sourceFile,bbTargets)
-        }
+        deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
+        genSpecialMoves(name,color,sourceRank,sourceFile,bbTargets,generateCastlingMoves)
         var resultMovement = 0uL
         for(key in bbTargets.keys){
             val targets : ULong = bbTargets[key] ?: error("")
@@ -201,12 +218,15 @@ class Bitboard(
         return resultMovement
     }
 
-    fun genCastlingMoves(color: String, sourceRank:Int, sourceFile: Int,bbTargetsMap: Map<ChessPiece.MovementNotation,ULong>) : Map<ChessPiece.MovementNotation,ULong>{
+    fun genSpecialMoves(name: String, color: String, sourceRank:Int, sourceFile: Int,bbTargetsMap: MutableMap<ChessPiece.MovementNotation,ULong>, generateCastlingMoves: Boolean) {
+        if(name == "king" && generateCastlingMoves){//create castling moves, if possible
+             genCastlingMoves(color,sourceRank,sourceFile,bbTargetsMap)
+        }
+    }
+
+    fun genCastlingMoves(color: String, sourceRank:Int, sourceFile: Int,bbTargetsMap: MutableMap<ChessPiece.MovementNotation,ULong>){
         val ownColorPos = ("black" == color).toInt()
         var bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
-
-        //println(bitboardToString(bbEnemyMoves))
-
 
         //1. king has not moved
         if(bbFigures["king"]!![ownColorPos] and generate64BPositionFromCoordinates(sourceRank,sourceFile) == bbFigures["king"]!![ownColorPos]){
@@ -215,29 +235,29 @@ class Bitboard(
             if(color == "white"){
                 //small castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomSmallWhite and bbEnemyMoves == bbCastlingRoomSmallWhite){
+                if(bbCastlingRoomSmallWhite and bbEnemyMoves.inv() == bbCastlingRoomSmallWhite){
                     //3. check if rook has not moved
                     bbRook = generate64BPositionFromCoordinates(7,0)
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomSmallWhite and bbRook.inv()
-                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
-                            moveFigure("rook","white",7,0,5,0)
-                            moveFigure("king","white",4,0,6,0)
+                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                        if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
+                            addCoordinateToMovementBitboard(color, ChessPiece.MovementNotation.KING,sourceRank,sourceFile,6,0,bbTargetsMap)
                         }
                     }
                 }
                 //large castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomLargeWhite and bbEnemyMoves == bbCastlingRoomLargeWhite){
+                if(bbCastlingRoomLargeWhite and bbEnemyMoves.inv() == bbCastlingRoomLargeWhite){
                     //3. check if rook has not moved
                     bbRook = generate64BPositionFromCoordinates(0,0)
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomLargeWhite and bbRook.inv()
-                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
-                            moveFigure("rook","white",0,0,3,0)
-                            moveFigure("king","white",4,0,2,0)
+                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                        if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
+                            addCoordinateToMovementBitboard(color, ChessPiece.MovementNotation.KING,sourceRank,sourceFile,2,0,bbTargetsMap)
                         }
                     }
                 }
@@ -245,56 +265,57 @@ class Bitboard(
             } else {
                 //small castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomSmallBlack and bbEnemyMoves == bbCastlingRoomSmallBlack){
+                if(bbCastlingRoomSmallBlack and bbEnemyMoves.inv() == bbCastlingRoomSmallBlack){
                     //3. check if rook has not moved
                     bbRook = generate64BPositionFromCoordinates(7,7)
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomSmallBlack and bbRook.inv()
-                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
-                            moveFigure("rook","white",7,7,5,7)
-                            moveFigure("king","white",4,7,6,7)
+                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                        if(bbMoveRoom and bbComposite.inv().toULong() == bbMoveRoom){
+                            addCoordinateToMovementBitboard(color, ChessPiece.MovementNotation.KING,sourceRank,sourceFile,6,7,bbTargetsMap)
                         }
                     }
                 }
                 //large castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomLargeBlack and bbEnemyMoves == bbCastlingRoomLargeBlack){
+                if(bbCastlingRoomLargeBlack and bbEnemyMoves.inv() == bbCastlingRoomLargeBlack){
                     //3. check if rook has not moved
                     bbRook = generate64BPositionFromCoordinates(0,7)
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomLargeBlack and bbRook.inv()
-                        if(bbMoveRoom and bbColorComposite[1-ownColorPos] == bbMoveRoom){
-                            moveFigure("rook","white",0,7,3,7)
-                            moveFigure("king","white",4,7,2,7)
+                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                        if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
+                            addCoordinateToMovementBitboard(color, ChessPiece.MovementNotation.KING,sourceRank,sourceFile,2,7,bbTargetsMap)
                         }
                     }
                 }
-
             }
         }
-        return bbTargetsMap
     }
 
 
     /**
      * return a list of possible movements of the figure at (sourceRank,sourceFile)
      * */
-    fun getTargetMovementsAsMovementList(color: String, sourceFile:Int, sourceRank: Int) : List<ChessPiece.Movement> {
+    fun getTargetMovementsAsMovementList(color: String, sourceRank:Int, sourceFile: Int) : List<ChessPiece.Movement> {
         val pos = ("black" == color).toInt()
         val bbFigure = generate64BPositionFromCoordinates(sourceRank,sourceFile)
-        val name = getNameOfFigure(pos, bbFigure)
-        val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
-        val movementNotationList = getMovementNotation(movementString)
-        var bbTargets = generateMovements(color,sourceRank,sourceFile,movementNotationList)
-        bbTargets = deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
-
+        if(bbComposite and bbFigure == 0uL)return emptyList()
         val movementList = mutableListOf<ChessPiece.Movement>()
-        for(movementNotation in bbTargets.keys){
-            val moveList = generateCoordinatesFrom64BPosition(bbTargets[movementNotation]!!)
-            for(move in moveList){
-                movementList.add(ChessPiece.Movement(movementNotation,sourceRank,sourceFile,move.file,move.rank))
+        val name = getNameOfFigure(pos, bbFigure)
+        if(name in figureMap.keys){
+            val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
+            val movementNotationList = getMovementNotation(movementString)
+            var bbTargets = generateMovements(color,sourceRank,sourceFile,movementNotationList)
+            deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
+            //transform bbTargets into movementList
+            for(movementNotation in bbTargets.keys){
+                val moveList = generateCoordinatesFrom64BPosition(bbTargets[movementNotation]!!)
+                for(move in moveList){
+                    movementList.add(ChessPiece.Movement(movementNotation,sourceRank,sourceFile,move.rank,move.file))
+                }
             }
         }
         return movementList
@@ -307,7 +328,7 @@ class Bitboard(
                            color: String,
                            bbFigure: ULong,
                            bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
-                           movementNotationList: List<ChessPiece.MovementNotation> ) : MutableMap<ChessPiece.MovementNotation,ULong>{
+                           movementNotationList: List<ChessPiece.MovementNotation> ) {
         var newBBFigureNonRelativeTargets = bbFigureNonRelativeTargets
         val pos = (color != "black").toInt()
         for(movementNotation in movementNotationList){
@@ -331,10 +352,9 @@ class Bitboard(
                 }
             }
             if(movementNotation.movetype == "g") {//moves by leaping over piece to an empty square (if leaped over enemy => capture)
-                newBBFigureNonRelativeTargets = leapMoveCheck(figureName,color,bbFigure,bbFigureNonRelativeTargets,movementNotation)
+                leapMoveCheck(figureName,color,bbFigure,bbFigureNonRelativeTargets,movementNotation)
             }
         }
-        return newBBFigureNonRelativeTargets
     }
 
     /** deletes the leap moves that are illegal */
@@ -342,9 +362,8 @@ class Bitboard(
                               color: String,
                               bbFigure: ULong,
                               bbFigureNonRelativeTargets: MutableMap<ChessPiece.MovementNotation,ULong>,
-                              movementNotation: ChessPiece.MovementNotation) : MutableMap<ChessPiece.MovementNotation,ULong>{
+                              movementNotation: ChessPiece.MovementNotation){
         //TODO
-        return bbFigureNonRelativeTargets
     }
 
     /** deletes the calculated enpassante moves that are illegal */
@@ -386,7 +405,7 @@ class Bitboard(
         sourceRank:Int,
         sourceFile: Int,
         movementNotationList: List<ChessPiece.MovementNotation>
-    ) : Map<ChessPiece.MovementNotation,ULong> {
+    ) : MutableMap<ChessPiece.MovementNotation,ULong> {
         val bbMovementMap = mutableMapOf<ChessPiece.MovementNotation,ULong>()
         for (movementNotation in movementNotationList) {
             bbMovementMap[movementNotation] = 0uL
@@ -901,8 +920,14 @@ class Bitboard(
         //TODO delete fullfills condition
             //check if move is legal
             //if(fullfillsCondition(color,sourceFile, sourceRank, targetFile, targetRank, movementNotation)){
-                val targetBB =  generate64BPositionFromCoordinates(targetRank,targetFile)
+            val a = bbMovementMap.keys.toTypedArray()[0].hashCode()
+            val b = movementNotation.hashCode()
+            val targetBB =  generate64BPositionFromCoordinates(targetRank,targetFile)
+            if(bbMovementMap.keys.contains(movementNotation)){
                 bbMovementMap[movementNotation] = bbMovementMap[movementNotation]!! or targetBB
+            } else {
+                bbMovementMap[movementNotation] = targetBB
+            }
             //}
     }
 
@@ -1075,6 +1100,7 @@ class Bitboard(
                     bitboard.setFigure(piece.name,piece.color,rank,file)
                 }
             }
+            bitboard.moveColor = chessboard.moveColor
             return bitboard
         }
 

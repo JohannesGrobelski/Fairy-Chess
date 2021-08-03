@@ -160,21 +160,15 @@ class ChessAI {
         }
     }
 
-
     fun getPointDif(chessboard: Chessboard) : Int{
         ++cnt_movements
         return chessboard.pointsBlack() - chessboard.pointsWhite()
     }
-
-
 
     fun calcRandomMove(chessboard: Chessboard) : ChessPiece.Movement{
         val allMoves = chessboard.getAllPossibleMoves(color)
         return allMoves[(Math.random()*allMoves.size).toInt()]
     }
 
-
-
     class MovementValue(val movement: ChessPiece.Movement?, val value: Int)
-
 }

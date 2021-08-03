@@ -113,8 +113,8 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
             if(!(
                 nonRelativeMovement.sourceFile !in 0..7 || nonRelativeMovement.sourceRank !in 0..7
                 || nonRelativeMovement.targetFile !in 0..7 || nonRelativeMovement.targetRank !in 0..7
-                    || pieces[nonRelativeMovement.targetRank][nonRelativeMovement.targetFile].color == pieces[sourceFile][sourceRank].color)
-                        && !isShadowedByFigure(sourceFile,sourceRank,nonRelativeMovement.targetRank,nonRelativeMovement.targetFile)
+                    || pieces[nonRelativeMovement.targetRank][nonRelativeMovement.targetFile].color == pieces[sourceRank][sourceFile].color)
+                        && !isShadowedByFigure(sourceRank,sourceFile,nonRelativeMovement.targetRank,nonRelativeMovement.targetFile)
                             && fullfillsCondition(nonRelativeMovement)){
                 relativeMovements.add(nonRelativeMovement)
             }
