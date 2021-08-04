@@ -460,6 +460,7 @@ class ChessPiece(
 
         companion object {
             val KING = MovementNotation("", listOf(),"", listOf("1"),"*")
+            val PAWN_ENPASSANTE = MovementNotation("", listOf(),"", listOf("1"),"EN_PASSANTE")
             val CASTLING_SMALL_WHITE = MovementNotation("", listOf(),"", listOf(),"")
             val CASTLING_LARGE_WHITE = MovementNotation("", listOf(),"", listOf(),"")
             val CASTLING_SMALL_BLACK = MovementNotation("", listOf(),"", listOf(),"")

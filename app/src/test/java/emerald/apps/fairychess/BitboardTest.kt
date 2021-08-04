@@ -5,8 +5,10 @@ import emerald.apps.fairychess.model.Bitboard.Companion.add64BPositionFromCoordi
 import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromCoordinates
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
+import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import kotlin.math.pow
@@ -232,10 +234,27 @@ class BitboardTest {
     }
 
     @Test
+    fun testMoveHistory(){
+        var bitboard = Bitboard(chessFormationArray,figureMap)
+
+        val entry1 = mapOf<String,Array<ULong>>(
+            "entry1" to arrayOf()
+        )
+        val entry2 = mapOf<String,Array<ULong>>(
+            "entry2" to arrayOf()
+        )
+        bitboard.addEntryToHistory(entry1)
+        assertTrue(bitboard.moveHistory[0].containsKey("entry1"))
+        bitboard.addEntryToHistory(entry2)
+        assertTrue(bitboard.moveHistory[0].containsKey("entry1"))
+        assertTrue(bitboard.moveHistory[1].containsKey("entry2"))
+    }
+
+    @Test
     fun testMovegenerationPawns(){
         var bitboard = Bitboard(chessFormationArray,figureMap)
 
-        //white pawn can capture black 2 pawns
+        //white pawn can capture 2 black pawns
         assertEquals(2814749767106560uL,bitboard.getTargetMovements("pawn", "white", 2, 5, true))
         //white pawn initial movement
         assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", 2, 1, true))
@@ -249,12 +268,31 @@ class BitboardTest {
 
         //TODO: test enpassante black
         bitboard = Bitboard(chessFormationArray,figureMap)
-        //white enpassante
+        //white enpassante left
         bitboard.moveFigure("pawn","white",2,1,2,3)
         bitboard.moveFigure("pawn","black",3,6,3,4)
         bitboard.moveFigure("pawn","white",2,3,2,4)
         bitboard.moveFigure("pawn","black",1,6,1,4)
-        println(bitboardToString(bitboard.getTargetMovements("pawn", "white", 2, 4, true)))
+        assertEquals(6597069766656uL, bitboard.getTargetMovements("pawn", "white", 2, 4, true))
+        bitboard.moveFigure("pawn","white",2,4,1,5)
+        assertEquals(2199023319808uL, bitboard.bbFigures["pawn"]!![0])
+        assertEquals(68961403653849088uL, bitboard.bbFigures["pawn"]!![1])
+
+        //black enpassante right
+        bitboard.moveFigure("pawn","black",3,4,3,3)
+        bitboard.moveFigure("pawn","white",4,1,4,3)
+        assertEquals(1572864uL, bitboard.getTargetMovements("pawn", "black", 3,3, true))
+        bitboard.moveFigure("pawn","black",3,3,4,2)
+        assertEquals(2199023315712uL, bitboard.bbFigures["pawn"]!![0])
+        assertEquals(68961369295159296uL, bitboard.bbFigures["pawn"]!![1])
+
+        println(bitboard.toString())
+        println(bitboardToString(bitboard.bbFigures["pawn"]!![1]))
+        println(bitboard.bbFigures["pawn"]!![1])
+
+       /* println(bitboardToString(bitboard.getTargetMovements("pawn", "black", 4,2, true)))
+        println(bitboard.getTargetMovements("pawn", "black", 3,3, true))*/
+
         //println(bitboardToString(moveMapToCompositeBB(bitboard.getAllPossibleMoves("white"))))
         //test enpassante white
 
