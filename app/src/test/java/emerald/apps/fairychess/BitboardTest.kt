@@ -27,6 +27,7 @@ class BitboardTest {
         figureMap = parseFigureMapFromFile()
     }
 
+
     @Test
     fun testBitboardInit(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
@@ -45,55 +46,16 @@ class BitboardTest {
                 "1 | P | P | P | P | P | P | P | P | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "0 | R | K | B | Q | K | B | K | R | \n" +
-                "--+---+---+---+---+---+---+---+---+\n",bitboard.toString())
-        assertEquals("7 | X | X | X | X | X | X | X | X | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
-                "6 | X | X | X | X | X | X | X | X | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "5 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "4 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "3 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "2 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "1 | X | X | X | X | X | X | X | X | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "0 | X | X | X | X | X | X | X | X | \n" +
-                "--+---+---+---+---+---+---+---+---+\n",bitboardToString(bitboard.bbComposite))
-        assertEquals("7 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "6 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "5 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "4 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "3 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "2 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "1 | X | X | X | X | X | X | X | X | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "0 | X | X | X | X | X | X | X | X | \n" +
-                "--+---+---+---+---+---+---+---+---+\n",bitboardToString(bitboard.bbColorComposite[0]))
-        assertEquals("7 | X | X | X | X | X | X | X | X | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "6 | X | X | X | X | X | X | X | X | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "5 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "4 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "3 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "2 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "1 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n" +
-                "0 |   |   |   |   |   |   |   |   | \n" +
-                "--+---+---+---+---+---+---+---+---+\n",bitboardToString(bitboard.bbColorComposite[1]))
+                "  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n" +
+                "  +---+---+---+---+---+---+---+---+\n",bitboard.toString())
+        assertEquals(18446462598732906495uL,bitboard.bbComposite)
+        assertEquals(65535uL,bitboard.bbColorComposite[0])
+        assertEquals(18446462598732840960uL,bitboard.bbColorComposite[1])
+        assertEquals(0uL,bitboard.bbMovedCaptured)
+
+
+
         assertEquals(1039,bitboard.pointsBlack())
         assertEquals(1039,bitboard.pointsWhite())
     }
@@ -102,57 +64,58 @@ class BitboardTest {
     fun testMovegenerationKings(){
         var bitboard = Bitboard(chessFormationArray,figureMap)
         //kings initial position
-        assertEquals(0uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
-        assertEquals(0uL,bitboard.getTargetMovements("king", "white", 4, 0, true))
+        assertEquals(0uL,bitboard.getTargetMovements("king", "black",
+            Bitboard.Companion.Coordinate(4, 7), true))
+        assertEquals(0uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0, true))
         //kings in middle
-        assertEquals(88441966559232uL,bitboard.getTargetMovements("king", "black", 5, 5, true))
-        assertEquals(31613639358152704uL,bitboard.getTargetMovements("king", "white", 5, 5, true))
+        assertEquals(88441966559232uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(5, 5, true))
+        assertEquals(31613639358152704uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(5, 5, true))
         //kings on edge
-        assertEquals(846636838289408uL,bitboard.getTargetMovements("king", "white", 0, 5, true))
-        assertEquals(2211908157440uL,bitboard.getTargetMovements("king", "black", 0, 5, true))
+        assertEquals(846636838289408uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(0, 5, true))
+        assertEquals(2211908157440uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(0, 5, true))
 
         //small castling
         //move knights and bishops
-        bitboard.moveFigure("knight","white",6,0,7,2)
-        bitboard.moveFigure("knight","black",6,7,7,5)
-        bitboard.moveFigure("pawn","white",6,1,6,2)
-        bitboard.moveFigure("pawn","black",6,6,6,5)
-        bitboard.moveFigure("bishop","white",5,0,6,1)
-        bitboard.moveFigure("bishop","black",5,7,6,6)
+        bitboard.moveFigure("knight","white",Bitboard.Movement(6,0,7,2))
+        bitboard.moveFigure("knight","black",Bitboard.Movement(6,7,7,5))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(6,1,6,2))
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(6,6,6,5))
+        bitboard.moveFigure("bishop","white",Bitboard.Movement(5,0,6,1))
+        bitboard.moveFigure("bishop","black",Bitboard.Movement(5,7,6,6))
         //check if both kings can castle kingside
-        assertEquals(96uL,bitboard.getTargetMovements("king", "white", 4, 0, true))
+        assertEquals(96uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0, true))
         assertEquals(6917529027641081856uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
         //make castling move and check positions of rook and king
-        bitboard.moveFigure("king","white",4,0,6,0)
+        bitboard.moveFigure("king","white",Bitboard.Movement(4,0,6,0)
         assertEquals(64uL,bitboard.bbFigures["king"]!![0])
         assertEquals(33uL,bitboard.bbFigures["rook"]!![0])
         //make castling move and check positions of rook and king
-        bitboard.moveFigure("king","black",4,7,6,7)
+        bitboard.moveFigure("king","black",Bitboard.Movement(4,7,6,7)
         assertEquals(4611686018427387904uL,bitboard.bbFigures["king"]!![1])
         assertEquals(2377900603251621888uL,bitboard.bbFigures["rook"]!![1])
 
         //large castling
         //move knights, bishops and queens
         bitboard = Bitboard(chessFormationArray,figureMap)
-        bitboard.moveFigure("knight","white",1,0,0,2)
-        bitboard.moveFigure("knight","black",1,7,0,5)
-        bitboard.moveFigure("pawn","white",2,1,2,2)
-        bitboard.moveFigure("pawn","black",2,6,2,5)
-        bitboard.moveFigure("pawn","white",3,1,3,2)
-        bitboard.moveFigure("pawn","black",3,6,3,5)
-        bitboard.moveFigure("bishop","white",2,0,3,1)
-        bitboard.moveFigure("bishop","black",2,7,3,6)
-        bitboard.moveFigure("queen","white",3,0,2,1)
-        bitboard.moveFigure("queen","black",3,7,2,6)
+        bitboard.moveFigure("knight","white",Bitboard.Movement(1,0,0,2))
+        bitboard.moveFigure("knight","black",Bitboard.Movement(1,7,0,5))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,1,2,2))
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(2,6,2,5))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(3,1,3,2))
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(3,6,3,5))
+        bitboard.moveFigure("bishop","white",Bitboard.Movement(2,0,3,1))
+        bitboard.moveFigure("bishop","black",Bitboard.Movement(2,7,3,6))
+        bitboard.moveFigure("queen","white",Bitboard.Movement(3,0,2,1))
+        bitboard.moveFigure("queen","black",Bitboard.Movement(3,7,2,6))
         //check if both kings can castle queenside
         assertEquals(12uL,bitboard.getTargetMovements("king", "white", 4, 0, true))
         assertEquals(864691128455135232uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
         //make castling move and check positions of rook and king
-        bitboard.moveFigure("king","white",4,0,2,0)
+        bitboard.moveFigure("king","white",Bitboard.Movement(4,0,2,0))
         assertEquals(4uL,bitboard.bbFigures["king"]!![0])
         assertEquals(136uL,bitboard.bbFigures["rook"]!![0])
         //make castling move and check positions of rook and king
-        bitboard.moveFigure("king","black",4,7,2,7)
+        bitboard.moveFigure("king","black",Bitboard.Movement(4,7,2,7))
         assertEquals(288230376151711744uL,bitboard.bbFigures["king"]!![1])
         assertEquals(9799832789158199296uL,bitboard.bbFigures["rook"]!![1])
     }
@@ -222,10 +185,10 @@ class BitboardTest {
         assertEquals(2190450163968uL,bitboard.getTargetMovements("rook", "black", 0, 4, true))
         //rook in corner
         //preperation - move pawn and knight
-        bitboard.moveFigure("pawn","white",0,1,0,3)
-        bitboard.moveFigure("pawn","black",0,6,0,4)
-        bitboard.moveFigure("knight","white",1,0,2,2)
-        bitboard.moveFigure("knight","black",1,7,2,5)
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(0,1,0,3))
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(0,6,0,4))
+        bitboard.moveFigure("knight","white",Bitboard.Movement(1,0,2,2))
+        bitboard.moveFigure("knight","black",Bitboard.Movement(1,7,2,5))
         assertEquals(65794uL,bitboard.getTargetMovements("rook", "white", 0, 0, true))
         assertEquals(144397762564194304uL,bitboard.getTargetMovements("rook", "black", 0, 7, true))
 
@@ -266,46 +229,26 @@ class BitboardTest {
         //test capturing
         testMoveFigure()
 
-        //TODO: test enpassante black
         bitboard = Bitboard(chessFormationArray,figureMap)
         //white enpassante left
-        bitboard.moveFigure("pawn","white",2,1,2,3)
-        bitboard.moveFigure("pawn","black",3,6,3,4)
-        bitboard.moveFigure("pawn","white",2,3,2,4)
-        bitboard.moveFigure("pawn","black",1,6,1,4)
+        assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", 2,1, true))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,1,2,3))
+        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "white", 2,3, true))
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(3,6,3,4))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,3,2,4))
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(1,6,1,4))
         assertEquals(6597069766656uL, bitboard.getTargetMovements("pawn", "white", 2, 4, true))
-        bitboard.moveFigure("pawn","white",2,4,1,5)
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,4,1,5)
         assertEquals(2199023319808uL, bitboard.bbFigures["pawn"]!![0])
         assertEquals(68961403653849088uL, bitboard.bbFigures["pawn"]!![1])
 
         //black enpassante right
-        bitboard.moveFigure("pawn","black",3,4,3,3)
-        bitboard.moveFigure("pawn","white",4,1,4,3)
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(3,4,3,3))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(4,1,4,3))
         assertEquals(1572864uL, bitboard.getTargetMovements("pawn", "black", 3,3, true))
-        bitboard.moveFigure("pawn","black",3,3,4,2)
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(3,3,4,2)
         assertEquals(2199023315712uL, bitboard.bbFigures["pawn"]!![0])
         assertEquals(68961369295159296uL, bitboard.bbFigures["pawn"]!![1])
-
-        println(bitboard.toString())
-        println(bitboardToString(bitboard.bbFigures["pawn"]!![1]))
-        println(bitboard.bbFigures["pawn"]!![1])
-
-       /* println(bitboardToString(bitboard.getTargetMovements("pawn", "black", 4,2, true)))
-        println(bitboard.getTargetMovements("pawn", "black", 3,3, true))*/
-
-        //println(bitboardToString(moveMapToCompositeBB(bitboard.getAllPossibleMoves("white"))))
-        //test enpassante white
-
-        /*println(bitboardToString(bitboard.bbComposite))
-        println(bitboardToString(bitboard.bbColorComposite[0]))
-        println(bitboardToString(bitboard.bbFigures["pawn"]!![0]))*/
-
-
-        //println(bitboard.getTargetMovements("pawn","white",2, 2))
-        //println(bitboardToString(bitboard.getTargetMovements("pawn","white",2, 2)))
-
-
-        //println(bitboardToString(bitboard.getTargetMovements("queen","white",4, 4)))
     }
 
     @Test
@@ -313,7 +256,7 @@ class BitboardTest {
     fun testMoveFigure(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         //initial pawn move
-        bitboard.moveFigure("pawn","white",2,1,2,3)
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,1,2,3))
         assertEquals(18446462598800014335uL,bitboard.bbComposite)
         assertEquals(67173375uL,bitboard.bbColorComposite[0])
         assertEquals(67173120uL,bitboard.bbFigures["pawn"]!![0])
@@ -321,8 +264,8 @@ class BitboardTest {
         assertEquals(67173120uL,bitboard.bbFigures["pawn"]!![0])
 
         //capture black pawn with white pawn
-        bitboard.moveFigure("pawn","black",3,6,3,4)
-        bitboard.moveFigure("pawn","white",2,3,3,4)
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(3,6,3,4))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,3,3,4))
         assertEquals(18444210833278958591uL,bitboard.bbComposite)
         assertEquals(34359802879uL,bitboard.bbColorComposite[0])
         assertEquals(18444210798919155712uL,bitboard.bbColorComposite[1])

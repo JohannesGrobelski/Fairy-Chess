@@ -34,7 +34,6 @@ class ChessboardUnitTest {
         val chessFormationArray = parseChessFormation("normal_chess")
         val figureMap = parseFigureMapFromFile()
         val chessBoardNormal = Chessboard(chessFormationArray, figureMap)
-        println(chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("3_1_3_3")))
         assertTrue(chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("3_1_3_3")).isEmpty())
         assertTrue(chessBoardNormal.move("black", ChessPiece.Movement.fromStringToMovement("4_6_4_4")).isEmpty())
         assertTrue(chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("3_3_4_4")).isEmpty())

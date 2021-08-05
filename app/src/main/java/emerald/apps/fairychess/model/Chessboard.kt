@@ -309,6 +309,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
         moveColor = oppositeColor(moveColor)
     }
 
+
     /** check if color can move and (if possible) execute movement */
     fun move(color: String, movement: ChessPiece.Movement) : String{
         if(color != moveColor)return "wrong player"
@@ -681,8 +682,8 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
 
     override fun toString(): String {
         var cStringBuilder = StringBuilder("")
-        for(rank in pieces.size-1 downTo 0){
-            for(file in pieces[0].indices){
+        for(file in pieces.size-1 downTo 0){
+            for(rank in pieces[0].indices){
                 val f = pieces[rank][file].name
                 if(f.isEmpty())cStringBuilder.append(" ")
                 else {
@@ -694,7 +695,7 @@ data class Chessboard(val chessFormationArray: Array<Array<String>>,val figureMa
                 }
                 if(rank < pieces[0].size-1)cStringBuilder.append(" | ")
             }
-            if(rank <= pieces.size-1)cStringBuilder.append("\n")
+            if(file <= pieces.size-1)cStringBuilder.append("\n")
         }
         return cStringBuilder.toString()
     }
