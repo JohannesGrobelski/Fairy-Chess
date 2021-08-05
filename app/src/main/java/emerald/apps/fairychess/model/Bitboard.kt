@@ -1074,9 +1074,9 @@ class Bitboard(
                 var result = generate64BPositionFromCoordinates(movement.getSourceCoordinate())
                 for(i in 1..distance){
                     if(signRank > 0){
-                        result = result or (result shr 1)
-                    } else {
                         result = result or (result shl 1)
+                    } else {
+                        result = result or (result shr 1)
                     }
                 }
                 return result

@@ -21,7 +21,8 @@ class FigureParser {
                         "raw", context.packageName
                     )
                 )
-                "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\figures"
+                val s =
+                    "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\figures"
                 val figureMap : MutableMap<String,Figure> = parseFigureMapFromJSONString(
                     ChessFormationParser.convertStreamToString(
                         inputStream

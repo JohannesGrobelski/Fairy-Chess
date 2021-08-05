@@ -5,17 +5,15 @@ import emerald.apps.fairychess.model.Bitboard.Companion.add64BPositionFromCoordi
 import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromCoordinates
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
-import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import kotlin.math.pow
-import kotlin.system.measureNanoTime
-import kotlin.system.measureTimeMillis
 
 
+@kotlin.ExperimentalUnsignedTypes
 class BitboardTest {
 
     lateinit var chessFormationArray : Array<Array<String>>
@@ -66,13 +64,13 @@ class BitboardTest {
         //kings initial position
         assertEquals(0uL,bitboard.getTargetMovements("king", "black",
             Bitboard.Companion.Coordinate(4, 7), true))
-        assertEquals(0uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0, true))
+        assertEquals(0uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0), true))
         //kings in middle
-        assertEquals(88441966559232uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(5, 5, true))
-        assertEquals(31613639358152704uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(5, 5, true))
+        assertEquals(88441966559232uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(5, 5), true))
+        assertEquals(31613639358152704uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(5, 5), true))
         //kings on edge
-        assertEquals(846636838289408uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(0, 5, true))
-        assertEquals(2211908157440uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(0, 5, true))
+        assertEquals(846636838289408uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(0, 5), true))
+        assertEquals(2211908157440uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(0, 5), true))
 
         //small castling
         //move knights and bishops
@@ -83,14 +81,14 @@ class BitboardTest {
         bitboard.moveFigure("bishop","white",Bitboard.Movement(5,0,6,1))
         bitboard.moveFigure("bishop","black",Bitboard.Movement(5,7,6,6))
         //check if both kings can castle kingside
-        assertEquals(96uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0, true))
-        assertEquals(6917529027641081856uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
+        assertEquals(96uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0), true))
+        assertEquals(6917529027641081856uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(4, 7), true))
         //make castling move and check positions of rook and king
-        bitboard.moveFigure("king","white",Bitboard.Movement(4,0,6,0)
+        bitboard.moveFigure("king","white",Bitboard.Movement(4,0,6,0))
         assertEquals(64uL,bitboard.bbFigures["king"]!![0])
         assertEquals(33uL,bitboard.bbFigures["rook"]!![0])
         //make castling move and check positions of rook and king
-        bitboard.moveFigure("king","black",Bitboard.Movement(4,7,6,7)
+        bitboard.moveFigure("king","black",Bitboard.Movement(4,7,6,7))
         assertEquals(4611686018427387904uL,bitboard.bbFigures["king"]!![1])
         assertEquals(2377900603251621888uL,bitboard.bbFigures["rook"]!![1])
 
@@ -108,8 +106,8 @@ class BitboardTest {
         bitboard.moveFigure("queen","white",Bitboard.Movement(3,0,2,1))
         bitboard.moveFigure("queen","black",Bitboard.Movement(3,7,2,6))
         //check if both kings can castle queenside
-        assertEquals(12uL,bitboard.getTargetMovements("king", "white", 4, 0, true))
-        assertEquals(864691128455135232uL,bitboard.getTargetMovements("king", "black", 4, 7, true))
+        assertEquals(12uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0), true))
+        assertEquals(864691128455135232uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(4, 7), true))
         //make castling move and check positions of rook and king
         bitboard.moveFigure("king","white",Bitboard.Movement(4,0,2,0))
         assertEquals(4uL,bitboard.bbFigures["king"]!![0])
@@ -124,14 +122,14 @@ class BitboardTest {
     fun testMovegenerationQueens(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         //queen initial position
-        assertEquals(0uL,bitboard.getTargetMovements("queen", "black", 3, 7, true))
-        assertEquals(0uL,bitboard.getTargetMovements("queen", "white", 3, 0, true))
+        assertEquals(0uL,bitboard.getTargetMovements("queen", "black", Bitboard.Companion.Coordinate(3, 7), true))
+        assertEquals(0uL,bitboard.getTargetMovements("queen", "white", Bitboard.Companion.Coordinate(3, 0), true))
         //queen in middle
-        assertEquals(23706498137063424uL,bitboard.getTargetMovements("queen", "white", 4, 4, true))
-        assertEquals(62600093405696uL,bitboard.getTargetMovements("queen", "black", 4, 4, true))
+        assertEquals(23706498137063424uL,bitboard.getTargetMovements("queen", "white", Bitboard.Companion.Coordinate(4, 4), true))
+        assertEquals(62600093405696uL,bitboard.getTargetMovements("queen", "black", Bitboard.Companion.Coordinate(4, 4), true))
         //queen on edge
-        assertEquals(1411764390789120uL,bitboard.getTargetMovements("queen", "white", 0, 4, true))
-        assertEquals(4389507238144uL,bitboard.getTargetMovements("queen", "black", 0, 4, true))
+        assertEquals(1411764390789120uL,bitboard.getTargetMovements("queen", "white", Bitboard.Companion.Coordinate(0, 4), true))
+        assertEquals(4389507238144uL,bitboard.getTargetMovements("queen", "black", Bitboard.Companion.Coordinate(0, 4), true))
 
         /*println(bitboardToString(bitboard.getTargetMovements("queen","white",0, 4)))
         println(bitboard.getTargetMovements("queen","white",0, 4))*/
@@ -141,14 +139,14 @@ class BitboardTest {
     fun testMovegenerationBishops(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         //bishop initial position
-        assertEquals(0uL,bitboard.getTargetMovements("bishop", "black", 2, 7, true))
-        assertEquals(0uL,bitboard.getTargetMovements("bishop", "white", 2, 0, true))
+        assertEquals(0uL,bitboard.getTargetMovements("bishop", "black", Bitboard.Companion.Coordinate(2, 7), true))
+        assertEquals(0uL,bitboard.getTargetMovements("bishop", "white", Bitboard.Companion.Coordinate(2, 0), true))
         //bishop in middle
-        assertEquals(43981140689408uL,bitboard.getTargetMovements("bishop", "black", 4, 4, true))
-        assertEquals(19184279556980736uL,bitboard.getTargetMovements("bishop", "white", 4, 4, true))
+        assertEquals(43981140689408uL,bitboard.getTargetMovements("bishop", "black", Bitboard.Companion.Coordinate(4, 4), true))
+        assertEquals(19184279556980736uL,bitboard.getTargetMovements("bishop", "white", Bitboard.Companion.Coordinate(4, 4), true))
         //bishop on edge
-        assertEquals(1128098963914752uL,bitboard.getTargetMovements("bishop", "white", 0, 4, true))
-        assertEquals(2199057074176uL,bitboard.getTargetMovements("bishop", "black", 0, 4, true))
+        assertEquals(1128098963914752uL,bitboard.getTargetMovements("bishop", "white", Bitboard.Companion.Coordinate(0, 4), true))
+        assertEquals(2199057074176uL,bitboard.getTargetMovements("bishop", "black", Bitboard.Companion.Coordinate(0, 4), true))
 
         /*println(bitboardToString(bitboard.getTargetMovements("bishop","black",0, 4)))
         println(bitboard.getTargetMovements("bishop","black",0, 4))*/
@@ -158,14 +156,14 @@ class BitboardTest {
     fun testMovegenerationKnights(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         //knight initial position
-        assertEquals(327680uL,bitboard.getTargetMovements("knight", "white", 1, 0, true))
-        assertEquals(5497558138880uL,bitboard.getTargetMovements("knight", "black", 1, 7, true))
+        assertEquals(327680uL,bitboard.getTargetMovements("knight", "white", Bitboard.Companion.Coordinate(1, 0), true))
+        assertEquals(5497558138880uL,bitboard.getTargetMovements("knight", "black", Bitboard.Companion.Coordinate(1, 7), true))
         //knight in middle
-        assertEquals(11333767002587136uL,bitboard.getTargetMovements("knight", "white", 4, 4, true))
-        assertEquals(44272527353856uL,bitboard.getTargetMovements("knight", "black", 4, 3, true))
+        assertEquals(11333767002587136uL,bitboard.getTargetMovements("knight", "white", Bitboard.Companion.Coordinate(4, 4), true))
+        assertEquals(44272527353856uL,bitboard.getTargetMovements("knight", "black", Bitboard.Companion.Coordinate(4, 3), true))
         //knight on edge
-        assertEquals(567348067172352uL,bitboard.getTargetMovements("knight", "white", 0, 4, true))
-        assertEquals(4398113751040uL,bitboard.getTargetMovements("knight", "black", 0, 4, true))
+        assertEquals(567348067172352uL,bitboard.getTargetMovements("knight", "white", Bitboard.Companion.Coordinate(0, 4), true))
+        assertEquals(4398113751040uL,bitboard.getTargetMovements("knight", "black", Bitboard.Companion.Coordinate(0, 4), true))
 
         /*println(bitboardToString(bitboard.getTargetMovements("knight","black",0, 4)))
         println(bitboard.getTargetMovements("knight","black",0, 4))*/
@@ -175,22 +173,22 @@ class BitboardTest {
     fun testMovegenerationRooks(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         //rook initial position
-        assertEquals(0uL,bitboard.getTargetMovements("rook", "white", 0, 0, true))
-        assertEquals(0uL,bitboard.getTargetMovements("rook", "black", 0, 7, true))
+        assertEquals(0uL,bitboard.getTargetMovements("rook", "white", Bitboard.Companion.Coordinate(0, 0), true))
+        assertEquals(0uL,bitboard.getTargetMovements("rook", "black", Bitboard.Companion.Coordinate(0, 7), true))
         //rook in middle
-        assertEquals(4522218580082688uL,bitboard.getTargetMovements("rook", "white", 4, 4, true))
-        assertEquals(18618952716288uL,bitboard.getTargetMovements("rook", "black", 4, 4, true))
+        assertEquals(4522218580082688uL,bitboard.getTargetMovements("rook", "white", Bitboard.Companion.Coordinate(4, 4), true))
+        assertEquals(18618952716288uL,bitboard.getTargetMovements("rook", "black", Bitboard.Companion.Coordinate(4, 4), true))
         //rook on edge
-        assertEquals(283665426874368uL,bitboard.getTargetMovements("rook", "white", 0, 4, true))
-        assertEquals(2190450163968uL,bitboard.getTargetMovements("rook", "black", 0, 4, true))
+        assertEquals(283665426874368uL,bitboard.getTargetMovements("rook", "white", Bitboard.Companion.Coordinate(0, 4), true))
+        assertEquals(2190450163968uL,bitboard.getTargetMovements("rook", "black", Bitboard.Companion.Coordinate(0, 4), true))
         //rook in corner
         //preperation - move pawn and knight
         bitboard.moveFigure("pawn","white",Bitboard.Movement(0,1,0,3))
         bitboard.moveFigure("pawn","black",Bitboard.Movement(0,6,0,4))
         bitboard.moveFigure("knight","white",Bitboard.Movement(1,0,2,2))
         bitboard.moveFigure("knight","black",Bitboard.Movement(1,7,2,5))
-        assertEquals(65794uL,bitboard.getTargetMovements("rook", "white", 0, 0, true))
-        assertEquals(144397762564194304uL,bitboard.getTargetMovements("rook", "black", 0, 7, true))
+        assertEquals(65794uL,bitboard.getTargetMovements("rook", "white", Bitboard.Companion.Coordinate(0, 0), true))
+        assertEquals(144397762564194304uL,bitboard.getTargetMovements("rook", "black", Bitboard.Companion.Coordinate(0, 7), true))
 
        /* println(bitboardToString(bitboard.getTargetMovements("rook","black",0, 7)))
         println(bitboard.getTargetMovements("rook","black",0, 7))*/
@@ -198,8 +196,7 @@ class BitboardTest {
 
     @Test
     fun testMoveHistory(){
-        var bitboard = Bitboard(chessFormationArray,figureMap)
-
+        val bitboard = Bitboard(chessFormationArray,figureMap)
         val entry1 = mapOf<String,Array<ULong>>(
             "entry1" to arrayOf()
         )
@@ -218,35 +215,35 @@ class BitboardTest {
         var bitboard = Bitboard(chessFormationArray,figureMap)
 
         //white pawn can capture 2 black pawns
-        assertEquals(2814749767106560uL,bitboard.getTargetMovements("pawn", "white", 2, 5, true))
+        assertEquals(2814749767106560uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2, 5), true))
         //white pawn initial movement
-        assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", 2, 1, true))
+        assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2, 1), true))
         //black pawn can capture white 2 pawns
-        assertEquals(2560uL,bitboard.getTargetMovements("pawn", "black", 2, 2, true))
+        assertEquals(2560uL,bitboard.getTargetMovements("pawn", "black", Bitboard.Companion.Coordinate(2, 2), true))
         //black pawn initial movement
-        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "black", 2, 6, true))
+        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "black", Bitboard.Companion.Coordinate(2, 6), true))
 
         //test capturing
         testMoveFigure()
 
         bitboard = Bitboard(chessFormationArray,figureMap)
         //white enpassante left
-        assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", 2,1, true))
+        assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,1), true))
         bitboard.moveFigure("pawn","white",Bitboard.Movement(2,1,2,3))
-        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "white", 2,3, true))
+        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,3), true))
         bitboard.moveFigure("pawn","black",Bitboard.Movement(3,6,3,4))
         bitboard.moveFigure("pawn","white",Bitboard.Movement(2,3,2,4))
         bitboard.moveFigure("pawn","black",Bitboard.Movement(1,6,1,4))
-        assertEquals(6597069766656uL, bitboard.getTargetMovements("pawn", "white", 2, 4, true))
-        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,4,1,5)
+        assertEquals(6597069766656uL, bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2, 4), true))
+        bitboard.moveFigure("pawn","white",Bitboard.Movement(2,4,1,5))
         assertEquals(2199023319808uL, bitboard.bbFigures["pawn"]!![0])
         assertEquals(68961403653849088uL, bitboard.bbFigures["pawn"]!![1])
 
         //black enpassante right
         bitboard.moveFigure("pawn","black",Bitboard.Movement(3,4,3,3))
         bitboard.moveFigure("pawn","white",Bitboard.Movement(4,1,4,3))
-        assertEquals(1572864uL, bitboard.getTargetMovements("pawn", "black", 3,3, true))
-        bitboard.moveFigure("pawn","black",Bitboard.Movement(3,3,4,2)
+        assertEquals(1572864uL, bitboard.getTargetMovements("pawn", "black", Bitboard.Companion.Coordinate(3,3), true))
+        bitboard.moveFigure("pawn","black",Bitboard.Movement(3,3,4,2))
         assertEquals(2199023315712uL, bitboard.bbFigures["pawn"]!![0])
         assertEquals(68961369295159296uL, bitboard.bbFigures["pawn"]!![1])
     }
@@ -280,43 +277,43 @@ class BitboardTest {
     @Test
     fun testBitboardCoordinateTransformation(){
         //test bitboards with one figure
-        assertEquals(2.0.pow(0*8 + 0).toULong(), generate64BPositionFromCoordinates(0,0))
-        assertEquals(2.0.pow(0*8 + 1).toULong(), generate64BPositionFromCoordinates(1,0))
-        assertEquals(2.0.pow(1*8 + 0).toULong(), generate64BPositionFromCoordinates(0,1))
-        assertEquals(2.0.pow(1*8 + 1).toULong(), generate64BPositionFromCoordinates(1,1))
-        assertEquals(2.0.pow(4*8 + 5).toULong(), generate64BPositionFromCoordinates(5,4))
+        assertEquals(2.0.pow(0*8 + 0).toULong(), generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(0,0)))
+        assertEquals(2.0.pow(0*8 + 1).toULong(), generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(1,0)))
+        assertEquals(2.0.pow(1*8 + 0).toULong(), generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(0,1)))
+        assertEquals(2.0.pow(1*8 + 1).toULong(), generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(1,1)))
+        assertEquals(2.0.pow(4*8 + 5).toULong(), generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(5,4)))
 
         assertEquals(Bitboard.Companion.Coordinate(0,0),
             Bitboard.generateCoordinatesFrom64BPosition(
-                generate64BPositionFromCoordinates(0,0)
+                generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(0,0))
             )[0])
 
         assertEquals(Bitboard.Companion.Coordinate(1,0),
             Bitboard.generateCoordinatesFrom64BPosition(
-                generate64BPositionFromCoordinates(1,0)
+                generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(1,0))
             )[0])
 
         for(rank in 0..7){
             for(line in 0..7){
                 assertEquals(2.0.pow(line*8 + rank).toULong(),
-                    generate64BPositionFromCoordinates(rank,line)
+                    generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(rank,line))
                 )
                 assertEquals(Bitboard.Companion.Coordinate(rank,line).file,
                     Bitboard.generateCoordinatesFrom64BPosition(
-                        generate64BPositionFromCoordinates(rank,line)
+                        generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(rank,line))
                     )[0].file)
                 assertEquals(Bitboard.Companion.Coordinate(rank,line).rank,
                     Bitboard.generateCoordinatesFrom64BPosition(
-                        generate64BPositionFromCoordinates(rank,line)
+                        generate64BPositionFromCoordinates(Bitboard.Companion.Coordinate(rank,line))
                     )[0].rank)
             }
         }
 
         //test bitboards with multiple figures
         var bb = 0uL
-        bb = add64BPositionFromCoordinates(bb,0,0)
-        bb = add64BPositionFromCoordinates(bb,4,5)
-        bb = add64BPositionFromCoordinates(bb,2,3)
+        bb = add64BPositionFromCoordinates(bb,Bitboard.Companion.Coordinate(0,0))
+        bb = add64BPositionFromCoordinates(bb,Bitboard.Companion.Coordinate(4,5))
+        bb = add64BPositionFromCoordinates(bb,Bitboard.Companion.Coordinate(2,3))
 
         val coordinateList = Bitboard.generateCoordinatesFrom64BPosition(bb)
         assertEquals(listOf(
@@ -339,7 +336,7 @@ class BitboardTest {
             val str = StringBuilder("")
             var cnt = 0
             for(file in 7 downTo 0){
-                str.append(file.toString()+" | ")
+                str.append("$file | ")
                 for(rank in 0..7){
                     val num = 1uL shl rank shl (8*file)
                     if(bitboard and num == num){

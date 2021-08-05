@@ -65,7 +65,7 @@ class Chessgame() {
     fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<ChessPiece.Movement> {
         val bitboard = chessboardToBitboard(chessboard)
         println(bitboard.toString())
-        return bitboard.getTargetMovementsAsMovementList(bitboard.moveColor,sourceRank, sourceFile)
+        return bitboard.getTargetMovementsAsMovementList(bitboard.moveColor,Bitboard.Companion.Coordinate(sourceRank, sourceFile))
     }
 
     fun getPieceName(rank: Int, file: Int) : String{
