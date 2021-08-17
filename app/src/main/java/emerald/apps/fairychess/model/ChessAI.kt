@@ -25,23 +25,26 @@ class ChessAI {
     //Fields for move ordering
     private val transpositionTable = Hashtable<String, MovementValue>()
 
-    fun calcMove(bitboard: Bitboard) : Movement?{
+    fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
+        val originalBitboard = bitboard.clone()
         when (algorithm) {
             "alphabeta" -> {
-                return alphabeta(bitboard,2,Int.MIN_VALUE,Int.MAX_VALUE)!!.movement
+                val result = alphabeta(bitboard,2,Int.MIN_VALUE,Int.MAX_VALUE).movement
+                bitboard.set(originalBitboard)
+                return result
             }
         }
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
     }
 
 
-    class MinimaxResult(val movement: Movement?, val value: Int)
-    fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult?{
+    class MinimaxResult(val movement: Movement, val value: Int)
+    fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult{
         var _alpha = alpha
         var _beta = beta
         if(level <= 0){
-            return MinimaxResult(Movement.emptyMovement(),getPointDif(bitboard))
+            return MinimaxResult(emptyMovement(),getPointDif(bitboard))
         } else {
             val allMoves = bitboard.getAllPossibleMoves(bitboard.moveColor,true)
             if(allMoves.isNotEmpty()){
@@ -55,7 +58,7 @@ class ChessAI {
                         val moveList = moveBitboardToMovementList(allMovesFigure,allMoves[allMovesFigure]!!)
                         for(move in moveList){
                             bitboard.set(originalBoard)
-                            bitboard.move(bitboard.moveColor,move)
+                            bitboard.checkMoveAndMove(bitboard.moveColor,move)
                             val valuePosition = alphabeta(bitboard,level-1,_alpha,_beta)!!.value
                             if(valuePosition > bestValue){
                                 targetMove = move
@@ -73,7 +76,7 @@ class ChessAI {
                         val moveList = moveBitboardToMovementList(allMovesFigure,allMoves[allMovesFigure]!!)
                         for(move in moveList){
                             bitboard.set(originalBoard)
-                            bitboard.move(bitboard.moveColor,move)
+                            bitboard.checkMoveAndMove(bitboard.moveColor,move)
                             val valuePosition = alphabeta(bitboard,level-1,_alpha,_beta)!!.value
                             if(valuePosition < bestValue){
                                 targetMove = move
@@ -88,7 +91,7 @@ class ChessAI {
                 bitboard.set(originalBoard)
                 return MinimaxResult(targetMove,bestValue)
             } else {
-                return MinimaxResult(Movement.emptyMovement(),getPointDif(bitboard))
+                return MinimaxResult(emptyMovement(),getPointDif(bitboard))
             }
         }
     }

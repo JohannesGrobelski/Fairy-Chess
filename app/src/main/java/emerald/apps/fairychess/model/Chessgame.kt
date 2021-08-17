@@ -43,7 +43,7 @@ class Chessgame() {
     /** execute movement and check if color allows movement */
     fun movePlayer(movement: Movement?, color: String): String {
         if(movement != null){
-            var returnValue = bitboard.move(color, movement)
+            var returnValue = bitboard.checkMoveAndMove(color, movement)
             gameFinished = bitboard.gameFinished
             if(returnValue == ""){
                 when(gameParameters.playMode){
@@ -90,7 +90,7 @@ class Chessgame() {
     }
 
     fun makeMove(movement: Movement){
-        bitboard.move(bitboard.moveColor, movement)
+        bitboard.checkMoveAndMove(bitboard.moveColor, movement)
         gameFinished = bitboard.gameFinished
     }
 

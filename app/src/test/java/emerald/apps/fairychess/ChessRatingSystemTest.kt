@@ -18,7 +18,7 @@ class ChessRatingSystemTest {
         val K = 30
         val playerAWon = true
 
-        var results = EloRating(Ra, Rb, K, playerAWon)
+        val results = EloRating(Ra, Rb, K, playerAWon)
         assert(results[0] in 1207.2..1208.3)
         assert(results[1] in 992.7..993.8)
     }
@@ -30,7 +30,7 @@ class ChessRatingSystemTest {
         val playerStatsKaty = MultiplayerDB.PlayerStats(0,0,0,400.0)
 
         updatePlayerStats(playerStatsTom,playerStatsKaty,true)
-        assert(playerStatsTom.ELO in 1207.2..1208.3)
-        assert(playerStatsKaty.ELO in 992.7..993.8)
+        assert(playerStatsTom.ELO == 415.0)
+        assert(playerStatsKaty.ELO == 385.0)
     }
 }

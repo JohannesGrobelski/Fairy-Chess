@@ -18,6 +18,6 @@ class ChessboardUnitTest {
 
     @Test
     fun testGamesDB(){
-       println(games.size)
+       //println(games.size)
     }
 }

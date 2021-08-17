@@ -114,10 +114,10 @@ class Bitboard(
         val newBitboard = Bitboard(chessFormationArray,figureMap)
         newBitboard.bbFigures.clear()
         for(key in bbFigures.keys){
-            newBitboard.bbFigures[key] = bbFigures[key]!!
+            newBitboard.bbFigures[key] = bbFigures[key]!! + 0uL
         }
-        newBitboard.bbComposite = bbComposite
-        newBitboard.bbColorComposite = bbColorComposite
+        newBitboard.bbComposite = bbComposite + 0uL
+        newBitboard.bbColorComposite = bbColorComposite + 0uL
         newBitboard.blackCapturedPieces.addAll(blackCapturedPieces)
         newBitboard.whiteCapturedPieces.addAll(whiteCapturedPieces)
         newBitboard.moveColor = moveColor
@@ -125,19 +125,38 @@ class Bitboard(
         return newBitboard
     }
 
-    fun move(color:String, movement: Movement) : String{
+    fun checkMoveAndMove(color:String, movement: Movement) : String{
         if(moveColor != color)return "wrong player!"
         val name = getPieceName(movement.sourceRank,movement.sourceFile)
-        return move(name, color, movement)
+        return preMoveCheck(name, color, movement)
+    }
+
+    fun preMoveCheck(name: String, color : String, movement: Movement) : String{
+        if(moveColor != color)return "wrong color"
+        if(movement.sourceFile == movement.targetFile && movement.sourceRank == movement.targetRank)return "same square"
+        val pos = (color == "black").toInt()
+        val coordinate = Coordinate(movement.sourceRank,movement.sourceFile)
+        val bbSource = generate64BPositionFromCoordinates(coordinate)
+        if(bbColorComposite[pos] and bbSource != bbSource)return "wrong figure"
+        val legalMovements = getTargetMovementsAsMovementList(color,coordinate)
+        for(legalMove in legalMovements){
+            if(legalMove.sourceRank == movement.sourceRank
+            && legalMove.sourceFile == movement.sourceFile
+            && legalMove.targetFile == movement.targetFile
+            && legalMove.targetRank == movement.targetRank){
+                return checkMoveAndMove(name, color, movement)
+            }
+        }
+        return "not a legal move"
     }
 
     /** @param color of the piece set
      *  @param name of the piece set
      * moves figure from coordinate (sourceFile,sourceRow) to coordinate (targetFile,targetRow)
      * does not check if move is legal */
-    fun move(name: String, color : String, movement: Movement) : String{
+    fun checkMoveAndMove(name: String, color : String, movement: Movement) : String{
+        val pos = (color == "black").toInt()
         if(bbFigures.containsKey(name)){
-            val pos = (color == "black").toInt()
             checkForAndMakeEnpassanteMove(name, color, pos, movement)
 
             var bbFigureColor = bbFigures[name]!![pos]
@@ -173,8 +192,7 @@ class Bitboard(
             //add current position (as map bbFigures) to history
             if(name == "king" && movement.getRankDif() == 2){
                 makeCastlingMove(color,movement)
-            }
-            switchMoveColor()
+            } else switchMoveColor()
             return ""
         } else {
             return "wrong square!"
@@ -208,15 +226,15 @@ class Bitboard(
     private fun makeCastlingMove(color: String, movement : Movement){
         if(color ==  "white"){
             if(movement.targetRank == 2){ //large white castling move
-                move("rook",color, Movement(0,0,3,0))
+                checkMoveAndMove("rook",color, Movement(0,0,3,0))
             } else { //small white castling move
-                move("rook",color,Movement(7,0,5,0))
+                checkMoveAndMove("rook",color,Movement(7,0,5,0))
             }
         } else {
             if(movement.targetRank == 2){ //large black castling move
-                move("rook",color,Movement(0,7,3,7))
+                checkMoveAndMove("rook",color,Movement(0,7,3,7))
             } else { //small black castling move
-                move("rook",color,Movement(7,7,5,7))
+                checkMoveAndMove("rook",color,Movement(7,7,5,7))
             }
         }
     }
@@ -403,9 +421,10 @@ class Bitboard(
             bbTargets = genSpecialMoves(name,color,coordinate,bbTargets,true)
             //transform bbTargets into movementList
             for(movementNotation in bbTargets.keys){
+                if(bbTargets[movementNotation] == 0uL)continue
                 val moveList = generateCoordinatesFrom64BPosition(bbTargets[movementNotation]!!)
                 for(move in moveList){
-                    movementList.add(Movement(movementNotation,coordinate.file,coordinate.rank,move.rank,move.file))
+                    movementList.add(Movement(movementNotation,coordinate.rank,coordinate.file,move.rank,move.file))
                 }
             }
         }
