@@ -1,11 +1,6 @@
 package emerald.apps.fairychess.chessGameTester
 
-import android.content.Context
 import android.util.Log
-import emerald.apps.fairychess.model.ChessPiece
-import emerald.apps.fairychess.model.Chessboard
-import emerald.apps.fairychess.utility.ChessFormationParser
-import emerald.apps.fairychess.utility.FigureParser
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException

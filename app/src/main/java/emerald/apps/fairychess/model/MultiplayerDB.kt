@@ -4,7 +4,6 @@ import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
-import android.widget.Toast
 import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.ktx.*
 import com.google.firebase.firestore.FieldValue
@@ -12,10 +11,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
-import emerald.apps.fairychess.model.Chessboard.Companion.oppositeColor
-import emerald.apps.fairychess.model.Chessboard.Companion.randomColor
-import java.io.Serializable
-
 import com.google.firebase.dynamiclinks.ktx.component1
 import com.google.firebase.dynamiclinks.ktx.component2
 
@@ -133,14 +128,14 @@ class MultiplayerDB {
 
     }
 
-    fun writePlayerMovement(gameId: String, movement: ChessPiece.Movement){
+    fun writePlayerMovement(gameId: String, movement: Movement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(movement)));
+        gameRef.update("moves", FieldValue.arrayUnion(Movement.fromMovementToString(movement)));
     }
 
-    fun writePlayerMovement(gameId: String, promotionMovement: ChessPiece.PromotionMovement){
+    fun writePlayerMovement(gameId: String, promotionMovement: PromotionMovement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        gameRef.update("moves", FieldValue.arrayUnion(ChessPiece.Movement.fromMovementToString(promotionMovement)));
+        gameRef.update("moves", FieldValue.arrayUnion(Movement.fromMovementToString(promotionMovement)));
     }
 
     /**
@@ -191,8 +186,8 @@ class MultiplayerDB {
      */
     fun createGame(gameName: String, timeMode: String, player1ID: String, player1ELO: Double) {
         // Create a new gameMode hashmap
-        val player1Color = randomColor()
-        val player2Color = oppositeColor(player1Color)
+        val player1Color = Bitboard.randomColor()
+        val player2Color = Bitboard.oppositeColor(player1Color)
         val gameHash = hashMapOf(
             GAMEFIELD_GAMENAME to gameName,
             GAMEFIELD_FINISHED to false,

@@ -181,23 +181,23 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             //if a file and rank was selected => move from selected square to
             if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1
                 && clickedFile != -1 && clickedRank != -1){
-                val movement = ChessPiece.Movement(
+                val movement = Movement(
                     sourceRank = playerSelectedSquare.rank,
                     sourceFile = playerSelectedSquare.file,
                     targetRank = clickedRank,
                     targetFile = clickedFile
                 )
                 var moveResult = ""
-                moveResult = chessgame.movePlayer(movement, chessgame.getChessboard().moveColor)
+                moveResult = chessgame.movePlayer(movement, chessgame.getBitboard().moveColor)
                 if(chessgame.gameFinished){
-                    if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
-                        finishGame(chessgame.getChessboard().gameWinner + " won", true)
+                    if(chessgame.getBitboard().gameWinner == gameParameters.playerColor){
+                        finishGame(chessgame.getBitboard().gameWinner + " won", true)
                     } else {
-                        finishGame(chessgame.getChessboard().gameWinner + " won", false)
+                        finishGame(chessgame.getBitboard().gameWinner + " won", false)
                     }
                 } //check for winner
-                if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
-                    offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
+                if(chessgame.getBitboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
+                    offerDraw(chessgame.getBitboard().playerWithDrawOpportunity)
                 }
                 moveResult += handlePromotion()
                 if(gameParameters.playMode=="human" && moveResult==""){
@@ -226,38 +226,28 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
-
-
     fun handlePromotion() : String{
-        if(chessgame.getChessboard().promotion != null){
-            pawnPromotion(chessgame.getChessboard().promotion!!)
-            chessgame.getChessboard().promotion = null
+        if(chessgame.getBitboard().promotion != null) {
+            pawnPromotion(chessgame.getBitboard().promotion!!)
+            chessgame.getBitboard().promotion = null
             return "promotion"
         }
         return ""
     }
 
     /** handle pawn promotion*/
-    private fun pawnPromotion(pawnPromotionCandidate: ChessPiece) {
-        //handle pawn promotion of ai (exchange pawn with queen)
-        if(pawnPromotionCandidate.color != gameParameters.playerColor && gameParameters.playMode=="ai"){
+    private fun pawnPromotion(pawnPromotionCandidate: Bitboard.Companion.Coordinate) {
+        val pieceColor = chessgame.getBitboard().getPieceColor(pawnPromotionCandidate.rank,pawnPromotionCandidate.file)
+            //handle pawn promotion of ai (exchange pawn with queen)
+        if(pieceColor != gameParameters.playerColor && gameParameters.playMode=="ai"){
             val value = (chessgame.figureMap["queen"] ?: error("")).value
             val movingPattern = (chessgame.figureMap["queen"] ?: error("")).movementParlett
-            chessgame.getChessboard().pieces[pawnPromotionCandidate.positionRank][pawnPromotionCandidate.positionFile] =
-                ChessPiece(
-                    "queen",
-                    pawnPromotionCandidate.positionRank,
-                    pawnPromotionCandidate.positionFile,
-                    value,
-                    Chessboard.oppositeColor(gameParameters.playerColor),
-                    movingPattern,
-                    0
-                )
+            chessgame.getBitboard().promotePawn(pawnPromotionCandidate,"queen")
             displayFigures()
         }
         //handle user pawn promotion by creating and handling alert dialog
         else {
-            if(pawnPromotionCandidate.color == gameParameters.playerColor){
+            if(pieceColor == gameParameters.playerColor){
                 // create an alert builder
                 val builder = AlertDialog.Builder(chessActivity)
                 builder.setTitle("Pawn Promotion") // set the custom layout
@@ -268,7 +258,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 builder.setPositiveButton("OK") { _, _ ->
                     val radioButton =
                         customLayout.findViewById<RadioButton>(radioGroup.checkedRadioButtonId)
-                    promotePawn(radioButton.text.toString().toLowerCase(), pawnPromotionCandidate)
+                    promotePawn(pieceColor, radioButton.text.toString().toLowerCase(), pawnPromotionCandidate)
                 }
                 // create and show the alert dialog
                 val dialog = builder.create()
@@ -278,35 +268,22 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     //propagate promotion information from the AlertDialog onto chessboard
-    private fun promotePawn(promotion: String, chessPiece: ChessPiece) {
-        if (chessPiece.positionFile < 0 || chessPiece.positionFile > 7 || chessPiece.positionRank < 0 || chessPiece.positionRank > 7) return
-        val chesspieceColor: String = chessgame.getChessboard().pieces[chessPiece.positionRank][chessPiece.positionFile].color
-        val chesspieceValue = (chessgame.figureMap[promotion] ?: error("")).value
-        val chesspieceMovingPattern = (chessgame.figureMap[promotion] ?: error("")).movementParlett
-
-        chessgame.getChessboard().pieces[chessPiece.positionRank][chessPiece.positionFile] =
-            ChessPiece(
-                promotion,
-                chessPiece.positionRank,
-                chessPiece.positionFile,
-                chesspieceValue,
-                chesspieceColor,
-                chesspieceMovingPattern,
-                0
-            )
+    private fun promotePawn(color: String, promotion: String, pawnPromotionCandidate: Bitboard.Companion.Coordinate) {
+        if (pawnPromotionCandidate.file < 0 || pawnPromotionCandidate.file > 7 || pawnPromotionCandidate.rank < 0 || pawnPromotionCandidate.rank > 7) return
+        chessgame.getBitboard().promotePawn(pawnPromotionCandidate,promotion)
         displayFigures()
 
-        val sourceRank = chessPiece.positionRank
+        val sourceRank = pawnPromotionCandidate.rank
         var sourceFile = 1
-        if(chessPiece.color == "white")sourceFile = 6
+        if(color == "white")sourceFile = 6
         if(gameParameters.playMode == "human"){
             multiplayerDB.writePlayerMovement(
                 gameData.gameId,
-                ChessPiece.PromotionMovement(
+                PromotionMovement(
                     sourceRank = sourceRank,
                     sourceFile = sourceFile,
-                    targetRank = chessPiece.positionRank,
-                    targetFile = chessPiece.positionFile,
+                    targetRank = pawnPromotionCandidate.rank,
+                    targetFile = pawnPromotionCandidate.file,
                     promotion = promotion
                 )
             )
@@ -328,14 +305,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         //display captures
         chessActivity.drawCapturedPiecesDrawable(
             "white",
-            chessgame.getChessboard().blackCapturedPieces
+            chessgame.getBitboard().blackCapturedPieces
         )
         chessActivity.drawCapturedPiecesDrawable(
             "black",
-            chessgame.getChessboard().whiteCapturedPieces
+            chessgame.getBitboard().whiteCapturedPieces
         )
-        chessActivity.highlightActivePlayer(chessgame.getChessboard().moveColor)
-        switchClocks(chessgame.getChessboard().moveColor)
+        chessActivity.highlightActivePlayer(chessgame.getBitboard().moveColor)
+        switchClocks(chessgame.getBitboard().moveColor)
     }
 
     /** switch clock from the player finishing the move to the other player */
@@ -553,14 +530,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
                     displayFigures()
                     if(chessgame.gameFinished){
-                        if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
-                            finishGame(chessgame.getChessboard().gameWinner + " won", true)
+                        if(chessgame.getBitboard().gameWinner == gameParameters.playerColor){
+                            finishGame(chessgame.getBitboard().gameWinner + " won", true)
                         } else {
-                            finishGame(chessgame.getChessboard().gameWinner + " won", false)
+                            finishGame(chessgame.getBitboard().gameWinner + " won", false)
                         }
                     } //check for winner
-                    if(chessgame.getChessboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
-                        offerDraw(chessgame.getChessboard().playerWithDrawOpportunity)
+                    if(chessgame.getBitboard().playerWithDrawOpportunity.isNotEmpty()){//check for draw
+                        offerDraw(chessgame.getBitboard().playerWithDrawOpportunity)
                     }
                 }
             }

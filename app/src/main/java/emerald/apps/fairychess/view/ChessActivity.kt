@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.ChessActivityListener
 import emerald.apps.fairychess.controller.MainActivityListener
-import emerald.apps.fairychess.model.ChessPiece
 import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
 
@@ -75,9 +74,10 @@ class ChessActivity : AppCompatActivity() {
         else WHITE
     }
 
+    class CapturedPiece(val color: String, val name : String)
     /** draw all pieces captured by player as layer-drawable by placing
      * the pictures of the captured pieces on top of each other  */
-    fun drawCapturedPiecesDrawable(color: String, capturedPieces: List<ChessPiece>) {
+    fun drawCapturedPiecesDrawable(color: String, capturedPieces: List<CapturedPiece>) {
         val layerList = mutableListOf<Drawable>()
         var inset = 0
         //create a insetDrawable for each captured piece with inset of 100 and add it to layerlist

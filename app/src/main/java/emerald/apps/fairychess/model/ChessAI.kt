@@ -1,5 +1,7 @@
 package emerald.apps.fairychess.model
 
+import emerald.apps.fairychess.model.Bitboard.Companion.moveBitboardToMovementList
+import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -23,152 +25,79 @@ class ChessAI {
     //Fields for move ordering
     private val transpositionTable = Hashtable<String, MovementValue>()
 
-    fun calcMove(chessboard: Chessboard) : ChessPiece.Movement?{
+    fun calcMove(bitboard: Bitboard) : Movement?{
         cnt_movements = 0
         when (algorithm) {
-            "random" -> {
-                return calcRandomMove(chessboard)
-            }
-            "nextBestMoveAlgorithm" -> {
-                return nextBestMoveAlgorithm(chessboard)
-            }
-            "minimax" -> {
-                return minimax(chessboard,2)!!.movement
-            }
             "alphabeta" -> {
-                return alphabeta(chessboard,2,Int.MIN_VALUE,Int.MAX_VALUE)!!.movement
+                return alphabeta(bitboard,2,Int.MIN_VALUE,Int.MAX_VALUE)!!.movement
             }
         }
-        return ChessPiece.Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
+        return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
     }
 
-    fun nextBestMoveAlgorithm(chessboard: Chessboard) : ChessPiece.Movement?{
-        val allMoves = chessboard.getAllPossibleMoves(color)
-        if(allMoves.isNotEmpty()){
-            var targetMove = allMoves[0]
-            val originalValue = getPointDif(chessboard)
-            val originalBoard = chessboard.clone()
-            var maxValue = originalValue
-            //find best move (highest points for black)
-            //go through all possible moves
-            for(possibleMove in allMoves){
-                chessboard.reset(originalBoard)
-                //chessboard.moveColor = color
-                chessboard.move(color,possibleMove)
-                if(getPointDif(chessboard) > maxValue){
-                    targetMove = possibleMove
-                    maxValue = getPointDif(chessboard)
-                }
-            }
-            chessboard.reset(originalBoard)
-            return targetMove
-        } else {
-            return null
-        }
-    }
 
-    class MinimaxResult(val movement: ChessPiece.Movement?, val value: Int)
-    fun minimax(chessboard: Chessboard, level: Int) : MinimaxResult?{
-        if(level <= 0){
-            return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
-        } else {
-            val allMoves = chessboard.getAllPossibleMoves(chessboard.moveColor)
-            if(allMoves.isNotEmpty()){
-                var targetMove = allMoves[0]
-                val originalBoard = chessboard.clone()
-                var bestValue : Int
-                if(chessboard.moveColor == "black"){
-                    //find best move (highest points for black) by going through all possible moves
-                    bestValue = Int.MIN_VALUE
-                    for(possibleMove in allMoves){
-                        chessboard.reset(originalBoard)
-                        chessboard.move(chessboard.moveColor,possibleMove)
-                        val valuePosition = minimax(chessboard,level-1)!!.value
-                        if(valuePosition > bestValue){
-                            targetMove = possibleMove
-                            bestValue = getPointDif(chessboard)
-                        }
-                    }
-                } else {
-                    //find best move (highest points for white) by going through all possible moves
-                    bestValue = Int.MAX_VALUE
-                    for(possibleMove in allMoves){
-                        chessboard.reset(originalBoard)
-                        chessboard.move(chessboard.moveColor,possibleMove)
-                        val valuePosition = minimax(chessboard,level-1)!!.value
-                        if(valuePosition < bestValue){
-                            targetMove = possibleMove
-                            bestValue = getPointDif(chessboard)
-                        }
-                    }
-                }
-                chessboard.reset(originalBoard)
-                return MinimaxResult(targetMove,bestValue)
-            } else {
-                return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
-            }
-        }
-    }
-
-    fun alphabeta(chessboard: Chessboard, level: Int, alpha:Int, beta:Int) : MinimaxResult?{
+    class MinimaxResult(val movement: Movement?, val value: Int)
+    fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult?{
         var _alpha = alpha
         var _beta = beta
         if(level <= 0){
-            return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
+            return MinimaxResult(Movement.emptyMovement(),getPointDif(bitboard))
         } else {
-            val allMoves = chessboard.getAllPossibleMoves(chessboard.moveColor)
+            val allMoves = bitboard.getAllPossibleMoves(bitboard.moveColor,true)
             if(allMoves.isNotEmpty()){
-                var targetMove = allMoves[0]
-                val originalBoard = chessboard.clone()
+                var targetMove = emptyMovement()
+                val originalBoard = bitboard.clone()
                 var bestValue : Int
-                if(chessboard.moveColor == "black"){
+                if(bitboard.moveColor == "black"){
                     //find best move (highest points for black) by going through all possible moves
                     bestValue = Int.MIN_VALUE
-                    for(possibleMove in allMoves){
-                        chessboard.reset(originalBoard)
-                        chessboard.move(chessboard.moveColor,possibleMove)
-                        val valuePosition = alphabeta(chessboard,level-1,_alpha,_beta)!!.value
-                        if(valuePosition > bestValue){
-                            targetMove = possibleMove
-                            bestValue = getPointDif(chessboard)
+                    for(allMovesFigure in allMoves.keys){
+                        val moveList = moveBitboardToMovementList(allMovesFigure,allMoves[allMovesFigure]!!)
+                        for(move in moveList){
+                            bitboard.set(originalBoard)
+                            bitboard.move(bitboard.moveColor,move)
+                            val valuePosition = alphabeta(bitboard,level-1,_alpha,_beta)!!.value
+                            if(valuePosition > bestValue){
+                                targetMove = move
+                                bestValue = getPointDif(bitboard)
+                            }
+                            //beta cutoff
+                            if(valuePosition >= _beta)break
+                            _alpha = max(_alpha,valuePosition)
                         }
-                        //beta cutoff
-                        if(valuePosition >= _beta)break
-                        _alpha = max(_alpha,valuePosition)
                     }
                 } else {
                     //find best move (highest points for white) by going through all possible moves
                     bestValue = Int.MAX_VALUE
-                    for(possibleMove in allMoves){
-                        chessboard.reset(originalBoard)
-                        chessboard.move(chessboard.moveColor,possibleMove)
-                        val valuePosition = alphabeta(chessboard,level-1,_alpha,_beta)!!.value
-                        if(valuePosition < bestValue){
-                            targetMove = possibleMove
-                            bestValue = getPointDif(chessboard)
+                    for(allMovesFigure in allMoves.keys){
+                        val moveList = moveBitboardToMovementList(allMovesFigure,allMoves[allMovesFigure]!!)
+                        for(move in moveList){
+                            bitboard.set(originalBoard)
+                            bitboard.move(bitboard.moveColor,move)
+                            val valuePosition = alphabeta(bitboard,level-1,_alpha,_beta)!!.value
+                            if(valuePosition < bestValue){
+                                targetMove = move
+                                bestValue = getPointDif(bitboard)
+                            }
+                            //alpha cutoff
+                            if(valuePosition <= _alpha)break
+                            _beta = min(_beta,valuePosition)
                         }
-                        //alpha cutoff
-                        if(valuePosition <= _alpha)break
-                        _beta = min(_beta,valuePosition)
                     }
                 }
-                chessboard.reset(originalBoard)
+                bitboard.set(originalBoard)
                 return MinimaxResult(targetMove,bestValue)
             } else {
-                return MinimaxResult(ChessPiece.Movement.emptyMovement(),getPointDif(chessboard))
+                return MinimaxResult(Movement.emptyMovement(),getPointDif(bitboard))
             }
         }
     }
 
-    fun getPointDif(chessboard: Chessboard) : Int{
+    fun getPointDif(bitboard: Bitboard) : Int{
         ++cnt_movements
-        return chessboard.pointsBlack() - chessboard.pointsWhite()
+        return bitboard.pointsBlack() - bitboard.pointsWhite()
     }
 
-    fun calcRandomMove(chessboard: Chessboard) : ChessPiece.Movement{
-        val allMoves = chessboard.getAllPossibleMoves(color)
-        return allMoves[(Math.random()*allMoves.size).toInt()]
-    }
 
-    class MovementValue(val movement: ChessPiece.Movement?, val value: Int)
+    class MovementValue(val movement: Movement?, val value: Int)
 }

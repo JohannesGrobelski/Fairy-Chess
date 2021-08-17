@@ -1,15 +1,11 @@
 package emerald.apps.fairychess
 
 import android.net.Uri
-import android.service.autofill.Validators.not
-import androidx.test.espresso.matcher.ViewMatchers.assertThat
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.google.common.base.Predicates.equalTo
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
-import emerald.apps.fairychess.model.ChessPiece
 import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDBGameInterface
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
