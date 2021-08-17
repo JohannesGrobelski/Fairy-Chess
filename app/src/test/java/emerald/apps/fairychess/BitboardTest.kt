@@ -52,8 +52,6 @@ class BitboardTest {
         assertEquals(18446462598732840960uL,bitboard.bbColorComposite[1])
         assertEquals(0uL,bitboard.bbMovedCaptured)
 
-
-
         assertEquals(1039,bitboard.pointsBlack())
         assertEquals(1039,bitboard.pointsWhite())
     }

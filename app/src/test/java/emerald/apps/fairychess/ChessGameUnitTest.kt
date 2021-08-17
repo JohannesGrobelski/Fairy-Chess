@@ -29,13 +29,13 @@ class ChessGameUnitTest {
     fun simpleCheckmate() {
         val chessFormationArray = parseChessFormation("normal_chess")
         val figureMap = parseFigureMapFromFile()
-        val chessBoardNormal = Chessboard(chessFormationArray, figureMap)
-        chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("5_1_5_2"))
-        chessBoardNormal.move("black", ChessPiece.Movement.fromStringToMovement("4_6_4_5"))
-        chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("6_1_6_3"))
-        chessBoardNormal.move("black", ChessPiece.Movement.fromStringToMovement("3_7_7_3"))
-        chessBoardNormal.move("white", ChessPiece.Movement.fromStringToMovement("6_0_7_2"))
-        chessBoardNormal.move("black", ChessPiece.Movement.fromStringToMovement("7_3_4_0"))
+        val chessBoardNormal = Bitboard(chessFormationArray, figureMap)
+        chessBoardNormal.move("white", Movement.fromStringToMovement("5_1_5_2"))
+        chessBoardNormal.move("black", Movement.fromStringToMovement("4_6_4_5"))
+        chessBoardNormal.move("white", Movement.fromStringToMovement("6_1_6_3"))
+        chessBoardNormal.move("black", Movement.fromStringToMovement("3_7_7_3"))
+        chessBoardNormal.move("white", Movement.fromStringToMovement("6_0_7_2"))
+        chessBoardNormal.move("black", Movement.fromStringToMovement("7_3_4_0"))
 
         println(chessBoardNormal.toString())
     }
