@@ -227,22 +227,21 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     fun handlePromotion() : String{
-        if(chessgame.getBitboard().promotion != null) {
-            pawnPromotion(chessgame.getBitboard().promotion!!)
-            chessgame.getBitboard().promotion = null
+        if(chessgame.getBitboard().promotionCoordinate != null) {
+            pawnPromotion(chessgame.getBitboard().promotionCoordinate!!)
             return "promotion"
         }
         return ""
     }
 
+
+
     /** handle pawn promotion*/
     private fun pawnPromotion(pawnPromotionCandidate: Bitboard.Companion.Coordinate) {
         val pieceColor = chessgame.getBitboard().getPieceColor(pawnPromotionCandidate.rank,pawnPromotionCandidate.file)
             //handle pawn promotion of ai (exchange pawn with queen)
-        if(pieceColor != gameParameters.playerColor && gameParameters.playMode=="ai"){
-            val value = (chessgame.figureMap["queen"] ?: error("")).value
-            val movingPattern = (chessgame.figureMap["queen"] ?: error("")).movementParlett
-            chessgame.getBitboard().promotePawn(pawnPromotionCandidate,"queen")
+        if(pieceColor != gameParameters.playerColor && gameParameters.playMode=="ai"){ //always promote to queen
+            chessgame.getBitboard().promotePawn(pawnPromotionCandidate,chessAI.getPromotion())
             displayFigures()
         }
         //handle user pawn promotion by creating and handling alert dialog

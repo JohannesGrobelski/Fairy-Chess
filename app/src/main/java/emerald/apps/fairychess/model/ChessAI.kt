@@ -38,6 +38,11 @@ class ChessAI {
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
     }
 
+    fun getPromotion() : String {
+        //TODO: calculate best figure
+        return "queen"
+    }
+
 
     class MinimaxResult(val movement: Movement, val value: Int)
     fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult{

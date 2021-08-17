@@ -43,7 +43,7 @@ class Bitboard(
     var bbColorComposite : Array<ULong> = arrayOf(0uL,0uL) //bitboard represents all figures of one color on chessboard
     var gameWinner = ""
     var playerWithDrawOpportunity = ""
-    var promotion : Coordinate? = null
+    var promotionCoordinate : Coordinate? = null
     var moveColor = "white"
     val moveHistory = mutableListOf<Map<String, Array<ULong>>>() //move history, for each move map (figureName -> Bitboard)
     val blackCapturedPieces = mutableListOf<ChessActivity.CapturedPiece>()
@@ -79,7 +79,15 @@ class Bitboard(
     }
 
     fun promotePawn(coordinate: Coordinate, name : String){
-
+        if(promotionCoordinate?.equals(coordinate) == true){
+            if(bbFigures.containsKey(name)){
+                val bbCoordinate = generate64BPositionFromCoordinates(coordinate)
+                val pos = (coordinate.file == 0).toInt() //black is on file 0, white on file 7
+                bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] and bbCoordinate.inv()
+                bbFigures[name]!![pos] = bbFigures[name]!![pos] or bbCoordinate
+                promotionCoordinate = null
+            }
+        }
     }
 
     /** @param color of the piece set
@@ -160,9 +168,16 @@ class Bitboard(
             checkForAndMakeEnpassanteMove(name, color, pos, movement)
 
             var bbFigureColor = bbFigures[name]!![pos]
-            var bbFigureOppositeColor = bbFigures[name]!![1-pos]
             val bbSource = generate64BPositionFromCoordinates(movement.getSourceCoordinate())
             val bbTarget = generate64BPositionFromCoordinates(movement.getTargetCoordinate())
+
+            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+            val targetName = getPieceName(movement.targetRank,movement.targetFile)
+            if(targetName.isNotEmpty()){
+                var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
+                bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
+                bbFigures[targetName]?.set(1-pos,bbFigureOppositeColor)
+            }
 
             //calculate change vector with set bits on old and new position
             val changeBB = bbSource or bbTarget
@@ -170,9 +185,6 @@ class Bitboard(
             //and thus move the piece
             bbFigureColor = bbFigureColor xor changeBB
             bbFigures[name]?.set(pos,bbFigureColor)
-            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
-            bbFigures[name]?.set(1-pos,bbFigureOppositeColor)
 
 
             //write move into bbComposite
@@ -192,7 +204,10 @@ class Bitboard(
             //add current position (as map bbFigures) to history
             if(name == "king" && movement.getRankDif() == 2){
                 makeCastlingMove(color,movement)
-            } else switchMoveColor()
+            } else {
+                checkForPromotion()
+                switchMoveColor()
+            }
             return ""
         } else {
             return "wrong square!"
@@ -1029,18 +1044,15 @@ class Bitboard(
        }
     }
 
-
-
-
     private fun checkForPromotion() {
         for (rank in 0..7) {
             val firstFile = 2.0.pow((0 * 8 + rank).toDouble()).toULong()
             val lastFile = 2.0.pow((7 * 8 + rank).toDouble()).toULong()
             if((bbFigures["pawn"]?.get(0)!! and lastFile) == lastFile){
-                promotion = Coordinate(7, rank)
+                promotionCoordinate = Coordinate(rank,7)
             }
             if((bbFigures["pawn"]?.get(1)!! and firstFile) == firstFile){
-                promotion = Coordinate(0, rank)
+                promotionCoordinate = Coordinate(rank,0)
             }
         }
     }

@@ -72,6 +72,36 @@ class BitboardTest {
     }
 
     @Test
+    fun testPromotion(){
+        //push white kingside pawn and black queenside pawn to enemy pawn line
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,6,3,4)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,3,4,4)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,4,3,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,4,4,5)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,3,3,2)))
+        //... and take pawn
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,5,5,6)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,2,2,1)))
+
+        //take knight and promote white kingside pawn to queen
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(5,6,6,7)))
+        assertEquals(Bitboard.Companion.Coordinate(6,7),bitboard.promotionCoordinate)
+        bitboard.promotePawn(Bitboard.Companion.Coordinate(6,7),"queen")
+        assertEquals(60160uL,bitboard.bbFigures["pawn"]!![0])
+        assertEquals(4611686018427387912uL,bitboard.bbFigures["queen"]!![0])
+
+
+        //take knight and promote black queenside pawn to rook
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(2,1,1,0)))
+        assertEquals(Bitboard.Companion.Coordinate(1,0),bitboard.promotionCoordinate)
+        bitboard.promotePawn(Bitboard.Companion.Coordinate(1,0),"rook")
+        assertEquals(42502721483309056uL,bitboard.bbFigures["pawn"]!![1])
+        assertEquals(9295429630892703746uL,bitboard.bbFigures["rook"]!![1])
+    }
+
+    @Test
     fun testMovegenerationKings(){
         var bitboard = Bitboard(chessFormationArray,figureMap)
         //kings initial position
@@ -146,6 +176,26 @@ class BitboardTest {
 
         /*println(bitboardToString(bitboard.getTargetMovements("queen","white",0, 4)))
         println(bitboard.getTargetMovements("queen","white",0, 4))*/
+    }
+
+
+
+    @Test
+    fun testCapture(){
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        //push kingside (white) and queenside (black) pawn
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,1,4,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,4)))
+        //capture black pawn with white pawn
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,3,3,4)))
+        //capture white pawn with queen
+        assertEquals("",bitboard.preMoveCheck("queen","black",Movement(3,7,3,4)))
+        assertEquals(1038,bitboard.pointsWhite())
+        assertEquals(1038,bitboard.pointsBlack())
+        assertEquals(61184uL,bitboard.bbFigures["pawn"]!![0])
+        assertEquals(69524319247532032uL,bitboard.bbFigures["pawn"]!![1])
+        assertEquals(8uL,bitboard.bbFigures["queen"]!![0])
+        assertEquals(34359738368uL,bitboard.bbFigures["queen"]!![1])
     }
 
     @Test
