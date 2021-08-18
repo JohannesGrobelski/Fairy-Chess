@@ -27,6 +27,7 @@ import java.lang.StringBuilder
 @RunWith(AndroidJUnit4::class)
 class MoveGenerationTests {
     companion object {
+        private const val DEBUG = true
         private const val TAG = "ChessboardUnitTest"
         val figureAbbrMap = mapOf("K" to "king", "Q" to "queen", "R" to "rook", "B" to "bishop", "N" to "knight")
         val coordinateMap = mapOf("a" to 0, "b" to 1, "c" to 2, "d" to 3, "e" to 4, "f" to 5, "g" to 6, "h" to 7)
@@ -62,7 +63,7 @@ class MoveGenerationTests {
                     inputStream
                 )
         } catch (e: Exception){
-            println(e.message.toString())
+            if(DEBUG)println(e.message.toString())
         }
         return ""
     }
@@ -81,39 +82,40 @@ class MoveGenerationTests {
         val gameStringList = gamesString.split("\n")
         val gameList = mutableListOf<List<Movement>>()
         for(gameString in gameStringList){
-            if(gameString.isEmpty())continue
             val formatedGameString = formatGameString(gameString)
+            if(formatedGameString.isEmpty())continue
+            println("game "+(gameList.size+1).toString())
             val bitboard = Bitboard(chessFormationArray,figureMap)
             val moveList = mutableListOf<Movement>()
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
             for(movepairString in movepairList){
                 if(movepairString.isEmpty())continue
-                if(gameList.size == 26) {
-                    if(moveList.size == 0){
-                        println()
-                        //TODO: PROBLEM: figur auf [5,4] in colorComposite[1] eingetragen
+                if(gameList.size == 237) {
+                    if(moveList.size == 70){
+                        if(DEBUG)println()
                     }
                 }
+                //parse moveStrings
                 var whiteMovestring = formatMoveString(movepairString.trim()); var blackMovestring = ""
                 if(movepairString.trim().contains(" ")){
                     whiteMovestring = formatMoveString(movepairString.trim().split(" ")[0])
                     blackMovestring = formatMoveString(movepairString.trim().split(" ")[1])
                 }
-
+                //create and check white movement
                 val whiteMovement = getMovementFromString("white",whiteMovestring,bitboard)
                 assertNotNull(whiteMovement)
                 assertEquals("",bitboard.checkMoveAndMove("white",whiteMovement!!))
-                println(moveList.size.toString()+" "+whiteMovestring)
-                println(bitboard.toString())
+                if(DEBUG)println(moveList.size.toString()+" "+whiteMovestring)
+                if(DEBUG)println(bitboard.toString())
                 moveList.add(whiteMovement)
-
+                //create and check black movement
                 var blackMovement : Movement? = null
                 if(blackMovestring != ""){
                     blackMovement = getMovementFromString("black",blackMovestring,bitboard)
                     assertNotNull(blackMovement)
                     assertEquals("",bitboard.checkMoveAndMove("black",blackMovement!!))
-                    println(moveList.size.toString()+" "+blackMovestring)
-                    println(bitboard.toString())
+                    if(DEBUG)println(moveList.size.toString()+" "+blackMovestring)
+                    if(DEBUG)println(bitboard.toString())
                     moveList.add(blackMovement)
                 }
             }
@@ -131,7 +133,7 @@ class MoveGenerationTests {
             formatedGameString = formatedGameString.replace(matchResult.value,"")
         }
 
-        return formatedGameString
+        return formatedGameString.trim()
     }
 
     fun formatMoveString(movestring: String) : String {

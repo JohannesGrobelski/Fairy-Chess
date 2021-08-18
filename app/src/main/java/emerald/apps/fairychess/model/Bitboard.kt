@@ -11,6 +11,7 @@ import java.io.InputStream
 import java.lang.Math.random
 import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.math.round
 import kotlin.math.sign
 
 class Bitboard(
@@ -81,7 +82,7 @@ class Bitboard(
     fun promotePawn(coordinate: Coordinate, name : String){
         if(promotionCoordinate?.equals(coordinate) == true){
             if(bbFigures.containsKey(name)){
-                val bbCoordinate = generate64BPositionFromCoordinates(coordinate)
+                val bbCoordinate = generate64BPositionFromCoordinate(coordinate)
                 val pos = (coordinate.file == 0).toInt() //black is on file 0, white on file 7
                 bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] and bbCoordinate.inv()
                 bbFigures[name]!![pos] = bbFigures[name]!![pos] or bbCoordinate
@@ -95,7 +96,7 @@ class Bitboard(
      * sets figure at coordinate */
     fun setFigure(name:String,color: String,coordinate: Coordinate){
         val pos = getPosition(color)
-        val bbFigure = generate64BPositionFromCoordinates(coordinate)
+        val bbFigure = generate64BPositionFromCoordinate(coordinate)
         if(!bbFigures.containsKey(name)){
             val value = arrayOf(0uL,0uL)
             value[pos] = bbFigure
@@ -144,7 +145,7 @@ class Bitboard(
         if(movement.sourceFile == movement.targetFile && movement.sourceRank == movement.targetRank)return "same square"
         val pos = getPosition(color)
         val coordinate = Coordinate(movement.sourceRank,movement.sourceFile)
-        val bbSource = generate64BPositionFromCoordinates(coordinate)
+        val bbSource = generate64BPositionFromCoordinate(coordinate)
         if(bbColorComposite[pos] and bbSource != bbSource)return "wrong figure"
         val legalMovements = getTargetMovementsAsMovementList(color,coordinate)
         for(legalMove in legalMovements){
@@ -168,8 +169,8 @@ class Bitboard(
             if(checkForAndMakeEnpassanteMove(name, color, pos, movement))return ""
 
             var bbFigureColor = bbFigures[name]!![pos]
-            val bbSource = generate64BPositionFromCoordinates(movement.getSourceCoordinate())
-            val bbTarget = generate64BPositionFromCoordinates(movement.getTargetCoordinate())
+            val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
+            val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
 
             //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
             val targetName = getPieceName(movement.targetRank,movement.targetFile)
@@ -223,30 +224,40 @@ class Bitboard(
     /** checks if movement is en passante and if so makes en passante move*/
     fun checkForAndMakeEnpassanteMove(name: String, color : String, pos : Int, movement : Movement) : Boolean {
         //check for special case enpassante
+        if(moveHistory.size < 2)return false
         if(name == "pawn" && movement.getRankDif() == 1
-            && bbFigures["pawn"]!![1-pos] and generate64BPositionFromCoordinates(movement.getTargetCoordinate()) == 0uL){
+            && bbFigures["pawn"]!![1-pos] and generate64BPositionFromCoordinate(movement.getTargetCoordinate()) == 0uL){
             //pawn moved diagonaly, but there is no target on target square
             val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
-            val bbRemoveFigure = generate64BPositionFromCoordinates(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
+            val bbRemoveFigure = generate64BPositionFromCoordinate(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
             if(bbFigures["pawn"]!![1-pos] and bbRemoveFigure == bbRemoveFigure){
             //therefore an enemy pawn must be above (black pawn) or under (white pawn) the target square
-            //if so make enpassante move
-                val bbSource = generate64BPositionFromCoordinates(movement.getSourceCoordinate())
-                val bbTarget = generate64BPositionFromCoordinates(movement.getTargetCoordinate())
-                val bbPath = bbSource or bbTarget
+                val removeFileActual = movement.targetFile + fileOffset
+                val removeFileSupposed = round(3.5 + -fileOffset*.1).toInt() //4 for white, 3 for black
+                val bbPawnPositionLastMove = moveHistory[moveHistory.lastIndex - 1]["pawn"]!![1-pos]
+                val bbPawnPositionNow = bbFigures["pawn"]!![1-pos]
+                val bbCurrentPositionOfPawnWhoMovedLast = bbPawnPositionNow and bbPawnPositionLastMove.inv()
+                if(bbCurrentPositionOfPawnWhoMovedLast and bbRemoveFigure != 0uL && removeFileActual == removeFileSupposed){
+                //check if the pawn made his first move in last move and if this move took place on the correct file (3 or 4)
+                    //all conditions are met, thus make enpassante move
+                    val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
+                    val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+                    val bbPath = bbSource or bbTarget
 
-                //remove enemy pawn
-                bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
-                //move pawn
-                bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
+                    //remove enemy pawn
+                    bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
+                    //move pawn
+                    bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
 
-                bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
-                bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
-                bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
-                bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
-                addEntryToHistory(bbFigures)
-                switchMoveColor()
-                return true
+                    bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
+                    bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
+                    bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+                    bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
+                    addEntryToHistory(bbFigures)
+                    switchMoveColor()
+                    return true
+                }
+                return false
             }
             return false
         }
@@ -283,7 +294,7 @@ class Bitboard(
         val pos = ("black" == color).toInt()
         for(rank in 0..7){
             for(file in 0..7){
-                val bbFigure = generate64BPositionFromCoordinates(Coordinate(rank,file))
+                val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))
                 if((bbColorComposite[pos] and bbFigure) == bbFigure){
                     val name = getNameOfFigure(pos, bbFigure)
                     if(name.isEmpty())continue //empty field
@@ -324,7 +335,7 @@ class Bitboard(
         if(!coordinate.inRange())return 0uL
         val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
         val movementNotationList = getMovementNotation(movementString)
-        val bbFigure = generate64BPositionFromCoordinates(coordinate)
+        val bbFigure = generate64BPositionFromCoordinate(coordinate)
         var bbTargets = generateMovements(color,coordinate,movementNotationList)
         bbTargets = deleteIllegalMoves(name,color,bbFigure,bbTargets.toMutableMap(),movementNotationList)
         bbTargets = genSpecialMoves(name,color,coordinate,bbTargets,generateCastlingMoves)
@@ -352,11 +363,11 @@ class Bitboard(
         val targetRankRight = coordinate.rank + 1
         val pos = ("black" == color).toInt()
         for(targetRank in arrayOf(targetRankLeft,targetRankRight)){
-            val bbtargetPawn = generate64BPositionFromCoordinates(Coordinate(targetRank,coordinate.file))
+            val bbtargetPawn = generate64BPositionFromCoordinate(Coordinate(targetRank,coordinate.file))
             if(bbtargetPawn and bbFigures["pawn"]!![1-pos] == bbtargetPawn){
                 //there is an enemy pawn above/under target square
                 val fileOffset = ((-1.0).pow(pos.toDouble())*2).toInt() //2 for white, -2 for black
-                val bbtargetPawnInitialPosition = generate64BPositionFromCoordinates(Coordinate(targetRank,coordinate.file + fileOffset))
+                val bbtargetPawnInitialPosition = generate64BPositionFromCoordinate(Coordinate(targetRank,coordinate.file + fileOffset))
                 if(moveHistory.size > 1
                     && moveHistory[moveHistory.lastIndex-1]["pawn"]!![1-pos] and bbtargetPawnInitialPosition == bbtargetPawnInitialPosition){
                     //last position of target pawn was 2 steps above/under the current position => target pawn moved 2 steps in the last move
@@ -374,7 +385,10 @@ class Bitboard(
         var bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
 
         //1. king has not moved
-        if(bbFigures["king"]!![ownColorPos] and generate64BPositionFromCoordinates(coordinate) == bbFigures["king"]!![ownColorPos]){
+        val bbKingCurrentPosition = generate64BPositionFromCoordinate(coordinate)
+        val kingNotMoved = bbKingOriginalPosition[ownColorPos] and bbKingCurrentPosition and bbMovedCaptured.inv() != 0uL
+        if(bbFigures["king"]!![ownColorPos] and generate64BPositionFromCoordinate(coordinate) == bbFigures["king"]!![ownColorPos]
+            && kingNotMoved){
             var bbRook: ULong
             var bbMoveRoom : ULong
             if(color == "white"){
@@ -382,7 +396,7 @@ class Bitboard(
                 //2. check if king and space between rook and king are not under attack
                 if(bbCastlingRoomSmallWhite and bbEnemyMoves.inv() == bbCastlingRoomSmallWhite){
                     //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinates(Coordinate(7,0))
+                    bbRook = generate64BPositionFromCoordinate(Coordinate(7,0))
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomSmallWhite and bbRook.inv()
@@ -396,7 +410,7 @@ class Bitboard(
                 //2. check if king and space between rook and king are not under attack
                 if(bbCastlingRoomLargeWhite and bbEnemyMoves.inv() == bbCastlingRoomLargeWhite){
                     //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinates(Coordinate(0,0))
+                    bbRook = generate64BPositionFromCoordinate(Coordinate(0,0))
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomLargeWhite and bbRook.inv()
@@ -412,7 +426,7 @@ class Bitboard(
                 //2. check if king and space between rook and king are not under attack
                 if(bbCastlingRoomSmallBlack and bbEnemyMoves.inv() == bbCastlingRoomSmallBlack){
                     //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinates(Coordinate(7,7))
+                    bbRook = generate64BPositionFromCoordinate(Coordinate(7,7))
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomSmallBlack and bbRook.inv()
@@ -426,7 +440,7 @@ class Bitboard(
                 //2. check if king and space between rook and king are not under attack
                 if(bbCastlingRoomLargeBlack and bbEnemyMoves.inv() == bbCastlingRoomLargeBlack){
                     //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinates(Coordinate(0,7))
+                    bbRook = generate64BPositionFromCoordinate(Coordinate(0,7))
                     if(bbMovedCaptured and bbRook == 0uL){
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomLargeBlack and bbRook.inv()
@@ -447,7 +461,7 @@ class Bitboard(
      * */
     fun getTargetMovementsAsMovementList(color: String, coordinate : Coordinate) : List<Movement> {
         val pos = ("black" == color).toInt()
-        val bbFigure = generate64BPositionFromCoordinates(coordinate)
+        val bbFigure = generate64BPositionFromCoordinate(coordinate)
         if(bbComposite and bbFigure == 0uL)return emptyList()
         val movementList = mutableListOf<Movement>()
         val name = getNameOfFigure(pos, bbFigure)
@@ -585,7 +599,7 @@ class Bitboard(
         val newFile = position.file + fileDif
         if (newFile in 0..7 && newRank in 0..7) {
             val newPosition = Coordinate(newRank,newFile)
-            val bbNewTarget = generate64BPositionFromCoordinates(newPosition)
+            val bbNewTarget = generate64BPositionFromCoordinate(newPosition)
             val pos = (color =="black").toInt() //opponent color
             if(bbNewTarget and bbColorComposite[pos].inv() == bbNewTarget){//check if there is no figure of self color at targets
                 addCoordinateToMovementBitboard(
@@ -660,7 +674,7 @@ class Bitboard(
                               distance : Int) {
         for(newFile in (coordinate.file+1)..7){// ... inside board (between 0 and 7)
             if(abs(coordinate.file-newFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(coordinate.rank,newFile))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank,newFile))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -692,7 +706,7 @@ class Bitboard(
                               distance : Int) {
         for(newFile in coordinate.file-1 downTo 0){// ... inside board (between 0 and 7)
             if(abs(coordinate.file-newFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(coordinate.rank,newFile))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank,newFile))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -724,7 +738,7 @@ class Bitboard(
                              distance : Int) {
         for(newRank in coordinate.rank+1..7){// ... inside board (between 0 and 7)
             if(abs(coordinate.rank-newRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(newRank,coordinate.file))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,coordinate.file))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -757,7 +771,7 @@ class Bitboard(
         //if coordinate is ...
         for(newRank in coordinate.rank-1 downTo 0){// ... inside board (between 0 and 7)
             if(abs(coordinate.rank-newRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(newRank,coordinate.file))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,coordinate.file))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -823,7 +837,7 @@ class Bitboard(
             if(abs(difFile) <= distance && abs(difRank) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
                 val newFile = coordinate.file+difFile
                 val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(newRank,newFile))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -860,7 +874,7 @@ class Bitboard(
             if(abs(difRank) <= distance && abs(difFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
                 val newFile = coordinate.file+difFile
                 val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(newRank,newFile))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -898,7 +912,7 @@ class Bitboard(
             if(abs(difRank) <= distance && abs(difFile) <= distance){ // ... and difference smaller than allowed distance add Coordinate to bitboard
                 val newFile = coordinate.file+difFile
                 val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(newRank,newFile))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -935,7 +949,7 @@ class Bitboard(
             if(abs(difRank) <= distance && abs(difFile) <= distance){// ... and difference smaller than allowed distance add Coordinate to bitboard
                 val newFile = coordinate.file+difFile
                 val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinates(Coordinate(newRank,newFile))
+                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
                 if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){//figure of your own color => break
                     break
                 }
@@ -971,7 +985,7 @@ class Bitboard(
             //if(fullfillsCondition(color,sourceFile, sourceRank, targetFile, targetRank, movementNotation)){
             val a = bbMovementMap.keys.toTypedArray()[0].hashCode()
             val b = movementNotation.hashCode()
-            val targetBB =  generate64BPositionFromCoordinates(movement.getTargetCoordinate())
+            val targetBB =  generate64BPositionFromCoordinate(movement.getTargetCoordinate())
             if(bbMovementMap.keys.contains(movementNotation)){
                 bbMovementMap[movementNotation] = bbMovementMap[movementNotation]!! or targetBB
             } else {
@@ -1137,7 +1151,7 @@ class Bitboard(
             for(i in 0..64){
                 val targetRank = i % 8
                 val targetFile = i / 8
-                val bbCandidate = generate64BPositionFromCoordinates(Coordinate(targetRank,targetFile))
+                val bbCandidate = generate64BPositionFromCoordinate(Coordinate(targetRank,targetFile))
                 if(bbCandidate and bbMove == bbCandidate){
                     targetMovements.add(Movement(sourceCoordinate.rank,sourceCoordinate.file,targetRank,targetFile))
                 }
@@ -1178,9 +1192,12 @@ class Bitboard(
         }
 
         val bbCastlingRoomSmallWhite = horizontalLineToBitboard(Movement(4,0,6,0))
-        val bbCastlingRoomLargeWhite = horizontalLineToBitboard(Movement(4,0,1,0))
+        val bbCastlingRoomLargeWhite = horizontalLineToBitboard(Movement(4,0,2,0))
         val bbCastlingRoomSmallBlack = horizontalLineToBitboard(Movement(4,7,6,7))
-        val bbCastlingRoomLargeBlack = horizontalLineToBitboard(Movement(4,7,1,7))
+        val bbCastlingRoomLargeBlack = horizontalLineToBitboard(Movement(4,7,2,7))
+        val bbKingOriginalPosition = arrayOf(generate64BPositionFromCoordinate(Coordinate(4,0)),
+                                     generate64BPositionFromCoordinate(Coordinate(4,7)))
+
 
         /** generates bitboard that contains all squares from sourceSquare to targetSquare (including them) */
         private fun horizontalLineToBitboard(movement: Movement) : ULong {
@@ -1189,7 +1206,7 @@ class Bitboard(
             } else {
                 val signRank = movement.getSignRank()
                 val distance = movement.getRankDif()
-                var result = generate64BPositionFromCoordinates(movement.getSourceCoordinate())
+                var result = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
                 for(i in 1..distance){
                     if(signRank > 0){
                         result = result or (result shl 1)
@@ -1218,21 +1235,21 @@ class Bitboard(
             return movementNotations
         }
 
-        fun generate64BPositionFromCoordinates(coordinate: Coordinate) : ULong {
+        fun generate64BPositionFromCoordinate(coordinate: Coordinate) : ULong {
             var pos : ULong = 1uL shl coordinate.file*8 // pos = 2 ^ (file*8)
             pos = pos shl coordinate.rank       // pos = pos * 2 ^ rank
             return pos         // pos = 2 ^ (file*8) * 2 ^ rank
         }
 
         fun add64BPositionFromCoordinates(_64B: ULong, coordinate: Coordinate) : ULong {
-            return _64B or generate64BPositionFromCoordinates(coordinate)
+            return _64B or generate64BPositionFromCoordinate(coordinate)
         }
 
         fun generate64BPositionFromCoordinateList(list: List<Coordinate>) : ULong{
             var result = 0uL
             for(i in list.indices){
                 result = if(i==0){
-                    generate64BPositionFromCoordinates(list[i])
+                    generate64BPositionFromCoordinate(list[i])
                 } else {
                     add64BPositionFromCoordinates(result,list[i])
                 }
@@ -1293,7 +1310,7 @@ class Bitboard(
 
 
     fun getPieceName(rank: Int, file: Int) : String{
-        val bbFigure = generate64BPositionFromCoordinates(Coordinate(rank,file))
+        val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))
         for(pieceName in bbFigures.keys){
             if((bbFigures[pieceName]!![0] or bbFigures[pieceName]!![1]) and bbFigure == bbFigure)return pieceName
         }
@@ -1301,7 +1318,7 @@ class Bitboard(
     }
 
     fun getPieceColor(rank: Int, file: Int) : String{
-        return when (val bbFigure = generate64BPositionFromCoordinates(Coordinate(rank,file))) {
+        return when (val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))) {
             bbColorComposite[0] and bbFigure -> "white"
             bbColorComposite[1] and bbFigure -> "black"
             else -> ""
