@@ -165,7 +165,7 @@ class Bitboard(
     fun checkMoveAndMove(name: String, color : String, movement: Movement) : String{
         val pos = getPosition(color)
         if(bbFigures.containsKey(name)){
-            checkForAndMakeEnpassanteMove(name, color, pos, movement)
+            if(checkForAndMakeEnpassanteMove(name, color, pos, movement))return ""
 
             var bbFigureColor = bbFigures[name]!![pos]
             val bbSource = generate64BPositionFromCoordinates(movement.getSourceCoordinate())
@@ -180,7 +180,7 @@ class Bitboard(
             }
 
             //calculate change vector with set bits on old and new position
-            val changeBB = bbSource or bbTarget
+            val bbPath = bbSource or bbTarget
 
             if(movement is PromotionMovement){
                 val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
@@ -190,21 +190,20 @@ class Bitboard(
             } else {
                 //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
                 //and thus move the piece
-                bbFigureColor = bbFigureColor xor changeBB
+                bbFigureColor = bbFigureColor xor bbPath
                 bbFigures[name]?.set(pos,bbFigureColor)
             }
 
-            //write move into bbComposite
+            //write move into bbComposite (important: cannot xor with bbChange because figure can stand on target square)
             //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position
             bbComposite = bbComposite or bbTarget
             //no figure can stand at (targetRank,targetFile) therefore set bit to 0 on this position
             bbComposite = bbComposite and bbSource.inv()
 
             //write move into bbColorComposite for move color like above
-            bbColorComposite[pos] = bbColorComposite[pos] xor changeBB
+            bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
             //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
             bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
-
 
             bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
             addEntryToHistory(bbFigures)
@@ -221,20 +220,37 @@ class Bitboard(
         }
     }
 
-    fun checkForAndMakeEnpassanteMove(name: String, color : String, pos : Int, movement : Movement){
+    /** checks if movement is en passante and if so makes en passante move*/
+    fun checkForAndMakeEnpassanteMove(name: String, color : String, pos : Int, movement : Movement) : Boolean {
         //check for special case enpassante
         if(name == "pawn" && movement.getRankDif() == 1
             && bbFigures["pawn"]!![1-pos] and generate64BPositionFromCoordinates(movement.getTargetCoordinate()) == 0uL){
             //pawn moved diagonaly, but there is no target on target square
             val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
-            val bbTarget = generate64BPositionFromCoordinates(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
-            if(bbFigures["pawn"]!![1-pos] and bbTarget == bbTarget){
+            val bbRemoveFigure = generate64BPositionFromCoordinates(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
+            if(bbFigures["pawn"]!![1-pos] and bbRemoveFigure == bbRemoveFigure){
             //therefore an enemy pawn must be above (black pawn) or under (white pawn) the target square
             //if so make enpassante move
-                bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbTarget.inv()
+                val bbSource = generate64BPositionFromCoordinates(movement.getSourceCoordinate())
+                val bbTarget = generate64BPositionFromCoordinates(movement.getTargetCoordinate())
+                val bbPath = bbSource or bbTarget
+
+                //remove enemy pawn
+                bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
+                //move pawn
+                bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
+
+                bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
+                bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
+                bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+                bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
+                addEntryToHistory(bbFigures)
+                switchMoveColor()
+                return true
             }
-            return
+            return false
         }
+        return false
     }
 
     fun addEntryToHistory(bbFig : Map<String, Array<ULong>>){
@@ -1314,5 +1330,6 @@ fun bitboardToString(bitboard: ULong) : String{
         }
         str.append("\n--+---+---+---+---+---+---+---+---+\n")
     }
+    str.append("      0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n")
     return str.toString()
 }

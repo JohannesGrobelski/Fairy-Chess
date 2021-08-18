@@ -11,6 +11,7 @@ import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_B
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_WHITE
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.*
+import org.apache.tools.ant.taskdefs.Move
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -66,6 +67,7 @@ class MoveGenerationTests {
         return ""
     }
 
+    //TODO: game 21 move 36.2 blackMOve null
     /** test movegeneration by
      *   1. splitting newlines and formating (resulting in formatedGameString),
      *   2. then numbers and formating (resulting in formatMoveString)
@@ -77,36 +79,45 @@ class MoveGenerationTests {
         initNormalChessVariables()
         gamesString = readPGNFile("games")
         val gameStringList = gamesString.split("\n")
+        val gameList = mutableListOf<List<Movement>>()
         for(gameString in gameStringList){
             if(gameString.isEmpty())continue
             val formatedGameString = formatGameString(gameString)
             val bitboard = Bitboard(chessFormationArray,figureMap)
-            val gameList = mutableListOf<Movement>()
+            val moveList = mutableListOf<Movement>()
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
             for(movepairString in movepairList){
                 if(movepairString.isEmpty())continue
-                var whiteMovestring = movepairString.trim(); var blackMovestring = ""
+                if(gameList.size == 26) {
+                    if(moveList.size == 0){
+                        println()
+                        //TODO: PROBLEM: figur auf [5,4] in colorComposite[1] eingetragen
+                    }
+                }
+                var whiteMovestring = formatMoveString(movepairString.trim()); var blackMovestring = ""
                 if(movepairString.trim().contains(" ")){
                     whiteMovestring = formatMoveString(movepairString.trim().split(" ")[0])
                     blackMovestring = formatMoveString(movepairString.trim().split(" ")[1])
                 }
+
                 val whiteMovement = getMovementFromString("white",whiteMovestring,bitboard)
                 assertNotNull(whiteMovement)
                 assertEquals("",bitboard.checkMoveAndMove("white",whiteMovement!!))
-                println(gameList.size.toString()+" "+whiteMovestring)
+                println(moveList.size.toString()+" "+whiteMovestring)
                 println(bitboard.toString())
-                gameList.add(whiteMovement)
+                moveList.add(whiteMovement)
 
                 var blackMovement : Movement? = null
                 if(blackMovestring != ""){
                     blackMovement = getMovementFromString("black",blackMovestring,bitboard)
                     assertNotNull(blackMovement)
                     assertEquals("",bitboard.checkMoveAndMove("black",blackMovement!!))
-                    println(gameList.size.toString()+" "+blackMovestring)
+                    println(moveList.size.toString()+" "+blackMovestring)
                     println(bitboard.toString())
-                    gameList.add(blackMovement)
+                    moveList.add(blackMovement)
                 }
             }
+            gameList.add(moveList)
         }
     }
 
@@ -114,6 +125,7 @@ class MoveGenerationTests {
         var formatedGameString = gameString
         formatedGameString = gameString.replace("  "," ")
 
+        //delete match result comment like 0-1 or 1/2-1/2
         val matchResult = "\\d-\\d|1\\/2-1\\/2".toRegex().find(formatedGameString)
         if(matchResult != null){
             formatedGameString = formatedGameString.replace(matchResult.value,"")
