@@ -94,7 +94,7 @@ class Bitboard(
      *  @param name of the piece set
      * sets figure at coordinate */
     fun setFigure(name:String,color: String,coordinate: Coordinate){
-        val pos = (color == "black").toInt()
+        val pos = getPosition(color)
         val bbFigure = generate64BPositionFromCoordinates(coordinate)
         if(!bbFigures.containsKey(name)){
             val value = arrayOf(0uL,0uL)
@@ -142,7 +142,7 @@ class Bitboard(
     fun preMoveCheck(name: String, color : String, movement: Movement) : String{
         if(moveColor != color)return "wrong color"
         if(movement.sourceFile == movement.targetFile && movement.sourceRank == movement.targetRank)return "same square"
-        val pos = (color == "black").toInt()
+        val pos = getPosition(color)
         val coordinate = Coordinate(movement.sourceRank,movement.sourceFile)
         val bbSource = generate64BPositionFromCoordinates(coordinate)
         if(bbColorComposite[pos] and bbSource != bbSource)return "wrong figure"
@@ -163,7 +163,7 @@ class Bitboard(
      * moves figure from coordinate (sourceFile,sourceRow) to coordinate (targetFile,targetRow)
      * does not check if move is legal */
     fun checkMoveAndMove(name: String, color : String, movement: Movement) : String{
-        val pos = (color == "black").toInt()
+        val pos = getPosition(color)
         if(bbFigures.containsKey(name)){
             checkForAndMakeEnpassanteMove(name, color, pos, movement)
 
@@ -596,7 +596,7 @@ class Bitboard(
                                    color: String,
                                    movementNotation : MovementNotation)  {
         var distance = 7
-        val posOwnColor = (color == "black").toInt()
+        val posOwnColor = getPosition(color)
         if(movementNotation.distances[0].matches("[1-9]+".toRegex()))distance = movementNotation.distances[0].toInt()
         //forward(>) and backwards(<) are color-dependent because they are depending on direction of the figures
         //color-independent movements
@@ -764,7 +764,7 @@ class Bitboard(
                                  color: String,
                                  movementNotation : MovementNotation)  {
         var distance = 7
-        val posOwnColor = (color == "black").toInt()
+        val posOwnColor = getPosition(color)
         if(movementNotation.distances[0].matches("[0-9]".toRegex())){
             distance = movementNotation.distances[0].toInt()
         }
@@ -995,7 +995,6 @@ class Bitboard(
             fList.addAll(generateCoordinatesFrom64BPosition(bbFigures[key]?.get(0) ?: 0uL))
             fList.addAll(generateCoordinatesFrom64BPosition(bbFigures[key]?.get(1) ?: 0uL))
         }
-        println(fList.size)
         val str = StringBuilder("")
         var cnt = 0
         for(file in 7 downTo 0){
@@ -1008,13 +1007,19 @@ class Bitboard(
                     val white = bbFigures[key]?.get(0) ?: 0uL
                     val black = bbFigures[key]?.get(1) ?: 0uL
                     if(white and num == num){
-                        if(key.isNotEmpty())str.append(key[0].toUpperCase())
+                        if(key.isNotEmpty()){
+                            if(key == "knight")str.append("N")
+                            else str.append(key[0].toUpperCase())
+                        }
                         str.append(" | ")
                         ++cnt
                         empty = false
                     }
-                    if(black and num == num){
-                        if(key.isNotEmpty())str.append(key[0])
+                    else if(black and num == num){
+                        if(key.isNotEmpty()){
+                            if(key == "knight")str.append("n")
+                            else str.append(key[0])
+                        }
                         str.append(" | ")
                         ++cnt
                         empty = false
@@ -1028,7 +1033,6 @@ class Bitboard(
         }
         str.append("  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n")
         str.append("  +---+---+---+---+---+---+---+---+\n")
-        println(cnt)
         return str.toString()
     }
 
@@ -1091,6 +1095,10 @@ class Bitboard(
         val colors = arrayOf("white","black")
         fun randomColor() : String {
             return colors[(random()*2).toInt()]
+        }
+
+        fun getPosition(color: String) : Int {
+            return (color == "black").toInt()
         }
 
         fun moveMapToComposite(moveMap : Map<Coordinate,ULong>) : ULong {
@@ -1278,14 +1286,9 @@ class Bitboard(
     }
 }
 
-
-
-private fun Boolean.toInt(): Int {
+fun Boolean.toInt(): Int {
    return if (this) 1 else 0
 }
-
-
-
 
 fun bitboardToString(bitboard: ULong) : String{
     val str = StringBuilder("")

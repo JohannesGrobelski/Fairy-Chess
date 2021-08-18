@@ -417,7 +417,6 @@ class BitboardTest {
     }
 
 
-
     fun moveMapToCompositeBB(moveMap: Map<Bitboard.Companion.Coordinate,ULong>) : ULong{
         var composite = 0uL
         for(coordinate in moveMap.keys){

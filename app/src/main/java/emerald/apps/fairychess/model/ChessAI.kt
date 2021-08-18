@@ -30,7 +30,7 @@ class ChessAI {
         val originalBitboard = bitboard.clone()
         when (algorithm) {
             "alphabeta" -> {
-                val result = alphabeta(bitboard,2,Int.MIN_VALUE,Int.MAX_VALUE).movement
+                val result = alphabeta(bitboard,4,Int.MIN_VALUE,Int.MAX_VALUE).movement
                 bitboard.set(originalBitboard)
                 return result
             }

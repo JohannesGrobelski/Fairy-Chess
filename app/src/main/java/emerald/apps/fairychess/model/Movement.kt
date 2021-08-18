@@ -120,6 +120,9 @@ class PromotionMovement(movementNotation : MovementNotation = MovementNotation("
                         , targetFile: Int
                         , var promotion : String)  : Movement(movementNotation,sourceRank,sourceFile,targetRank,targetFile) {
 
+    constructor(sourceRank : Int, sourceFile : Int, targetRank : Int, targetFile : Int,promotion: String)
+            : this(MovementNotation("", emptyList(),"",emptyList(),""),sourceRank, sourceFile, targetRank, targetFile,promotion)
+
     companion object {
         fun fromMovementToString(promotionMovement: PromotionMovement): String {
             return promotionMovement.sourceRank.toString() + "_" + promotionMovement.sourceFile + "_" +

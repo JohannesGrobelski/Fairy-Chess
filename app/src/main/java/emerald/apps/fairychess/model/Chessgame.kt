@@ -42,22 +42,12 @@ class Chessgame() {
 
     /** execute movement and check if color allows movement */
     fun movePlayer(movement: Movement?, color: String): String {
-        if(movement != null){
-            var returnValue = bitboard.checkMoveAndMove(color, movement)
+        return if(movement != null){
+            val returnValue = bitboard.checkMoveAndMove(color, movement)
             gameFinished = bitboard.gameFinished
-            if(returnValue == ""){
-                when(gameParameters.playMode){
-                    "ai" -> {
-
-                    }
-                    "human" -> {
-
-                    }
-                }
-            }
-            return returnValue
+            returnValue
         } else {
-            return "no move made"
+            "no move made"
         }
     }
 
