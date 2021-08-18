@@ -114,7 +114,7 @@ class MoveGenerationTests {
         var formatedGameString = gameString
         formatedGameString = gameString.replace("  "," ")
 
-        val matchResult =  "\\d\\-\\d".toRegex().find(formatedGameString)
+        val matchResult = "\\d-\\d|1\\/2-1\\/2".toRegex().find(formatedGameString)
         if(matchResult != null){
             formatedGameString = formatedGameString.replace(matchResult.value,"")
         }
