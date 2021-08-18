@@ -41,8 +41,6 @@ open class Movement(val movementNotation : MovementNotation = MovementNotation("
         } else super.equals(other)
     }
 
-
-
     companion object{
         fun emptyMovement() : Movement {
             return Movement(sourceFile = 0,sourceRank = 0,targetFile = 0,targetRank = 0)

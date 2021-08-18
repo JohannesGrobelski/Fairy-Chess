@@ -1,4 +1,4 @@
-package emerald.apps.fairychess.chessGameTester
+package emerald.apps.fairychess.BitboardTests
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -11,7 +11,6 @@ import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_B
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_WHITE
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.*
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -21,10 +20,11 @@ import java.io.InputStream
 import java.lang.StringBuilder
 
 /**
- * Play games specified in gamesdb.
+ * Parse Moves from chess database (games.pgn) to movement
+ * and test if moves are verified by my bitboard move generation
  */
 @RunWith(AndroidJUnit4::class)
-class ChessboardUnitTest {
+class MoveGenerationTests {
     companion object {
         private const val TAG = "ChessboardUnitTest"
         val figureAbbrMap = mapOf("K" to "king", "Q" to "queen", "R" to "rook", "B" to "bishop", "N" to "knight")
@@ -106,7 +106,6 @@ class ChessboardUnitTest {
                     println(bitboard.toString())
                     gameList.add(blackMovement)
                 }
-                
             }
         }
     }
@@ -157,11 +156,12 @@ class ChessboardUnitTest {
             targetRank = coordinateMap[movestring[2].toString()]!!
             targetFile = movestring[3].toString().toInt() - 1
         }
-        else if(movestring.matches("[a-z]\\d[A-Z]".toRegex())) {//pawn promoted
+        else if(movestring.matches("[a-z]\\d\\=?[A-Z]".toRegex())) {//pawn promoted
             targetRank = coordinateMap[movestring[0].toString()]!!
             targetFile = movestring[1].toString().toInt() - 1
-            if(figureAbbrMap.containsKey(movestring[2].toString())){
-                promotion = figureAbbrMap[movestring[2].toString()]!!
+            val equalsOffset = (movestring.contains("=")).toInt()
+            if(figureAbbrMap.containsKey(movestring[2+equalsOffset].toString())){
+                promotion = figureAbbrMap[movestring[2+equalsOffset].toString()]!!
             }
         }
         else if(movestring.matches("[A-Z]x?[a-z]\\d".toRegex())){//piece moved/captured

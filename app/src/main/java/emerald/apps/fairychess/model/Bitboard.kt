@@ -181,11 +181,18 @@ class Bitboard(
 
             //calculate change vector with set bits on old and new position
             val changeBB = bbSource or bbTarget
-            //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
-            //and thus move the piece
-            bbFigureColor = bbFigureColor xor changeBB
-            bbFigures[name]?.set(pos,bbFigureColor)
 
+            if(movement is PromotionMovement){
+                val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
+                bbFigures["pawn"]!![pos] = bbPawns
+                val bbPromotion = bbFigures[movement.promotion]!![pos] or bbTarget
+                bbFigures[movement.promotion]!![pos] = bbPromotion
+            } else {
+                //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
+                //and thus move the piece
+                bbFigureColor = bbFigureColor xor changeBB
+                bbFigures[name]?.set(pos,bbFigureColor)
+            }
 
             //write move into bbComposite
             //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position

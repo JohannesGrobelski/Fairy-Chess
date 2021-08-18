@@ -1,4 +1,4 @@
-package emerald.apps.fairychess
+package emerald.apps.fairychess.BitboardTests
 
 import emerald.apps.fairychess.model.Bitboard
 import emerald.apps.fairychess.model.Bitboard.Companion.add64BPositionFromCoordinates
@@ -15,7 +15,8 @@ import kotlin.math.pow
 
 
 @kotlin.ExperimentalUnsignedTypes
-class BitboardTest {
+/** test basic movements of all figure types (pawn,rook,knight,bishop,king,queen) and special moves (en passante and castling)*/
+class BasicMoveTest {
 
     lateinit var chessFormationArray : Array<Array<String>>
     lateinit var figureMap : Map<String, FigureParser.Figure>
@@ -44,7 +45,7 @@ class BitboardTest {
     @Test
     fun testBitboardInit(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
-        assertEquals("7 | r | k | b | q | k | b | k | r | \n" +
+        assertEquals("7 | r | n | b | q | k | b | n | r | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "6 | p | p | p | p | p | p | p | p | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
@@ -58,7 +59,7 @@ class BitboardTest {
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "1 | P | P | P | P | P | P | P | P | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
-                "0 | R | K | B | Q | K | B | K | R | \n" +
+                "0 | R | N | B | Q | K | B | N | R | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n" +
                 "  +---+---+---+---+---+---+---+---+\n",bitboard.toString())
