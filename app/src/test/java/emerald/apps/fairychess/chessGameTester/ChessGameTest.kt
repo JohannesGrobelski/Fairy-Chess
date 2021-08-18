@@ -10,7 +10,7 @@ import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LARGE_W
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_BLACK
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_WHITE
 import emerald.apps.fairychess.utility.FigureParser
-import org.junit.Assert
+import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,29 +32,13 @@ class ChessboardUnitTest {
 
     }
 
-    private var games : MutableList<MutableList<Movement>> = mutableListOf()
+    lateinit var gamesString : String
     lateinit var chessFormationArray : Array<Array<String>>
     lateinit var figureMap : Map<String, FigureParser.Figure>
 
     fun initNormalChessVariables(){
         chessFormationArray = ChessGameUnitTest.parseChessFormation("normal_chess")
         figureMap = ChessGameUnitTest.parseFigureMapFromFile()
-    }
-
-    @Before
-    fun parseGamesDB(){
-        initNormalChessVariables()
-        games.add(
-            mutableListOf(
-                Movement(1,1,1,3),
-            )
-        )
-        games = parsePGNFile("games")
-    }
-
-    @Test
-    fun parseDB(){
-        writeGamelistToFile(games)
     }
 
     fun writeGamelistToFile(gameList: MutableList<MutableList<Movement>>) {
@@ -67,86 +51,64 @@ class ChessboardUnitTest {
         }
     }
 
-
-    @Test
-    fun testGamesDB(){
-       for(game in games){
-           val bitboard = Bitboard(chessFormationArray,figureMap)
-           for(move in game){
-               Assert.assertEquals("",bitboard.checkMoveAndMove(bitboard.moveColor,move))
-           }
-       }
-    }
-
-    fun parsePGNFile(filename:String) : MutableList<MutableList<Movement>> {
+    fun readPGNFile(filename:String) : String {
         try {
             val absPath =
                 "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\$filename.pgn"
             val initialFile = File(absPath)
             val inputStream: InputStream = FileInputStream(initialFile)
-            return parseGamesDBString(
-                convertStreamToString(
+            return convertStreamToString(
                     inputStream
                 )
-            )
         } catch (e: Exception){
             println(e.message.toString())
         }
-        return mutableListOf()
+        return ""
     }
 
-    //TODO: erstes game durch fehler im zweiten finden
-
-    /** parse chessFormation string by splitting brackets and then, comma's */
-    fun parseGamesDBString(gamesString: String) : MutableList<MutableList<Movement>> {
+    /** test movegeneration by
+     *   1. splitting newlines and formating (resulting in formatedGameString),
+     *   2. then numbers and formating (resulting in formatMoveString)
+     *   3. then spaces and finding move by parsing target square and finding source square from all possible moves (resulting in whiteMovement/blackMovement)
+     *   4. try to apply move to bitboard
+     */
+    @Test
+    fun testMoveGeneration() {
+        initNormalChessVariables()
+        gamesString = readPGNFile("games")
         val gameStringList = gamesString.split("\n")
-        val gamesList = mutableListOf<MutableList<Movement>>()
         for(gameString in gameStringList){
             if(gameString.isEmpty())continue
             val formatedGameString = formatGameString(gameString)
             val bitboard = Bitboard(chessFormationArray,figureMap)
             val gameList = mutableListOf<Movement>()
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
-            for(movepair in movepairList){
-                if(movepair.isEmpty())continue
-                var whiteMovestring = movepair.trim(); var blackMovestring = ""
-                if(movepair.trim().contains(" ")){
-                    whiteMovestring = formatMoveString(movepair.trim().split(" ")[0])
-                    blackMovestring = formatMoveString(movepair.trim().split(" ")[1])
+            for(movepairString in movepairList){
+                if(movepairString.isEmpty())continue
+                var whiteMovestring = movepairString.trim(); var blackMovestring = ""
+                if(movepairString.trim().contains(" ")){
+                    whiteMovestring = formatMoveString(movepairString.trim().split(" ")[0])
+                    blackMovestring = formatMoveString(movepairString.trim().split(" ")[1])
                 }
                 val whiteMovement = getMovementFromString("white",whiteMovestring,bitboard)
-                if(whiteMovement != null){
-                    assert(bitboard.checkMoveAndMove("white",whiteMovement).isEmpty())
-                    println(gameList.size.toString()+" "+whiteMovestring)
-                    println(bitboard.toString())
-                }
+                assertNotNull(whiteMovement)
+                assertEquals("",bitboard.checkMoveAndMove("white",whiteMovement!!))
+                println(gameList.size.toString()+" "+whiteMovestring)
+                println(bitboard.toString())
+                gameList.add(whiteMovement)
+
                 var blackMovement : Movement? = null
                 if(blackMovestring != ""){
                     blackMovement = getMovementFromString("black",blackMovestring,bitboard)
-                    if(blackMovement != null){
-                        assert(bitboard.checkMoveAndMove("black",blackMovement).isEmpty())
-                        println(gameList.size.toString()+" "+blackMovestring)
-                        println(bitboard.toString())
-                    }
+                    assertNotNull(blackMovement)
+                    assertEquals("",bitboard.checkMoveAndMove("black",blackMovement!!))
+                    println(gameList.size.toString()+" "+blackMovestring)
+                    println(bitboard.toString())
+                    gameList.add(blackMovement)
                 }
-                if(whiteMovement != null && (blackMovement != null || gameString.endsWith(blackMovestring))){
-                    gameList.add(whiteMovement);
-                    if(blackMovement!=null)gameList.add(blackMovement)
-                } else {
-                    if(whiteMovement == null || blackMovement == null){
-                        if(whiteMovement==null)Log.e("parseGamesDBString", "whiteMovement not parsable: $whiteMovestring")
-                        if(blackMovement==null)Log.e("parseGamesDBString", "whiteMovement not parsable: $blackMovestring")
-                        error("Gamestring not parsable: $gameString")
-                        gameList.clear()
-                        break
-                    }
-                }
-            }
-            if(gameList.isNotEmpty()){
-                gamesList.add(gameList)
+                
             }
         }
-        return gamesList
     }
 
     private fun formatGameString(gameString: String): String {
