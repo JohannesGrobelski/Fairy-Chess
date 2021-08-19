@@ -68,7 +68,6 @@ class MoveGenerationTests {
         return ""
     }
 
-    //TODO: game 21 move 36.2 blackMOve null
     /** test movegeneration by
      *   1. splitting newlines and formating (resulting in formatedGameString),
      *   2. then numbers and formating (resulting in formatMoveString)
@@ -90,11 +89,11 @@ class MoveGenerationTests {
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
             for(movepairString in movepairList){
                 if(movepairString.isEmpty())continue
-                if(gameList.size == 291) {
-                    if(moveList.size == 16){
+                /*if(gameList.size == 64) {
+                    if(moveList.size == 12){
                         if(DEBUG)println()
                     }
-                }
+                }*/
                 //parse moveStrings
                 var whiteMovestring = formatMoveString(movepairString.trim()); var blackMovestring = ""
                 if(movepairString.trim().contains(" ")){

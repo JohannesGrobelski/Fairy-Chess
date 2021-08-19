@@ -24,6 +24,8 @@ class ChessAITest {
     fun testSimpleGame(){
         var bitboard = Bitboard(chessFormationArray,figureMap)
 
+
+        
     }
 
 }
