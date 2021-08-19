@@ -57,7 +57,7 @@ class ChessAI {
                     bestValue = Int.MIN_VALUE
                     for(move in allMovesList){
                         bitboard.move(bitboard.moveColor,move)
-                        bitboard.undoMove(bitboard.moveColor,move)
+                        bitboard.undoLastMove(bitboard.moveColor,move)
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition > bestValue){
                             targetMove = move
@@ -72,7 +72,7 @@ class ChessAI {
                     bestValue = Int.MAX_VALUE
                     for(move in allMovesList){
                         bitboard.move(bitboard.moveColor,move)
-                        bitboard.undoMove(bitboard.moveColor,move)
+                        bitboard.undoLastMove(bitboard.moveColor,move)
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition < bestValue){
                             targetMove = move

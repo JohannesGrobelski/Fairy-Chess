@@ -56,8 +56,8 @@ class Chessgame() {
         return bitboard.getTargetMovementsAsMovementList(bitboard.moveColor,Bitboard.Companion.Coordinate(sourceRank, sourceFile))
     }
 
-    fun getPieceName(rank: Int, file: Int) : String{
-        return bitboard.getPieceName(rank,file)
+    fun getPieceName(coordinate: Bitboard.Companion.Coordinate) : String{
+        return bitboard.getPieceName(coordinate)
     }
 
     fun getPieceColor(rank: Int, file: Int) : String{

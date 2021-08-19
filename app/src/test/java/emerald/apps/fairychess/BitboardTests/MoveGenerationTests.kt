@@ -88,11 +88,11 @@ class MoveGenerationTests {
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
             for(movepairString in movepairList){
                 if(movepairString.isEmpty())continue
-                /*if(gameList.size == 64) {
-                    if(moveList.size == 12){
+                if(gameList.size == 0) {
+                    if(moveList.size == 20){
                         if(DEBUG)println()
                     }
-                }*/
+                }
                 //parse moveStrings
                 var whiteMovestring = formatMoveString(movepairString.trim()); var blackMovestring = ""
                 if(movepairString.trim().contains(" ")){

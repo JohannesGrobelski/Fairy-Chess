@@ -140,7 +140,7 @@ class Bitboard(
 
     fun checkMoveAndMove(color:String, movement: Movement) : String{
         if(moveColor != color)return "wrong player!"
-        val name = getPieceName(movement.sourceRank,movement.sourceFile)
+        val name = getPieceName(movement.getSourceCoordinate())
         return preMoveCheck(name, color, movement)
     }
 
@@ -169,7 +169,7 @@ class Bitboard(
      * does not check if move is legal */
     fun move(color : String, movement: Movement) : String{
         val pos = getPosition(color)
-        val name = getPieceName(movement.sourceRank,movement.sourceFile)
+        val name = getPieceName(movement.getSourceCoordinate())
         if(checkForAndMakeEnpassanteMove(name, color, pos, movement))return ""
 
         var bbFigureColor = bbFigures[name]!![pos]
@@ -177,7 +177,7 @@ class Bitboard(
         val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
 
         //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-        val targetName = getPieceName(movement.targetRank,movement.targetFile)
+        val targetName = getPieceName(movement.getTargetCoordinate())
         if(targetName.isNotEmpty()){
             var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
             bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
@@ -222,44 +222,109 @@ class Bitboard(
         return ""
     }
 
-    fun undoMove(moveColor: String, move: Movement) {
+    fun undoLastMove(moveColor: String, move: Movement) {
+        val pos = getPosition(moveColor)
+        val bbSource = generate64BPositionFromCoordinate(move.getSourceCoordinate())
+        val bbTarget = generate64BPositionFromCoordinate(move.getTargetCoordinate())
+
+
         //case promotion
         if(move is PromotionMovement){
-
+            move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
+            recreateFigure(getCapturedPieceFromLastMove(bbTarget,pos),1-pos,bbTarget)
+            bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
         } else {
             //case: castling -> move king and rook to old positions
-            when(move.movementNotation) {
-                CASTLING_SMALL_WHITE -> {
-
-                }
-                CASTLING_LARGE_WHITE -> {
-
-                }
-                CASTLING_SMALL_BLACK -> {
-
-                }
-                CASTLING_LARGE_BLACK -> {
-
-                }
+            if(move == Movement(CASTLING_SMALL_WHITE,4,0,6,0)){//small castling move
+                move(moveColor,Movement(6,0,4,0))
+                move(moveColor,Movement(5,0,7,0))
+                bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(4,0,7,0))
+            }
+            else if(move == Movement(CASTLING_LARGE_WHITE,4,0,2,0)){//small castling move
+                move(moveColor,Movement(2,0,4,0))
+                move(moveColor, Movement(3,0,0,0))
+                bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(2,0,4,0))
+            }
+            else if(move == Movement(CASTLING_SMALL_BLACK,4,7,6,7)){//small castling move
+                move(moveColor,Movement(6,7,4,7))
+                move(moveColor,Movement(5,7,7,7))
+                bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(4,7,7,7))
+            }
+            else if(move == Movement(CASTLING_LARGE_BLACK,4,7,2,7)){//small castling move
+                move(moveColor,Movement(2,7,4,7))
+                move(moveColor,Movement(3,7,0,7))
+                bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(2,7,4,7))
             }
             //case capture: move capturing piece to sourceCoordinate and set captured piece @ targetCoordinate
-            if(move.movementNotation.conditions.contains("c")){
+            else if(move.movementNotation.conditions.contains("c")){
+                if(checkIfEnpassanteMove(getPieceName(move.getSourceCoordinate()),getPosition(moveColor),move)){
                 //sub case: en passante
-                /*if(checkIfEnpassanteMove(getPosition(moveColor),move)){
-
-                }*/
+                    val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
+                    val bbRemovedFigure = generate64BPositionFromCoordinate(move.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
+                    recreateFigure(getCapturedPieceFromLastMove(bbRemovedFigure,pos),1-pos,bbRemovedFigure)
+                    bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
+                } else {
+                //normal capture
+                    move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
+                    recreateFigure(getCapturedPieceFromLastMove(bbTarget,pos),1-pos,bbTarget)
+                    bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
+                }
             }
+            else {
+                //normal case: move piece from targetCoordinate to sourceCoordinate
+                move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
+                bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
+                //TODO: implement
+                //TODO: test every case atleast once
+            }
+        }
+    }
 
+    fun getCapturedPieceFromLastMove(bbTarget : ULong, pos : Int) : String {
+        for(key in moveHistory[moveHistory.lastIndex].keys){
+            if(moveHistory[moveHistory.lastIndex][key]!![pos] and bbTarget == bbTarget){
+                return key
+            }
+        }
+        return ""
+    }
 
-            //normal case: move piece from targetCoordinate to sourceCoordinate
-
-            //TODO: implement
-            //TODO: test every case atleast once
+    fun recreateFigure(name: String, pos: Int, bbTarget : ULong){
+        if(name.isNotEmpty()){
+            bbFigures[name]!![pos] = bbFigures[name]!![pos] or bbTarget
+            bbComposite = bbComposite or bbTarget
+            bbColorComposite[pos] = bbColorComposite[pos] or bbTarget
+            bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
         }
     }
 
     /** checks if movement is en passante and if so makes en passante move*/
     fun checkForAndMakeEnpassanteMove(name: String, color : String, pos : Int, movement : Movement) : Boolean {
+        val isEnpassante = checkIfEnpassanteMove(name, pos, movement)
+        if(isEnpassante){
+            val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
+            val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+            val bbPath = bbSource or bbTarget
+            val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
+            val bbRemoveFigure = generate64BPositionFromCoordinate(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
+
+            //remove enemy pawn
+            bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
+            //move pawn
+            bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
+
+            bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
+            bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
+            bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+            bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
+            addEntryToHistory(bbFigures)
+            switchMoveColor()
+        }
+        return isEnpassante
+    }
+
+    /** checks if movement is en passante */
+    fun checkIfEnpassanteMove(name : String, pos: Int, movement: Movement) : Boolean {
         //check for special case enpassante
         if(moveHistory.size < 2)return false
         if(name == "pawn" && movement.getRankDif() == 1
@@ -268,30 +333,15 @@ class Bitboard(
             val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
             val bbRemoveFigure = generate64BPositionFromCoordinate(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
             if(bbFigures["pawn"]!![1-pos] and bbRemoveFigure == bbRemoveFigure){
-            //therefore an enemy pawn must be above (black pawn) or under (white pawn) the target square
+                //therefore an enemy pawn must be above (black pawn) or under (white pawn) the target square
                 val removeFileActual = movement.targetFile + fileOffset
                 val removeFileSupposed = round(3.5 + -fileOffset*.1).toInt() //4 for white, 3 for black
                 val bbPawnPositionLastMove = moveHistory[moveHistory.lastIndex - 1]["pawn"]!![1-pos]
                 val bbPawnPositionNow = bbFigures["pawn"]!![1-pos]
                 val bbCurrentPositionOfPawnWhoMovedLast = bbPawnPositionNow and bbPawnPositionLastMove.inv()
                 if(bbCurrentPositionOfPawnWhoMovedLast and bbRemoveFigure != 0uL && removeFileActual == removeFileSupposed){
-                //check if the pawn made his first move in last move and if this move took place on the correct file (3 or 4)
+                    //check if the pawn made his first move in last move and if this move took place on the correct file (3 or 4)
                     //all conditions are met, thus make enpassante move
-                    val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
-                    val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
-                    val bbPath = bbSource or bbTarget
-
-                    //remove enemy pawn
-                    bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
-                    //move pawn
-                    bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
-
-                    bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
-                    bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
-                    bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
-                    bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
-                    addEntryToHistory(bbFigures)
-                    switchMoveColor()
                     return true
                 }
                 return false
@@ -299,6 +349,32 @@ class Bitboard(
             return false
         }
         return false
+    }
+
+
+
+    /** checks if movement is en passante and if so makes en passante move*/
+    fun checkForAndMakeEnpassanteMove(name : String, pos: Int, movement: Movement) : Boolean {
+        val isEnpassante = checkIfEnpassanteMove(name, pos, movement)
+        if(isEnpassante){
+            val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
+            val bbRemoveFigure = generate64BPositionFromCoordinate(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
+            val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
+            val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+            val bbPath = bbSource or bbTarget
+            //remove enemy pawn
+            bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
+            //move pawn
+            bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
+
+            bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
+            bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
+            bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+            bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
+            addEntryToHistory(bbFigures)
+            switchMoveColor()
+        }
+        return isEnpassante
     }
 
     fun addEntryToHistory(bbFig : Map<String, Array<ULong>>){
@@ -1360,8 +1436,8 @@ class Bitboard(
     }
 
 
-    fun getPieceName(rank: Int, file: Int) : String{
-        val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))
+    fun getPieceName(coordinate: Coordinate) : String{
+        val bbFigure = generate64BPositionFromCoordinate(coordinate)
         for(pieceName in bbFigures.keys){
             if((bbFigures[pieceName]!![0] or bbFigures[pieceName]!![1]) and bbFigure == bbFigure)return pieceName
         }

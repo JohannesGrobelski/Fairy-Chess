@@ -27,6 +27,8 @@ class BasicMoveTest {
         figureMap = parseFigureMapFromFile()
     }
 
+
+
     @Test
     fun testClone(){
         val bitboardOriginal = Bitboard(chessFormationArray,figureMap)
@@ -70,6 +72,34 @@ class BasicMoveTest {
 
         assertEquals(1039,bitboard.pointsBlack())
         assertEquals(1039,bitboard.pointsWhite())
+    }
+
+    @Test
+    fun testUndoMove(){
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        assertEquals("", bitboard.move("white",Movement(4,1,4,3)))
+        bitboard.undoLastMove("white", Movement(4,1,4,3))
+        assertEquals(18446462598732906495uL,bitboard.bbComposite)
+        assertEquals(65535uL,bitboard.bbColorComposite[0])
+        assertEquals(18446462598732840960uL,bitboard.bbColorComposite[1])
+        assertEquals(0uL,bitboard.bbMovedCaptured)
+
+        assertEquals(1039,bitboard.pointsBlack())
+        assertEquals(1039,bitboard.pointsWhite())
+
+        //castle moves
+
+
+        //normal move
+
+        //capture move
+
+        //en passante move
+
+        //promotion move
+
+
+
     }
 
     @Test

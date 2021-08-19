@@ -300,7 +300,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         for (rank in 0..7) {
             for (file in 0..7) {
                 val x: Int = getDrawableFromName(
-                    chessgame.getPieceName(rank, file),
+                    chessgame.getPieceName(Bitboard.Companion.Coordinate(rank, file)),
                     chessgame.getPieceColor(rank, file)
                 )
                 if (x != -1) imageViews[rank][file].setImageResource(x)
