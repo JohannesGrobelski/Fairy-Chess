@@ -27,7 +27,7 @@ import java.lang.StringBuilder
 @RunWith(AndroidJUnit4::class)
 class MoveGenerationTests {
     companion object {
-        private const val DEBUG = true
+        private const val DEBUG = false
         private const val TAG = "ChessboardUnitTest"
         val figureAbbrMap = mapOf("K" to "king", "Q" to "queen", "R" to "rook", "B" to "bishop", "N" to "knight")
         val coordinateMap = mapOf("a" to 0, "b" to 1, "c" to 2, "d" to 3, "e" to 4, "f" to 5, "g" to 6, "h" to 7)
@@ -90,8 +90,8 @@ class MoveGenerationTests {
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
             for(movepairString in movepairList){
                 if(movepairString.isEmpty())continue
-                if(gameList.size == 242) {
-                    if(moveList.size == 102){
+                if(gameList.size == 291) {
+                    if(moveList.size == 16){
                         if(DEBUG)println()
                     }
                 }
