@@ -27,7 +27,7 @@ import java.lang.StringBuilder
 @RunWith(AndroidJUnit4::class)
 class MoveGenerationTests {
     companion object {
-        private const val DEBUG = true
+        private const val DEBUG = false
         private const val TAG = "ChessboardUnitTest"
         val figureAbbrMap = mapOf("K" to "king", "Q" to "queen", "R" to "rook", "B" to "bishop", "N" to "knight")
         val coordinateMap = mapOf("a" to 0, "b" to 1, "c" to 2, "d" to 3, "e" to 4, "f" to 5, "g" to 6, "h" to 7)
@@ -90,8 +90,8 @@ class MoveGenerationTests {
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
             for(movepairString in movepairList){
                 if(movepairString.isEmpty())continue
-                if(gameList.size == 237) {
-                    if(moveList.size == 70){
+                if(gameList.size == 236) {
+                    if(moveList.size == 72){
                         if(DEBUG)println()
                     }
                 }
@@ -170,13 +170,19 @@ class MoveGenerationTests {
             targetRank = coordinateMap[movestring[2].toString()]!!
             targetFile = movestring[3].toString().toInt() - 1
         }
-        else if(movestring.matches("[a-z]\\d\\=?[A-Z]".toRegex())) {//pawn promoted
-            targetRank = coordinateMap[movestring[0].toString()]!!
-            targetFile = movestring[1].toString().toInt() - 1
-            val equalsOffset = (movestring.contains("=")).toInt()
-            if(figureAbbrMap.containsKey(movestring[2+equalsOffset].toString())){
-                promotion = figureAbbrMap[movestring[2+equalsOffset].toString()]!!
+        else if(movestring.matches("[a-z]?x?[a-z]\\d\\=?[A-Z]".toRegex())) {//pawn promoted
+            var sourceFileOffset = 0
+            if(movestring.contains("[a-z]x[a-z]\\d".toRegex())){
+               sourceFileOffset = 1
+               sourceRank = coordinateMap[movestring[0].toString()]!!
             }
+            val equalsOffset = (movestring.contains("=")).toInt()
+            val xOffset = (movestring.contains("x")).toInt()
+            if(figureAbbrMap.containsKey(movestring[sourceFileOffset + xOffset + equalsOffset + 2].toString())){
+                promotion = figureAbbrMap[movestring[sourceFileOffset + xOffset + equalsOffset + 2].toString()]!!
+            }
+            targetRank = coordinateMap[movestring[sourceFileOffset + xOffset].toString()]!!
+            targetFile = movestring[sourceFileOffset + xOffset + 1].toString().toInt() - 1
         }
         else if(movestring.matches("[A-Z]x?[a-z]\\d".toRegex())){//piece moved/captured
             if(figureAbbrMap.containsKey(movestring[0].toString())){
