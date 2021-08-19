@@ -312,6 +312,20 @@ class Bitboard(
         return allPossibleMoves.toMap()
     }
 
+    fun getAllPossibleMovesAsList(color : String) : List<Movement> {
+        val allPosibleMoves = mutableListOf<Movement>()
+        val pos = ("black" == color).toInt()
+        for(rank in 0..7) {
+            for (file in 0..7) {
+                val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))
+                if((bbColorComposite[pos] and bbFigure) == bbFigure){
+                    allPosibleMoves.addAll(getTargetMovementsAsMovementList(color,Coordinate(rank,file)))
+                }
+            }
+        }
+        return allPosibleMoves
+    }
+
 
 
     fun getNameOfFigure(pos: Int, bbFigure:ULong) : String{

@@ -27,12 +27,9 @@ class ChessAI {
 
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
-        val originalBitboard = bitboard.clone()
         when (algorithm) {
             "alphabeta" -> {
-                val result = alphabeta(bitboard,4,Int.MIN_VALUE,Int.MAX_VALUE).movement
-                bitboard.set(originalBitboard)
-                return result
+                return alphabeta(bitboard, 4, Int.MIN_VALUE, Int.MAX_VALUE).movement
             }
         }
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
@@ -45,52 +42,47 @@ class ChessAI {
 
 
     class MinimaxResult(val movement: Movement, val value: Int)
+
     fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult{
         var _alpha = alpha
         var _beta = beta
         if(level <= 0){
             return MinimaxResult(emptyMovement(),getPointDif(bitboard))
         } else {
-            val allMoves = bitboard.getAllPossibleMoves(bitboard.moveColor,true)
-            if(allMoves.isNotEmpty()){
+            val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
+            if(allMovesList.isNotEmpty()){
                 var targetMove = emptyMovement()
                 val originalBoard = bitboard.clone()
                 var bestValue : Int
                 if(bitboard.moveColor == "black"){
                     //find best move (highest points for black) by going through all possible moves
                     bestValue = Int.MIN_VALUE
-                    for(allMovesFigure in allMoves.keys){
-                        val moveList = moveBitboardToMovementList(allMovesFigure,allMoves[allMovesFigure]!!)
-                        for(move in moveList){
-                            bitboard.set(originalBoard)
-                            bitboard.checkMoveAndMove(bitboard.moveColor,move)
-                            val valuePosition = alphabeta(bitboard,level-1,_alpha,_beta)!!.value
-                            if(valuePosition > bestValue){
-                                targetMove = move
-                                bestValue = getPointDif(bitboard)
-                            }
-                            //beta cutoff
-                            if(valuePosition >= _beta)break
-                            _alpha = max(_alpha,valuePosition)
+                    for(move in allMovesList){
+                        bitboard.set(originalBoard)
+                        bitboard.checkMoveAndMove(bitboard.moveColor,move)
+                        val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                        if(valuePosition > bestValue){
+                            targetMove = move
+                            bestValue = getPointDif(bitboard)
                         }
+                        //beta cutoff
+                        if(valuePosition >= _beta)break
+                        _alpha = max(_alpha,valuePosition)
                     }
                 } else {
                     //find best move (highest points for white) by going through all possible moves
                     bestValue = Int.MAX_VALUE
-                    for(allMovesFigure in allMoves.keys){
-                        val moveList = moveBitboardToMovementList(allMovesFigure,allMoves[allMovesFigure]!!)
-                        for(move in moveList){
-                            bitboard.set(originalBoard)
-                            bitboard.checkMoveAndMove(bitboard.moveColor,move)
-                            val valuePosition = alphabeta(bitboard,level-1,_alpha,_beta)!!.value
-                            if(valuePosition < bestValue){
-                                targetMove = move
-                                bestValue = getPointDif(bitboard)
-                            }
-                            //alpha cutoff
-                            if(valuePosition <= _alpha)break
-                            _beta = min(_beta,valuePosition)
+                    for(move in allMovesList){
+                        bitboard.set(originalBoard)
+                        bitboard.checkMoveAndMove(bitboard.moveColor,move)
+                        val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                        if(valuePosition < bestValue){
+                            targetMove = move
+                            bestValue = getPointDif(bitboard)
                         }
+                        //alpha cutoff
+                        if(valuePosition <= _alpha)break
+                        _beta = min(_beta,valuePosition)
                     }
                 }
                 bitboard.set(originalBoard)

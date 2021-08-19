@@ -182,10 +182,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1
                 && clickedFile != -1 && clickedRank != -1){
                 val movement = Movement(
-                    sourceRank = playerSelectedSquare.rank,
-                    sourceFile = playerSelectedSquare.file,
-                    targetRank = clickedRank,
-                    targetFile = clickedFile
+                        sourceRank = playerSelectedSquare.rank,
+                        sourceFile = playerSelectedSquare.file,
+                        targetRank = clickedRank,
+                        targetFile = clickedFile
                 )
                 var moveResult = ""
                 moveResult = chessgame.movePlayer(movement, chessgame.getBitboard().moveColor)
@@ -208,10 +208,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 }
                 if(gameParameters.playMode=="ai"){
                     //calculate ai move in coroutine to avoid blocking the ui thread
-                    calcMoveJob = CoroutineScope(Dispatchers.Main).launch {
+                    calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
                         try{
-                            chessgame.movePlayer(chessAI.calcMove(chessgame.getBitboard()), chessAI.color)
-                            displayFigures()
+                            val aiMovement = chessAI.calcMove(chessgame.getBitboard().clone())
+                            chessgame.movePlayer(aiMovement, chessAI.color)
+                            withContext(Dispatchers.Main){
+                                displayFigures()
+                                Toast.makeText(chessActivity,"AI: "+aiMovement.asString("black"),Toast.LENGTH_LONG)
+                            }
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)
                         }
