@@ -98,7 +98,7 @@ class BasicMoveTest {
         assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(2,1,1,0)))
         assertEquals(Bitboard.Companion.Coordinate(1,0),bitboard.promotionCoordinate)
         bitboard.promotePawn(Bitboard.Companion.Coordinate(1,0),"rook")
-        assertEquals(42502721483309056uL,bitboard.bbFigures["pawn"]!![1])
+        assertEquals(60517119992791040uL,bitboard.bbFigures["pawn"]!![1])
         assertEquals(9295429630892703746uL,bitboard.bbFigures["rook"]!![1])
     }
 
@@ -390,9 +390,9 @@ class BasicMoveTest {
     @Test
     fun testhorizontalLineToBitboard(){
         assertEquals(112uL,Bitboard.bbCastlingRoomSmallWhite)
-        assertEquals(30uL,Bitboard.bbCastlingRoomLargeWhite)
+        assertEquals(28uL,Bitboard.bbCastlingRoomLargeWhite)
         assertEquals(8070450532247928832uL,Bitboard.bbCastlingRoomSmallBlack)
-        assertEquals(2161727821137838080uL,Bitboard.bbCastlingRoomLargeBlack)
+        assertEquals(2017612633061982208uL,Bitboard.bbCastlingRoomLargeBlack)
     }
 
     companion object {

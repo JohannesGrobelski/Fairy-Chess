@@ -51,4 +51,40 @@ class ChessAITest {
 
     }
 
+
+
+    @Test
+    fun testAlgorithmCapturePiece() {
+        val bitBoardNormal = Bitboard(chessFormationArray, figureMap)
+        val stubChessAI = ChessAI("black")
+        //open
+        assert(bitBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("4_1_4_3")).isEmpty())
+        assert(bitBoardNormal.checkMoveAndMove("black",stubChessAI.calcMove(bitBoardNormal)).isEmpty())
+
+        assert(bitBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("4_3_4_4")).isEmpty())
+        assert(bitBoardNormal.checkMoveAndMove("black",stubChessAI.calcMove(bitBoardNormal)).isEmpty())
+
+        assert(bitBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("4_4_4_5")).isEmpty())
+        assert(bitBoardNormal.checkMoveAndMove("black",stubChessAI.calcMove(bitBoardNormal)).isEmpty())
+
+        println(bitBoardNormal.toString())
+    }
+
+    @Test
+    fun testMinimax() {
+        val chessBoardNormal = Bitboard(chessFormationArray, figureMap)
+        val stubChessAI = ChessAI("black")
+
+        assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("1_1_1_3")).isEmpty())
+        assert(chessBoardNormal.checkMoveAndMove("black", Movement.fromStringToMovement("0_6_0_5")).isEmpty())
+        assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("1_3_1_4")).isEmpty())
+        assert(chessBoardNormal.checkMoveAndMove("black", Movement.fromStringToMovement("0_5_1_4")).isEmpty())
+        assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("2_1_2_3")).isEmpty())
+        assert(chessBoardNormal.checkMoveAndMove("black", stubChessAI.calcMove(chessBoardNormal)!!).isEmpty())
+
+
+
+        println(chessBoardNormal.toString())
+        println(stubChessAI.cnt_movements.toString()+" moves")
+    }
 }

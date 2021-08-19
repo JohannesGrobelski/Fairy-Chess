@@ -11,7 +11,6 @@ import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_B
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_WHITE
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.*
-import org.apache.tools.ant.taskdefs.Move
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File

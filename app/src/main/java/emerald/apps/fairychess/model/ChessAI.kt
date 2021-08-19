@@ -1,6 +1,5 @@
 package emerald.apps.fairychess.model
 
-import emerald.apps.fairychess.model.Bitboard.Companion.moveBitboardToMovementList
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import java.util.*
 import kotlin.math.max
@@ -52,14 +51,13 @@ class ChessAI {
             val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
             if(allMovesList.isNotEmpty()){
                 var targetMove = emptyMovement()
-                val originalBoard = bitboard.clone()
                 var bestValue : Int
                 if(bitboard.moveColor == "black"){
                     //find best move (highest points for black) by going through all possible moves
                     bestValue = Int.MIN_VALUE
                     for(move in allMovesList){
-                        bitboard.set(originalBoard)
-                        bitboard.checkMoveAndMove(bitboard.moveColor,move)
+                        bitboard.move(bitboard.moveColor,move)
+                        bitboard.undoMove(bitboard.moveColor,move)
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition > bestValue){
                             targetMove = move
@@ -73,8 +71,8 @@ class ChessAI {
                     //find best move (highest points for white) by going through all possible moves
                     bestValue = Int.MAX_VALUE
                     for(move in allMovesList){
-                        bitboard.set(originalBoard)
-                        bitboard.checkMoveAndMove(bitboard.moveColor,move)
+                        bitboard.move(bitboard.moveColor,move)
+                        bitboard.undoMove(bitboard.moveColor,move)
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition < bestValue){
                             targetMove = move
@@ -85,7 +83,6 @@ class ChessAI {
                         _beta = min(_beta,valuePosition)
                     }
                 }
-                bitboard.set(originalBoard)
                 return MinimaxResult(targetMove,bestValue)
             } else {
                 return MinimaxResult(emptyMovement(),getPointDif(bitboard))

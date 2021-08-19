@@ -2,6 +2,10 @@
 
 package emerald.apps.fairychess.model
 
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LARGE_BLACK
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LARGE_WHITE
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_BLACK
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_WHITE
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
@@ -153,7 +157,7 @@ class Bitboard(
             && legalMove.sourceFile == movement.sourceFile
             && legalMove.targetFile == movement.targetFile
             && legalMove.targetRank == movement.targetRank){
-                return checkMoveAndMove(name, color, movement)
+                return move(color, movement)
             }
         }
         return "not a legal move"
@@ -163,61 +167,94 @@ class Bitboard(
      *  @param name of the piece set
      * moves figure from coordinate (sourceFile,sourceRow) to coordinate (targetFile,targetRow)
      * does not check if move is legal */
-    fun checkMoveAndMove(name: String, color : String, movement: Movement) : String{
+    fun move(color : String, movement: Movement) : String{
         val pos = getPosition(color)
-        if(bbFigures.containsKey(name)){
-            if(checkForAndMakeEnpassanteMove(name, color, pos, movement))return ""
+        val name = getPieceName(movement.sourceRank,movement.sourceFile)
+        if(checkForAndMakeEnpassanteMove(name, color, pos, movement))return ""
 
-            var bbFigureColor = bbFigures[name]!![pos]
-            val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
-            val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+        var bbFigureColor = bbFigures[name]!![pos]
+        val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
+        val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
 
-            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            val targetName = getPieceName(movement.targetRank,movement.targetFile)
-            if(targetName.isNotEmpty()){
-                var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
-                bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
-                bbFigures[targetName]?.set(1-pos,bbFigureOppositeColor)
-            }
+        //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+        val targetName = getPieceName(movement.targetRank,movement.targetFile)
+        if(targetName.isNotEmpty()){
+            var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
+            bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
+            bbFigures[targetName]?.set(1-pos,bbFigureOppositeColor)
+        }
 
-            //calculate change vector with set bits on old and new position
-            val bbPath = bbSource or bbTarget
+        //calculate change vector with set bits on old and new position
+        val bbPath = bbSource or bbTarget
 
-            if(movement is PromotionMovement){
-                val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
-                bbFigures["pawn"]!![pos] = bbPawns
-                val bbPromotion = bbFigures[movement.promotion]!![pos] or bbTarget
-                bbFigures[movement.promotion]!![pos] = bbPromotion
-            } else {
-                //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
-                //and thus move the piece
-                bbFigureColor = bbFigureColor xor bbPath
-                bbFigures[name]?.set(pos,bbFigureColor)
-            }
-
-            //write move into bbComposite (important: cannot xor with bbChange because figure can stand on target square)
-            //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position
-            bbComposite = bbComposite or bbTarget
-            //no figure can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            bbComposite = bbComposite and bbSource.inv()
-
-            //write move into bbColorComposite for move color like above
-            bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
-            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
-
-            bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
-            addEntryToHistory(bbFigures)
-            //add current position (as map bbFigures) to history
-            if(name == "king" && movement.getRankDif() == 2){
-                makeCastlingMove(color,movement)
-            } else {
-                checkForPromotion()
-                switchMoveColor()
-            }
-            return ""
+        if(movement is PromotionMovement){
+            val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
+            bbFigures["pawn"]!![pos] = bbPawns
+            val bbPromotion = bbFigures[movement.promotion]!![pos] or bbTarget
+            bbFigures[movement.promotion]!![pos] = bbPromotion
         } else {
-            return "wrong square!"
+            //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
+            //and thus move the piece
+            bbFigureColor = bbFigureColor xor bbPath
+            bbFigures[name]?.set(pos,bbFigureColor)
+        }
+
+        //write move into bbComposite (important: cannot xor with bbChange because figure can stand on target square)
+        //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position
+        bbComposite = bbComposite or bbTarget
+        //no figure can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+        bbComposite = bbComposite and bbSource.inv()
+
+        //write move into bbColorComposite for move color like above
+        bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+        //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+        bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
+
+        bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
+        addEntryToHistory(bbFigures)
+        //add current position (as map bbFigures) to history
+        if(name == "king" && movement.getRankDif() == 2){
+            makeCastlingMove(color,movement)
+        } else {
+            checkForPromotion()
+            switchMoveColor()
+        }
+        return ""
+    }
+
+    fun undoMove(moveColor: String, move: Movement) {
+        //case promotion
+        if(move is PromotionMovement){
+
+        } else {
+            //case: castling -> move king and rook to old positions
+            when(move.movementNotation) {
+                CASTLING_SMALL_WHITE -> {
+
+                }
+                CASTLING_LARGE_WHITE -> {
+
+                }
+                CASTLING_SMALL_BLACK -> {
+
+                }
+                CASTLING_LARGE_BLACK -> {
+
+                }
+            }
+            //case capture: move capturing piece to sourceCoordinate and set captured piece @ targetCoordinate
+            if(move.movementNotation.conditions.contains("c")){
+                //sub case: en passante
+                /*if(checkIfEnpassanteMove(getPosition(moveColor),move)){
+
+                }*/
+            }
+
+
+            //normal case: move piece from targetCoordinate to sourceCoordinate
+
+            //TODO: implement
+            //TODO: test every case atleast once
         }
     }
 
@@ -275,15 +312,15 @@ class Bitboard(
     private fun makeCastlingMove(color: String, movement : Movement){
         if(color ==  "white"){
             if(movement.targetRank == 2){ //large white castling move
-                checkMoveAndMove("rook",color, Movement(0,0,3,0))
+                move(color, Movement(0,0,3,0))
             } else { //small white castling move
-                checkMoveAndMove("rook",color,Movement(7,0,5,0))
+                move(color,Movement(7,0,5,0))
             }
         } else {
             if(movement.targetRank == 2){ //large black castling move
-                checkMoveAndMove("rook",color,Movement(0,7,3,7))
+                move(color,Movement(0,7,3,7))
             } else { //small black castling move
-                checkMoveAndMove("rook",color,Movement(7,7,5,7))
+                move(color,Movement(7,7,5,7))
             }
         }
     }
