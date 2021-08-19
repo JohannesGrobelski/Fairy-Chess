@@ -6,12 +6,15 @@ import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromC
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
 import emerald.apps.fairychess.model.Movement
+import emerald.apps.fairychess.model.PromotionMovement
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.lang.Math.random
 import kotlin.math.pow
+import kotlin.system.measureTimeMillis
 
 
 @kotlin.ExperimentalUnsignedTypes
@@ -47,7 +50,12 @@ class BasicMoveTest {
     @Test
     fun testBitboardInit(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
-        assertEquals("7 | r | n | b | q | k | b | n | r | \n" +
+        assertTrue(equalsInitBoard(bitboard))
+    }
+
+    fun equalsInitBoard(bitboard: Bitboard) : Boolean{
+        var equal = true
+        equal = ("7 | r | n | b | q | k | b | n | r | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "6 | p | p | p | p | p | p | p | p | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
@@ -64,31 +72,27 @@ class BasicMoveTest {
                 "0 | R | N | B | Q | K | B | N | R | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n" +
-                "  +---+---+---+---+---+---+---+---+\n",bitboard.toString())
-        assertEquals(18446462598732906495uL,bitboard.bbComposite)
-        assertEquals(65535uL,bitboard.bbColorComposite[0])
-        assertEquals(18446462598732840960uL,bitboard.bbColorComposite[1])
-        assertEquals(0uL,bitboard.bbMovedCaptured)
-
-        assertEquals(1039,bitboard.pointsBlack())
-        assertEquals(1039,bitboard.pointsWhite())
+                "  +---+---+---+---+---+---+---+---+\n" == bitboard.toString())
+        equal =(18446462598732906495uL==bitboard.bbComposite)
+        equal =(65535uL==bitboard.bbColorComposite[0])
+        equal =(18446462598732840960uL==bitboard.bbColorComposite[1])
+        equal =(0uL==bitboard.bbMovedCaptured)
+        equal =(1039==bitboard.pointsBlack())
+        equal =(1039==bitboard.pointsWhite())
+        return equal
     }
 
     @Test
-    fun testUndoMove(){
+    fun testUndoNormalMove(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
+        val copyBitboard = bitboard.clone()
         assertEquals("", bitboard.move("white",Movement(4,1,4,3)))
         bitboard.undoLastMove("white", Movement(4,1,4,3))
-        assertEquals(18446462598732906495uL,bitboard.bbComposite)
-        assertEquals(65535uL,bitboard.bbColorComposite[0])
-        assertEquals(18446462598732840960uL,bitboard.bbColorComposite[1])
-        assertEquals(0uL,bitboard.bbMovedCaptured)
+        assertTrue(copyBitboard.equals(bitboard))
 
-        assertEquals(1039,bitboard.pointsBlack())
-        assertEquals(1039,bitboard.pointsWhite())
+        //TODO: test every case atleast once
 
         //castle moves
-
 
         //normal move
 
@@ -97,10 +101,83 @@ class BasicMoveTest {
         //en passante move
 
         //promotion move
+    }
 
+    @Test
+    fun testUndoPromotionMove(){
+        //push white kingside pawn and black queenside pawn to enemy pawn line
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        val copyBitboard = bitboard.clone()
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,6,3,4)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,3,4,4)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,4,3,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,4,4,5)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,3,3,2)))
+        //... and take pawn
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,5,5,6)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,2,2,1)))
 
+        //take knight and promote white kingside pawn to queen
+        val promotionMovement = PromotionMovement( 5,6,6,7,"queen")
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(5,6,6,7)))
+        bitboard.promotePawn(Bitboard.Companion.Coordinate(6,7),"queen")
+        bitboard.undoLastMove("white",promotionMovement)
+        assertTrue(copyBitboard.equals(bitboard))
+    }
+
+    @Test
+    fun testUndoCastleMove(){
 
     }
+
+    @Test
+    fun testUndoEnpassanteMove(){
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        //white enpassante left
+        assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,1), true))
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,1,2,3)))
+        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,3), true))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,4)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,3,2,4)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(1,6,1,4)))
+        assertEquals(6597069766656uL, bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2, 4), true))
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,4,1,5)))
+        assertEquals(2199023319808uL, bitboard.bbFigures["pawn"]!![0])
+        assertEquals(68961403653849088uL, bitboard.bbFigures["pawn"]!![1])
+    }
+
+    @Test
+    fun testUndoCapureMove(){
+
+    }
+
+    @Test
+    fun testUndoMovePerformance(){
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        val iterations = 100000
+        val implUndoMove = (measureTimeMillis {
+            for(i in 0..iterations){
+                val allMoves = bitboard.getAllPossibleMovesAsList("white")
+                val randomMove = allMoves[(random()*allMoves.size).toInt()]
+                assertEquals("", bitboard.move("white",randomMove))
+                bitboard.undoLastMove("white",randomMove)
+                assertTrue(equalsInitBoard(bitboard))
+            }
+        })
+        val implResetBitboard = (measureTimeMillis {
+            for(i in 0..iterations){
+                val allMoves = bitboard.getAllPossibleMovesAsList("white")
+                val randomMove = allMoves[(random()*allMoves.size).toInt()]
+                val copyBitboard = bitboard.clone()
+                assertEquals("", bitboard.move("white",randomMove))
+                bitboard.set(copyBitboard)
+                assertTrue(equalsInitBoard(bitboard))
+            }
+        })
+        println("factor performance dif: "+(implResetBitboard.toDouble()/implUndoMove.toDouble()).toString())
+    }
+
 
     @Test
     fun testPromotion(){

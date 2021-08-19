@@ -123,14 +123,16 @@ class Bitboard(
         moveHistory.clear(); moveHistory.addAll(bitboard.moveHistory)
     }
 
+
+
     fun clone() : Bitboard{
         val newBitboard = Bitboard(chessFormationArray,figureMap)
         newBitboard.bbFigures.clear()
         for(key in bbFigures.keys){
-            newBitboard.bbFigures[key] = bbFigures[key]!! + 0uL
+            newBitboard.bbFigures[key] = bbFigures[key]!!
         }
-        newBitboard.bbComposite = bbComposite + 0uL
-        newBitboard.bbColorComposite = bbColorComposite + 0uL
+        newBitboard.bbComposite = bbComposite
+        newBitboard.bbColorComposite = bbColorComposite.clone()
         newBitboard.blackCapturedPieces.addAll(blackCapturedPieces)
         newBitboard.whiteCapturedPieces.addAll(whiteCapturedPieces)
         newBitboard.moveColor = moveColor
@@ -230,30 +232,39 @@ class Bitboard(
 
         //case promotion
         if(move is PromotionMovement){
-            move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
-            recreateFigure(getCapturedPieceFromLastMove(bbTarget,pos),1-pos,bbTarget)
+            bbFigures[move.promotion]!![pos] = bbFigures[move.promotion]!![pos] and bbTarget.inv()
+            val capturedPieceName = getCapturedPieceFromLastMove(bbTarget,pos)
+            if(capturedPieceName.isNotEmpty()){
+                bbFigures[capturedPieceName]!![1-pos] = bbFigures[capturedPieceName]!![1-pos] or bbTarget
+            }
+            bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] or bbSource
             bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
+            moveHistory.removeLast()
         } else {
             //case: castling -> move king and rook to old positions
             if(move == Movement(CASTLING_SMALL_WHITE,4,0,6,0)){//small castling move
                 move(moveColor,Movement(6,0,4,0))
                 move(moveColor,Movement(5,0,7,0))
                 bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(4,0,7,0))
+                repeat(3) { moveHistory.removeLast() }
             }
             else if(move == Movement(CASTLING_LARGE_WHITE,4,0,2,0)){//small castling move
                 move(moveColor,Movement(2,0,4,0))
                 move(moveColor, Movement(3,0,0,0))
                 bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(2,0,4,0))
+                repeat(3) { moveHistory.removeLast() }
             }
             else if(move == Movement(CASTLING_SMALL_BLACK,4,7,6,7)){//small castling move
                 move(moveColor,Movement(6,7,4,7))
                 move(moveColor,Movement(5,7,7,7))
                 bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(4,7,7,7))
+                repeat(3) { moveHistory.removeLast() }
             }
             else if(move == Movement(CASTLING_LARGE_BLACK,4,7,2,7)){//small castling move
                 move(moveColor,Movement(2,7,4,7))
                 move(moveColor,Movement(3,7,0,7))
                 bbMovedCaptured = bbMovedCaptured xor horizontalLineToBitboard(Movement(2,7,4,7))
+                repeat(3) { moveHistory.removeLast() }
             }
             //case capture: move capturing piece to sourceCoordinate and set captured piece @ targetCoordinate
             else if(move.movementNotation.conditions.contains("c")){
@@ -263,26 +274,27 @@ class Bitboard(
                     val bbRemovedFigure = generate64BPositionFromCoordinate(move.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
                     recreateFigure(getCapturedPieceFromLastMove(bbRemovedFigure,pos),1-pos,bbRemovedFigure)
                     bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
+                    moveHistory.removeLast()
                 } else {
                 //normal capture
                     move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
                     recreateFigure(getCapturedPieceFromLastMove(bbTarget,pos),1-pos,bbTarget)
                     bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
+                    repeat(2) { moveHistory.removeLast() }
                 }
             }
             else {
                 //normal case: move piece from targetCoordinate to sourceCoordinate
                 move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
                 bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
-                //TODO: implement
-                //TODO: test every case atleast once
+                repeat(2) { moveHistory.removeLast() }
             }
         }
     }
 
     fun getCapturedPieceFromLastMove(bbTarget : ULong, pos : Int) : String {
-        for(key in moveHistory[moveHistory.lastIndex].keys){
-            if(moveHistory[moveHistory.lastIndex][key]!![pos] and bbTarget == bbTarget){
+        for(key in moveHistory[moveHistory.lastIndex-1].keys){
+            if(moveHistory[moveHistory.lastIndex-1][key]!![1-pos] and bbTarget == bbTarget){
                 return key
             }
         }
@@ -1450,6 +1462,57 @@ class Bitboard(
             bbColorComposite[1] and bbFigure -> "black"
             else -> ""
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Bitboard
+
+        if (chessFormationArray != null) {
+            if (other.chessFormationArray == null) return false
+            if (!chessFormationArray.contentDeepEquals(other.chessFormationArray)) return false
+        } else if (other.chessFormationArray != null) return false
+        if (figureMap != other.figureMap) return false
+        if (!colors.contentEquals(other.colors)) return false
+        if (gameFinished != other.gameFinished) return false
+        if (bbMovedCaptured != other.bbMovedCaptured) return false
+        if (bbComposite != other.bbComposite) return false
+        if (!bbColorComposite.contentEquals(other.bbColorComposite)) return false
+        if (gameWinner != other.gameWinner) return false
+        if (playerWithDrawOpportunity != other.playerWithDrawOpportunity) return false
+        if (promotionCoordinate != other.promotionCoordinate) return false
+        if (moveColor != other.moveColor) return false
+        if (moveHistory != other.moveHistory) return false
+        if (blackCapturedPieces != other.blackCapturedPieces) return false
+        if (whiteCapturedPieces != other.whiteCapturedPieces) return false
+        if (bbFigures.keys != other.bbFigures.keys) return false
+        for(key in bbFigures.keys){
+            if(!bbFigures[key].contentEquals(other.bbFigures[key])) {
+                return false
+            }
+        }
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = chessFormationArray?.contentDeepHashCode() ?: 0
+        result = 31 * result + figureMap.hashCode()
+        result = 31 * result + colors.contentHashCode()
+        result = 31 * result + bbFigures.hashCode()
+        result = 31 * result + gameFinished.hashCode()
+        result = 31 * result + bbMovedCaptured.hashCode()
+        result = 31 * result + bbComposite.hashCode()
+        result = 31 * result + bbColorComposite.contentHashCode()
+        result = 31 * result + gameWinner.hashCode()
+        result = 31 * result + playerWithDrawOpportunity.hashCode()
+        result = 31 * result + (promotionCoordinate?.hashCode() ?: 0)
+        result = 31 * result + moveColor.hashCode()
+        result = 31 * result + moveHistory.hashCode()
+        result = 31 * result + blackCapturedPieces.hashCode()
+        result = 31 * result + whiteCapturedPieces.hashCode()
+        return result
     }
 }
 
