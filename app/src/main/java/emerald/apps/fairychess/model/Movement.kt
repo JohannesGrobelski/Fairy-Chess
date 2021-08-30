@@ -14,6 +14,7 @@ open class Movement(val movementNotation : MovementNotation = MovementNotation("
             : this(MovementNotation("", emptyList(),"",emptyList(),""),sourceRank, sourceFile, targetRank, targetFile)
 
 
+    constructor(movementNotation: MovementNotation, source : Bitboard.Companion.Coordinate, targetRank:Int, targetFile:Int) : this(movementNotation, source.rank,source.file,targetRank,targetFile)
     constructor(source : Bitboard.Companion.Coordinate, targetRank:Int, targetFile:Int) : this(source.rank,source.file,targetRank,targetFile)
     constructor(source : Bitboard.Companion.Coordinate, target : Bitboard.Companion.Coordinate) : this(source.rank,source.file,target.rank,target.file)
 
@@ -169,12 +170,10 @@ class MovementNotation(val grouping: String, val conditions: List<String>, val m
     companion object {
         val KING = MovementNotation("", listOf(),"", listOf("1"),"*")
         val PAWN_ENPASSANTE = MovementNotation("", listOf(),"", listOf("1"),"EN_PASSANTE")
-        val CASTLING_SMALL_WHITE = MovementNotation("", listOf(),"", listOf(),"")
-        val CASTLING_LARGE_WHITE = MovementNotation("", listOf(),"", listOf(),"")
-        val CASTLING_SMALL_BLACK = MovementNotation("", listOf(),"", listOf(),"")
-        val CASTLING_LARGE_BLACK = MovementNotation("", listOf(),"", listOf(),"")
-
-        val CASTLING_MOVEMENT = MovementNotation("", listOf(),"", listOf(),"")
+        val CASTLING_SHORT_WHITE = MovementNotation("", listOf(),"CASTLING_SHORT_WHITE", listOf(),"")
+        val CASTLING_LONG_WHITE = MovementNotation("", listOf(),"CASTLING_LONG_WHITE", listOf(),"")
+        val CASTLING_SHORT_BLACK = MovementNotation("", listOf(),"CASTLING_SHORT_BLACK", listOf(),"")
+        val CASTLING_LONG_BLACK = MovementNotation("", listOf(),"CASTLING_LONG_BLACK", listOf(),"")
 
         fun parseMovementString(movementString : String) : List<MovementNotation> {
             if(movementString.isEmpty())return emptyList()

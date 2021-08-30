@@ -133,7 +133,59 @@ class BasicMoveTest {
 
     @Test
     fun testUndoCastleMove(){
+        var bitboard = Bitboard(chessFormationArray,figureMap)
 
+        //small castling
+        //move knights and bishops
+        assertEquals("",bitboard.preMoveCheck("knight","white",Movement(6,0,7,2)))
+        assertEquals("",bitboard.preMoveCheck("knight","black",Movement(6,7,7,5)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(6,1,6,2)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(6,6,6,5)))
+        assertEquals("",bitboard.preMoveCheck("bishop","white",Movement(5,0,6,1)))
+        assertEquals("",bitboard.preMoveCheck("bishop","black",Movement(5,7,6,6)))
+        var copyBitboard = bitboard.clone()
+
+        val smallWhiteCastlingMove = Movement(MovementNotation.CASTLING_SHORT_WHITE,4,0,6,0)
+        assertEquals("",bitboard.preMoveCheck("king","white",smallWhiteCastlingMove))
+        bitboard.undoLastMove("",smallWhiteCastlingMove)
+        assertTrue(copyBitboard.equals(bitboard))
+        assertEquals("",bitboard.preMoveCheck("king","white",smallWhiteCastlingMove))
+        copyBitboard = bitboard.clone()
+
+        //test undoMove for small white castling
+        val smallBlackCastlingMove = Movement(MovementNotation.CASTLING_SHORT_BLACK,4,7,6,7)
+        assertEquals("",bitboard.preMoveCheck("king","black",smallBlackCastlingMove))
+        bitboard.undoLastMove("",smallBlackCastlingMove)
+        assertTrue(copyBitboard.equals(bitboard))
+
+        //large castling
+        //move knights, bishops and queens
+        bitboard = Bitboard(chessFormationArray,figureMap)
+        assertEquals("",bitboard.preMoveCheck("knight","white",Movement(1,0,0,2)))
+        assertEquals("",bitboard.preMoveCheck("knight","black",Movement(1,7,0,5)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,1,2,2)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(2,6,2,5)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(3,1,3,2)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,5)))
+        assertEquals("",bitboard.preMoveCheck("bishop","white", Movement(2,0,3,1)))
+        assertEquals("",bitboard.preMoveCheck("bishop","black",Movement(2,7,3,6)))
+        assertEquals("",bitboard.preMoveCheck("queen","white",Movement(3,0,2,1)))
+        assertEquals("",bitboard.preMoveCheck("queen","black",Movement(3,7,2,6)))
+        copyBitboard = bitboard.clone()
+
+        //test undoMove for large white castling
+        val largeWhiteCastlingMove = Movement(MovementNotation.CASTLING_LONG_WHITE,4,0,2,0)
+        assertEquals("",bitboard.preMoveCheck("king","white",largeWhiteCastlingMove))
+        bitboard.undoLastMove("",largeWhiteCastlingMove)
+        assertTrue(copyBitboard.equals(bitboard))
+        assertEquals("",bitboard.preMoveCheck("king","white",largeWhiteCastlingMove))
+        copyBitboard = bitboard.clone()
+
+        //test undoMove for large black castling
+        val largeBlackCastlingMove = Movement(MovementNotation.CASTLING_LONG_BLACK,4,7,2,7)
+        assertEquals("",bitboard.preMoveCheck("king","black",largeBlackCastlingMove))
+        bitboard.undoLastMove("",largeBlackCastlingMove)
+        assertTrue(copyBitboard.equals(bitboard))
     }
 
     @Test
@@ -169,7 +221,7 @@ class BasicMoveTest {
     /** result: undoMove is 5x faster for >10E6 moves */
     fun testUndoMovePerformance(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
-        val iterations = 100000
+        val iterations = 1000000
         val implUndoMove = (measureTimeMillis {
             for(i in 0..iterations){
                 val allMoves = bitboard.getAllPossibleMovesAsList("white")
@@ -249,11 +301,11 @@ class BasicMoveTest {
         assertEquals(96uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0), true))
         assertEquals(6917529027641081856uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(4, 7), true))
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","white",Movement(4,0,6,0)))
+        assertEquals("",bitboard.preMoveCheck("king","white",Movement(MovementNotation.CASTLING_SHORT_WHITE,4,0,6,0)))
         assertEquals(64uL,bitboard.bbFigures["king"]!![0])
         assertEquals(33uL,bitboard.bbFigures["rook"]!![0])
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","black",Movement(4,7,6,7)))
+        assertEquals("",bitboard.preMoveCheck("king","black",Movement(MovementNotation.CASTLING_SHORT_BLACK,4,7,6,7)))
         assertEquals(4611686018427387904uL,bitboard.bbFigures["king"]!![1])
         assertEquals(2377900603251621888uL,bitboard.bbFigures["rook"]!![1])
 
@@ -274,11 +326,11 @@ class BasicMoveTest {
         assertEquals(12uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0), true))
         assertEquals(864691128455135232uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(4, 7), true))
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","white",Movement(4,0,2,0)))
+        assertEquals("",bitboard.preMoveCheck("king","white",Movement(MovementNotation.CASTLING_LONG_WHITE,4,0,2,0)))
         assertEquals(4uL,bitboard.bbFigures["king"]!![0])
         assertEquals(136uL,bitboard.bbFigures["rook"]!![0])
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","black",Movement(4,7,2,7)))
+        assertEquals("",bitboard.preMoveCheck("king","black",Movement(MovementNotation.CASTLING_LONG_BLACK,4,7,2,7)))
         assertEquals(288230376151711744uL,bitboard.bbFigures["king"]!![1])
         assertEquals(9799832789158199296uL,bitboard.bbFigures["rook"]!![1])
     }
@@ -510,10 +562,10 @@ class BasicMoveTest {
 
     @Test
     fun testhorizontalLineToBitboard(){
-        assertEquals(112uL,Bitboard.bbCastlingRoomSmallWhite)
-        assertEquals(28uL,Bitboard.bbCastlingRoomLargeWhite)
-        assertEquals(8070450532247928832uL,Bitboard.bbCastlingRoomSmallBlack)
-        assertEquals(2017612633061982208uL,Bitboard.bbCastlingRoomLargeBlack)
+        assertEquals(112uL,Bitboard.bbCastlingRoomShortWhite)
+        assertEquals(28uL,Bitboard.bbCastlingRoomLongWhite)
+        assertEquals(8070450532247928832uL,Bitboard.bbCastlingRoomShortBlack)
+        assertEquals(2017612633061982208uL,Bitboard.bbCastlingRoomLongBlack)
     }
 
     companion object {

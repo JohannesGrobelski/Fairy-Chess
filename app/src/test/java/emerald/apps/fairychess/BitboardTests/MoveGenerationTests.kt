@@ -5,10 +5,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.model.Bitboard.Companion.generateCoordinatesFrom64BPosition
 import emerald.apps.fairychess.model.Bitboard.Companion.getPosition
-import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LARGE_BLACK
-import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LARGE_WHITE
-import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_BLACK
-import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SMALL_WHITE
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LONG_BLACK
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LONG_WHITE
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SHORT_BLACK
+import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SHORT_WHITE
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.*
 import org.junit.Test
@@ -227,12 +227,12 @@ class MoveGenerationTests {
     fun getCastleMovement(color: String, movestring : String) : Movement? {
         when {
             movestring.matches("O-O".toRegex()) -> {
-                return if(color == "white") Movement(CASTLING_SMALL_WHITE,4,0,6,0)
-                else Movement(CASTLING_SMALL_BLACK,4,7,6,7)
+                return if(color == "white") Movement(CASTLING_SHORT_WHITE,4,0,6,0)
+                else Movement(CASTLING_SHORT_BLACK,4,7,6,7)
             }
             movestring.matches("O-O-O".toRegex()) -> {
-                return if(color == "white") Movement(CASTLING_LARGE_WHITE,4,0,2,0)
-                else Movement(CASTLING_LARGE_BLACK,4,7,2,7)
+                return if(color == "white") Movement(CASTLING_LONG_WHITE,4,0,2,0)
+                else Movement(CASTLING_LONG_BLACK,4,7,2,7)
             }
         }
         return null
