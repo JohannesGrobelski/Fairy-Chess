@@ -131,6 +131,7 @@ class Bitboard(
         for(key in bbFigures.keys){
             newBitboard.bbFigures[key] = bbFigures[key]!!.clone()
         }
+        newBitboard.bbMovedCaptured = bbMovedCaptured
         newBitboard.bbComposite = bbComposite
         newBitboard.bbColorComposite = bbColorComposite.clone()
         newBitboard.blackCapturedPieces.addAll(blackCapturedPieces)
@@ -238,7 +239,7 @@ class Bitboard(
                 bbFigures[capturedPieceName]!![1-pos] = bbFigures[capturedPieceName]!![1-pos] or bbTarget
             }
             bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] or bbSource
-            bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
+            bbMovedCaptured = bbMovedCaptured xor bbTarget
             moveHistory.removeLast()
         } else {
             //case: castling -> move king and rook to old positions
