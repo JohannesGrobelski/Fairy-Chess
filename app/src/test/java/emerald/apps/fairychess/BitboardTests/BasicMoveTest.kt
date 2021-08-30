@@ -6,6 +6,7 @@ import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromC
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
 import emerald.apps.fairychess.model.Movement
+import emerald.apps.fairychess.model.MovementNotation
 import emerald.apps.fairychess.model.PromotionMovement
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
@@ -103,7 +104,6 @@ class BasicMoveTest {
         assertEquals("", bitboard.move("white",Movement(4,1,4,3)))
         bitboard.undoLastMove("white", Movement(4,1,4,3))
         assertTrue(copyBitboard.equals(bitboard))
-
     }
 
     @Test
@@ -153,8 +153,16 @@ class BasicMoveTest {
     }
 
     @Test
-    fun testUndoCapureMove(){
-
+    fun testUndoCaptureMove(){
+        //push white kingside pawn and black queenside pawn to enemy pawn line
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,6,3,4)))
+        val copyBitboard = bitboard.clone()
+        val move = Movement(MovementNotation("", listOf("c"),"", emptyList(),""), 4,3,3,4)
+        assertEquals("",bitboard.preMoveCheck("pawn","white", move))
+        bitboard.undoLastMove("white",move)
+        assertTrue(bitboard.equals(copyBitboard))
     }
 
     @Test

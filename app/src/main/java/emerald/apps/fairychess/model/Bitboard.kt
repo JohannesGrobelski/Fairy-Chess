@@ -286,9 +286,10 @@ class Bitboard(
                 } else {
                 //normal capture
                     move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
+                    moveHistory.removeLast(); movedCapturedHistory.removeLast()
                     recreateFigure(getCapturedPieceFromLastMove(bbTarget,pos),1-pos,bbTarget)
-                    bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
-                    repeat(2) { moveHistory.removeLast(); movedCapturedHistory.removeLast()}
+                    //don't change bbMovedCaptured, bbTarget, switchMoveColor etc. (because it's already changed in move(...))
+                    moveHistory.removeLast(); movedCapturedHistory.removeLast()
                 }
             }
             else {
