@@ -129,7 +129,7 @@ class Bitboard(
         val newBitboard = Bitboard(chessFormationArray,figureMap)
         newBitboard.bbFigures.clear()
         for(key in bbFigures.keys){
-            newBitboard.bbFigures[key] = bbFigures[key]!!
+            newBitboard.bbFigures[key] = bbFigures[key]!!.clone()
         }
         newBitboard.bbComposite = bbComposite
         newBitboard.bbColorComposite = bbColorComposite.clone()
