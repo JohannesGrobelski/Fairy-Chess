@@ -221,7 +221,7 @@ class BasicMoveTest {
     /** result: undoMove is 5x faster for >10E6 moves */
     fun testUndoMovePerformance(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
-        val iterations = 1000000
+        val iterations = 100000
         val implUndoMove = (measureTimeMillis {
             for(i in 0..iterations){
                 val allMoves = bitboard.getAllPossibleMovesAsList("white")
@@ -450,6 +450,9 @@ class BasicMoveTest {
     @Test
     fun testMovegenerationPawns(){
         var bitboard = Bitboard(chessFormationArray,figureMap)
+
+        val moves = bitboard.getTargetMovementsAsMovementList("white",Bitboard.Companion.Coordinate(0,1))
+        assertEquals(2,moves.size)
 
         //white pawn can capture 2 black pawns
         assertEquals(2814749767106560uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2, 5), true))

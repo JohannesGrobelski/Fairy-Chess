@@ -1,5 +1,6 @@
 package emerald.apps.fairychess.model
 
+import emerald.apps.fairychess.model.Bitboard.Companion.oppositeColor
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import java.util.*
 import kotlin.math.max
@@ -28,7 +29,7 @@ class ChessAI {
         cnt_movements = 0
         when (algorithm) {
             "alphabeta" -> {
-                return alphabeta(bitboard, 4, Int.MIN_VALUE, Int.MAX_VALUE).movement
+                return alphabeta(bitboard, 2, Int.MIN_VALUE, Int.MAX_VALUE).movement
             }
         }
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
@@ -62,7 +63,7 @@ class ChessAI {
                             targetMove = move
                             bestValue = getPointDif(bitboard)
                         }
-                        bitboard.undoLastMove(bitboard.moveColor,move)
+                        bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
                         //beta cutoff
                         if(valuePosition >= _beta)break
                         _alpha = max(_alpha,valuePosition)
@@ -70,7 +71,8 @@ class ChessAI {
                 } else {
                     //find best move (highest points for white) by going through all possible moves
                     bestValue = Int.MAX_VALUE
-                    for(move in allMovesList){
+                    for(i in allMovesList.indices){
+                        val move = allMovesList[i]
                         bitboard.move(bitboard.moveColor,move)
 
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
@@ -78,7 +80,7 @@ class ChessAI {
                             targetMove = move
                             bestValue = getPointDif(bitboard)
                         }
-                        bitboard.undoLastMove(bitboard.moveColor,move)
+                        bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
                         //alpha cutoff
                         if(valuePosition <= _alpha)break
                         _beta = min(_beta,valuePosition)

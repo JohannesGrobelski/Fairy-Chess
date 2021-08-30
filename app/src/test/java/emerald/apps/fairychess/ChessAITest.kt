@@ -37,16 +37,18 @@ class ChessAITest {
     fun testSimpleGame(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         Assert.assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,1,4,3)))
-        while(!bitboard.gameFinished){
+        for(i in 0 .. 10){
             val moveBlack = chessAIBlack.calcMove(bitboard)
             bitboard.checkMoveAndMove("black",moveBlack)
             println(moveBlack.asString("black"))
             println(bitboard.toString())
+            if(bitboard.gameFinished)break
 
             val moveWhite = chessAIWhite.calcMove(bitboard)
             bitboard.checkMoveAndMove("white",moveWhite)
             println(moveWhite.asString("white"))
             println(bitboard.toString())
+            if(bitboard.gameFinished)break
         }
 
     }
