@@ -783,12 +783,10 @@ class Bitboard(
                                movementNotation : MovementNotation) {
         if (movementNotation.distances.isNotEmpty()) {
             if(arrayOf(">","<","<>","=","<=",">=","+","*").contains(movementNotation.direction)){
-                //todo: test
                 generateOrthogonalMovement(bbMovementMap, coordinate, color, movementNotation)
             }
             if(arrayOf("X","X<","X>","*").contains(movementNotation.direction)){
-                //todo: simplify
-                generateDiagonalMovement(bbMovementMap, coordinate, color, movementNotation)
+                generateDiagonalOrthogonalMovement(bbMovementMap, coordinate, color, movementNotation)
             }
         }
     }
@@ -838,25 +836,8 @@ class Bitboard(
                               coordinate: Coordinate,
                               movementNotation: MovementNotation,
                               distance : Int) {
-            for(newFile in (coordinate.file+1)..7){// ... inside board (between 0 and 7)
-                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank,newFile))
-                if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-                if(distance == UNLIMITED_DISTANCE){
-                    //If distance is unlimited add coordinate until out of board or opponent figure in way
-                    if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,coordinate.rank,newFile,bbMovementMap))break
-                    addCoordinateToMovementBitboard(movementNotation,coordinate,coordinate.rank,newFile,bbMovementMap)
-                } else {
-                    //if distance limited, check if opponent in way else add coordinate at correct distance
-                    if(figureOfOpponent(posOwnColor, bbNewTarget))break
-                    if(abs(newFile-coordinate.file) == distance){
-                        val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank,coordinate.file+distance))
-                        figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,coordinate.rank,coordinate.file+distance,bbMovementMap)
-                    }
-                }
-            }
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,0,+1)
     }
-
-
 
     /** backward: decrease file */
     private fun generateSouthMovement(posOwnColor: Int,
@@ -864,22 +845,7 @@ class Bitboard(
                               coordinate: Coordinate,
                               movementNotation: MovementNotation,
                               distance : Int) {
-        for(newFile in coordinate.file-1 downTo 0){// ... inside board (between 0 and 7)
-            val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank,newFile))
-            if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-            if(distance == UNLIMITED_DISTANCE){
-                //If distance is unlimited add coordinate until out of board or opponent figure in way
-                if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,coordinate.rank,newFile,bbMovementMap))break
-                addCoordinateToMovementBitboard(movementNotation,coordinate,coordinate.rank,newFile,bbMovementMap)
-            } else {
-                //if distance limited, check if opponent in way else add coordinate at correct distance
-                if(figureOfOpponent(posOwnColor, bbNewTarget))break
-                if(abs(newFile-coordinate.file) == distance){
-                    val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank,coordinate.file-distance))
-                    figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,coordinate.rank,coordinate.file-distance,bbMovementMap)
-                }
-            }
-        }
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,0,-1)
     }
 
     /** east: increase rank */
@@ -888,22 +854,7 @@ class Bitboard(
                              coordinate: Coordinate,
                              movementNotation: MovementNotation,
                              distance : Int) {
-        for(newRank in coordinate.rank+1 .. 7){// ... coordinate inside board (between 0 and 7)
-            val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,coordinate.file))
-            if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-            if(distance == UNLIMITED_DISTANCE){
-                //If distance is unlimited add coordinate until out of board or opponent figure in way
-                if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,newRank,coordinate.file,bbMovementMap))break
-                addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,coordinate.file,bbMovementMap)
-            } else {
-                //if distance limited, check if opponent in way else add coordinate at correct distance
-                if(figureOfOpponent(posOwnColor, bbNewTarget))break
-                if(abs(newRank-coordinate.rank) == distance){
-                    val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank+distance,coordinate.file))
-                    figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,coordinate.rank+distance,coordinate.file,bbMovementMap)
-                }
-            }
-        }
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,+1,0)
     }
 
     /** left: decrease rank */
@@ -912,30 +863,15 @@ class Bitboard(
                              coordinate: Coordinate,
                              movementNotation: MovementNotation,
                              distance : Int) {
-        for(newRank in coordinate.rank-1 downTo 0){// ... coordinate inside board (between 0 and 7)
-            val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,coordinate.file))
-            if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-            if(distance == UNLIMITED_DISTANCE){
-                //If distance is unlimited add coordinate until out of board or opponent figure in way
-                if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,newRank,coordinate.file,bbMovementMap))break
-                addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,coordinate.file,bbMovementMap)
-            } else {
-                //if distance limited, check if opponent in way else add coordinate at correct distance
-                if(figureOfOpponent(posOwnColor, bbNewTarget))break
-                if(abs(newRank-coordinate.rank) == distance){
-                    val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(coordinate.rank-distance,coordinate.file))
-                    figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,coordinate.rank-distance,coordinate.file,bbMovementMap)
-                }
-            }
-        }
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,-1,0)
     }
 
     /** generate all diagonal rider movements */
-    private fun generateDiagonalMovement(bbMovementMap: MutableMap<MovementNotation, ULong>,
-                                 coordinate: Coordinate,
-                                 color: String,
-                                 movementNotation : MovementNotation)  {
-        var distance = 7
+    private fun generateDiagonalOrthogonalMovement(bbMovementMap: MutableMap<MovementNotation, ULong>,
+                                                   coordinate: Coordinate,
+                                                   color: String,
+                                                   movementNotation : MovementNotation)  {
+        var distance = UNLIMITED_DISTANCE
         val posOwnColor = getPosition(color)
         if(movementNotation.distances[0].matches("[0-9]".toRegex())){
             distance = movementNotation.distances[0].toInt()
@@ -966,24 +902,7 @@ class Bitboard(
                                           coordinate: Coordinate,
                                           movementNotation: MovementNotation,
                                           distance : Int) {
-        if(distance == UNLIMITED_DISTANCE){
-            var difFile = 1; var difRank = -1
-            //if coordinate is ...
-            while(coordinate.file+difFile <= 7 && coordinate.rank+difRank >= 0) {// ... inside board (between 0 and 7)
-                val newFile = coordinate.file+difFile
-                val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
-                if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-                if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,newRank,newFile,bbMovementMap))break
-                addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,newFile,bbMovementMap)
-                ++difFile
-                --difRank
-            }
-        } else {
-
-        }
-
-
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,-1,+1)
     }
 
     /** NorthEastDiagonalMovement: right,forward: increase file, increase rank*/
@@ -992,24 +911,7 @@ class Bitboard(
                                           coordinate: Coordinate,
                                           movementNotation: MovementNotation,
                                           distance : Int) {
-        if(distance == UNLIMITED_DISTANCE){
-            var difFile = 1; var difRank = 1
-            //if coordinate is ...
-            while(coordinate.file+difFile <= 7 && coordinate.rank+difRank <= 7) {// ... inside board (between 0 and 7)
-                val newFile = coordinate.file+difFile
-                val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
-                if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-                if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,newRank,newFile,bbMovementMap))break
-                addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,newFile,bbMovementMap)
-                ++difFile
-                ++difRank
-            }
-        } else {
-
-        }
-
-
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,+1,+1)
     }
 
     /** SouthEastDiagonalMovement: right,backward: decrease file, increase rank*/
@@ -1018,23 +920,7 @@ class Bitboard(
                                           coordinate: Coordinate,
                                           movementNotation: MovementNotation,
                                           distance : Int) {
-        if(distance == UNLIMITED_DISTANCE){
-            var difFile = -1; var difRank = 1
-            //if coordinate is ...
-            while(coordinate.file+difFile >= 0 && coordinate.rank+difRank <= 7) {// ... inside board (between 0 and 7)
-                val newFile = coordinate.file+difFile
-                val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
-                if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-                if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,newRank,newFile,bbMovementMap))break
-                addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,newFile,bbMovementMap)
-                --difFile
-                ++difRank
-            }
-        } else {
-
-        }
-
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,+1,-1)
     }
 
     /** SouthWestDiagonalMovement: left,backward: decrease file, decrease rank*/
@@ -1043,25 +929,37 @@ class Bitboard(
                                           coordinate: Coordinate,
                                           movementNotation: MovementNotation,
                                           distance : Int) {
-        if(distance == UNLIMITED_DISTANCE){
-            var difRank = -1; var difFile = -1
-            //if coordinate is ...
-            while(coordinate.file+difFile >= 0 && coordinate.rank+difRank >= 0) {// ... inside board (between 0 and 7)
-                val newFile = coordinate.file+difFile
-                val newRank = coordinate.rank+difRank
-                val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
-                if(figureOfOwnColor(posOwnColor, bbNewTarget))break
-                if(figureOfOpponentThenAdd(movementNotation,posOwnColor,coordinate,bbNewTarget,newRank,newFile,bbMovementMap))break
-                addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,newFile,bbMovementMap)
-                --difRank
-                --difFile
-            }
-        } else {
-
-        }
-
+        generateDiagonalOrthogonalMovement(posOwnColor,bbMovementMap,coordinate,movementNotation,distance,-1,-1)
     }
 
+    /** Generates diagonal / orthogonal movement by
+     *  adding signRank to rank and signFile to file while the new coordinate(newRank,newFile) is in board
+     *  and no opponent figure is in the way. */
+    private fun generateDiagonalOrthogonalMovement(posOwnColor: Int,
+                                                   bbMovementMap: MutableMap<MovementNotation, ULong>,
+                                                   coordinate: Coordinate,
+                                                   movementNotation: MovementNotation,
+                                                   distance : Int,
+                                                   signRank : Int, signFile : Int) {
+        var difRank = signRank; var difFile = signFile
+        while(coordinate.file+difFile in 0..7 && coordinate.rank+difRank in 0..7) {// ... inside board (between 0 and 7)
+            val newFile = coordinate.file+difFile
+            val newRank = coordinate.rank+difRank
+            val bbNewTarget = generate64BPositionFromCoordinate(Coordinate(newRank,newFile))
+            if(figureOfOwnColor(posOwnColor, bbNewTarget))break
+            if(distance == UNLIMITED_DISTANCE){
+                addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,newFile,bbMovementMap)
+            } else {
+                if(difFile*difRank == 0 && abs(difFile+difRank) == distance //orthogonal
+                || difFile*difRank != 0 && abs(difFile) == distance){ //diagonal
+                    addCoordinateToMovementBitboard(movementNotation,coordinate,newRank,newFile,bbMovementMap)
+                }
+            }
+            if(figureOfOpponent(posOwnColor,bbNewTarget))break
+            difRank+=signRank
+            difFile+=signFile
+        }
+    }
 
     fun figureOfOwnColor(posOwnColor: Int, bbNewTarget:ULong) : Boolean {
         if(bbNewTarget and bbColorComposite[posOwnColor] == bbNewTarget){
@@ -1080,33 +978,14 @@ class Bitboard(
         return false
     }
 
-    fun figureOfOpponentThenAdd(movementNotation: MovementNotation,
-                                posOwnColor: Int,
-                                coordinate: Coordinate,
-                                bbNewTarget: ULong,
-                                targetFile: Int, targetRank: Int,
-                                bbMovementMap: MutableMap<MovementNotation, ULong>) : Boolean {
-        if(figureOfOpponent(posOwnColor, bbNewTarget)){//figure of your opponent color => add position, then stop
-            addCoordinateToMovementBitboard(
-                movementNotation,
-                coordinate,
-                targetFile,targetRank,
-                bbMovementMap
-            )
-            return true
-        }
-        return false
-    }
-
-
     fun addCoordinateToMovementBitboard(movementNotation: MovementNotation, 
-                                        coordinate: Coordinate, 
-                                        targetFile: Int, targetRank: Int, 
+                                        coordinate: Coordinate,
+                                        targetRank: Int, targetFile: Int,
                                         bbMovementMap: MutableMap<MovementNotation, ULong>){
         addCoordinateToMovementBitboard(
             "",
             movementNotation,
-            Movement(coordinate,targetFile,targetRank),
+            Movement(coordinate,targetRank,targetFile),
             bbMovementMap
         )
     }
@@ -1541,6 +1420,6 @@ fun bitboardToString(bitboard: ULong) : String{
         }
         str.append("\n--+---+---+---+---+---+---+---+---+\n")
     }
-    str.append("      0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n")
+    str.append("  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n")
     return str.toString()
 }

@@ -31,8 +31,6 @@ class BasicMoveTest {
         figureMap = parseFigureMapFromFile()
     }
 
-
-
     @Test
     fun testClone(){
         val bitboardOriginal = Bitboard(chessFormationArray,figureMap)
