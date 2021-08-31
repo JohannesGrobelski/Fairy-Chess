@@ -115,7 +115,7 @@ class Bitboard(
     fun set(bitboard: Bitboard){
         bbFigures.clear()
         for(key in bitboard.bbFigures.keys){
-            bbFigures[key] = bitboard.bbFigures[key]!!
+            bbFigures[key] = bitboard.bbFigures[key]!!.clone()
         }
         bbComposite = bitboard.bbComposite
         bbColorComposite = bitboard.bbColorComposite
@@ -129,7 +129,6 @@ class Bitboard(
 
     fun clone() : Bitboard{
         val newBitboard = Bitboard(figureMap)
-        newBitboard.bbFigures.clear()
         for(key in bbFigures.keys){
             newBitboard.bbFigures[key] = bbFigures[key]!!.clone()
         }
@@ -1135,6 +1134,8 @@ class Bitboard(
         }
 
         private val movingStringTomovementNotationsMap = mutableMapOf<String, List<MovementNotation>>()
+
+
 
         fun getMovementNotation(movingPatternString : String) : List<MovementNotation>{
             val movementNotations = mutableListOf<MovementNotation>()

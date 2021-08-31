@@ -125,7 +125,6 @@ class MoveGenerationTests {
         if(matchResult != null){
             formatedGameString = formatedGameString.replace(matchResult.value,"")
         }
-
         return formatedGameString.trim()
     }
 

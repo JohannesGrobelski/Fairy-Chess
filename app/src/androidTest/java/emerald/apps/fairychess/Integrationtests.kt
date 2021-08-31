@@ -60,7 +60,7 @@ class Integrationtests {
         onView(withText("bullet (2 minutes)")).inRoot(isPlatformPopup()).perform(click())
         onView(withId(R.id.spinner_timemode)).check(matches(withSpinnerText(containsString("bullet (2 minutes)"))))
         //leave local game and check for success (btn_local is visible)
-        onView(withId(R.id.btn_create_game)).perform(click())
+        //onView(withId(R.id.btn_create_game)).perform(click())
         onData(withText("create game")).inRoot(isDialog()).perform(click())
     }
 

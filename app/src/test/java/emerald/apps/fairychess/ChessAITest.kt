@@ -8,6 +8,9 @@ import emerald.apps.fairychess.utility.FigureParser
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import java.lang.Math.random
+import kotlin.math.pow
+import kotlin.system.measureTimeMillis
 
 class ChessAITest {
 
@@ -50,6 +53,40 @@ class ChessAITest {
             println(bitboard.toString())
             if(bitboard.gameFinished)break
         }
+    }
+
+    @Test
+    fun testAIPerformance(){
+        val movesPerIteration = 30
+        val depth = 4
+        val iterations = movesPerIteration.toDouble().pow(depth).toInt()
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+
+        var allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
+        var copyBitboard : Bitboard; var move : Movement
+        var timeCopy = 0; var timeSearch = 0; var timeMove = 0; var timeSet = 0; var timeChoose = 0
+        val timeOverall = measureTimeMillis {
+            for(i in 0..iterations){
+                timeSearch += measureTimeMillis {if(i%movesPerIteration == 0)allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)}.toInt()
+                timeChoose += measureTimeMillis {move = allMovesList[(random()*allMovesList.size).toInt()]}.toInt()
+                timeCopy += measureTimeMillis{copyBitboard = bitboard.clone()}.toInt()
+                timeMove += measureTimeMillis {bitboard.move(bitboard.moveColor,move)}.toInt()
+                timeSet += measureTimeMillis {bitboard.set(copyBitboard)}.toInt()
+            }
+        }
+
+        println("$iterations iterations: $timeOverall ms")
+        println("timeSearch: $timeSearch ms ("+(timeSearch.toDouble()/timeOverall.toDouble())*100+"%)")
+        println("timeCopy: $timeCopy ms ("+(timeCopy.toDouble()/timeOverall.toDouble())*100+"%)")
+        println("timeMove: $timeMove ms ("+(timeMove.toDouble()/timeOverall.toDouble())*100+"%)")
+        println("timeSet: $timeSet ms ("+(timeSet.toDouble()/timeOverall.toDouble())*100+"%)")
+        //println("timeChoose: $timeChoose ms ("+(timeChoose.toDouble()/timeOverall.toDouble())*100+"%)")
+    }
+
+    @Test
+    fun testSearchPerformance(){
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
     }
 
     @Test
