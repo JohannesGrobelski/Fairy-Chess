@@ -82,17 +82,12 @@ class MoveGenerationTests {
         for(gameString in gameStringList){
             val formatedGameString = formatGameString(gameString)
             if(formatedGameString.isEmpty())continue
-            println("game "+(gameList.size+1).toString())
+            if(DEBUG)println("game "+(gameList.size+1).toString())
             val bitboard = Bitboard(chessFormationArray,figureMap)
             val moveList = mutableListOf<Movement>()
             val movepairList = formatedGameString.replace("  "," ").split("\\d+\\.".toRegex())
             for(movepairString in movepairList){
                 if(movepairString.isEmpty())continue
-                if(gameList.size == 0) {
-                    if(moveList.size == 20){
-                        if(DEBUG)println()
-                    }
-                }
                 //parse moveStrings
                 var whiteMovestring = formatMoveString(movepairString.trim()); var blackMovestring = ""
                 if(movepairString.trim().contains(" ")){

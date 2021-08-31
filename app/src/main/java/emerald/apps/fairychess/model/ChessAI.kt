@@ -57,13 +57,14 @@ class ChessAI {
                     //find best move (highest points for black) by going through all possible moves
                     bestValue = Int.MIN_VALUE
                     for(move in allMovesList){
+                        val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move)
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition > bestValue){
                             targetMove = move
                             bestValue = valuePosition
                         }
-                        bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
+                        bitboard.set(copyBitboard)
                         //beta cutoff
                         if(valuePosition >= _beta)break
                         _alpha = max(_alpha,valuePosition)
@@ -73,13 +74,14 @@ class ChessAI {
                     bestValue = Int.MAX_VALUE
                     for(i in allMovesList.indices){
                         val move = allMovesList[i]
+                        val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move)
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition < bestValue){
                             targetMove = move
                             bestValue = valuePosition
                         }
-                        bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
+                        bitboard.set(copyBitboard)
                         //alpha cutoff
                         if(valuePosition <= _alpha)break
                         _beta = min(_beta,valuePosition)
