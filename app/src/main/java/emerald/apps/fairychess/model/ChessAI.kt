@@ -25,7 +25,7 @@ class ChessAI {
     }
 
     //Fields for move ordering
-    val transpositionTable = Hashtable<MutableMap<String, Array<ULong>>, MinimaxResult>()
+    val transpositionTable = Hashtable<Int, MinimaxResult>()
 
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
@@ -51,9 +51,9 @@ class ChessAI {
         if(level <= 0){
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
-            if(transpositionTable.contains(bitboard.bbFigures)){
+            if(transpositionTable.contains(ZobristHash.zobristHash(bitboard))){
                 ++transpositionTableHits
-                return transpositionTable[bitboard.bbFigures]!!
+                return transpositionTable[ZobristHash.zobristHash(bitboard)]!!
             } else {
                 val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
                 if(allMovesList.isNotEmpty()){
@@ -93,7 +93,7 @@ class ChessAI {
                             _beta = min(_beta,valuePosition)
                         }
                     }
-                    transpositionTable[bitboard.bbFigures] = MinimaxResult(targetMove,bestValue)
+                    transpositionTable[ZobristHash.zobristHash(bitboard)] = MinimaxResult(targetMove,bestValue)
                     return MinimaxResult(targetMove,bestValue)
                 } else {
                     return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))

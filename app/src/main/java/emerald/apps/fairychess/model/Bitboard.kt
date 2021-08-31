@@ -1274,6 +1274,8 @@ class Bitboard(
         return true
     }
 
+
+
     override fun hashCode(): Int {
         var result = chessFormationArray?.contentDeepHashCode() ?: 0
         result = 31 * result + figureMap.hashCode()
