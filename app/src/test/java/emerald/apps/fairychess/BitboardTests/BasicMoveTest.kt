@@ -9,8 +9,7 @@ import emerald.apps.fairychess.model.Movement
 import emerald.apps.fairychess.model.MovementNotation
 import emerald.apps.fairychess.model.PromotionMovement
 import emerald.apps.fairychess.utility.FigureParser
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
+import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.lang.Math.random
@@ -205,13 +204,23 @@ class BasicMoveTest {
     @Test
     fun testUndoCaptureMove(){
         //push white kingside pawn and black queenside pawn to enemy pawn line
-        val bitboard = Bitboard(chessFormationArray,figureMap)
+        var bitboard = Bitboard(chessFormationArray,figureMap)
         assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,1,4,3)))
         assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,6,3,4)))
-        val copyBitboard = bitboard.clone()
-        val move = Movement(MovementNotation("", listOf("c"),"", emptyList(),""), 4,3,3,4)
-        assertEquals("",bitboard.preMoveCheck("pawn","white", move))
-        bitboard.undoLastMove("white",move)
+        var copyBitboard = bitboard.clone()
+        var captureMove = Movement(MovementNotation("", listOf("c"),"", emptyList(),""), 4,3,3,4)
+        assertEquals("",bitboard.preMoveCheck("pawn","white", captureMove))
+        bitboard.undoLastMove("white",captureMove)
+        assertTrue(bitboard.equals(copyBitboard))
+
+        //special case: capture did not have move-notation with condition "c"
+        bitboard = Bitboard(chessFormationArray,figureMap)
+        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(0,6,0,5)))
+        copyBitboard = bitboard.clone()
+        captureMove = Movement(5,0,0,5)
+        assertEquals("",bitboard.preMoveCheck("bishop","white", captureMove))
+        bitboard.undoLastMove("white",captureMove)
         assertTrue(bitboard.equals(copyBitboard))
     }
 
@@ -335,7 +344,7 @@ class BasicMoveTest {
 
     @Test
     fun testMovegenerationQueens(){
-        val bitboard = Bitboard(chessFormationArray,figureMap)
+        var bitboard = Bitboard(chessFormationArray,figureMap)
         //queen initial position
         assertEquals(0uL,bitboard.getTargetMovements("queen", "black", Bitboard.Companion.Coordinate(3, 7), true))
         assertEquals(0uL,bitboard.getTargetMovements("queen", "white", Bitboard.Companion.Coordinate(3, 0), true))
@@ -346,8 +355,10 @@ class BasicMoveTest {
         assertEquals(1411764390789120uL,bitboard.getTargetMovements("queen", "white", Bitboard.Companion.Coordinate(0, 4), true))
         assertEquals(4389507238144uL,bitboard.getTargetMovements("queen", "black", Bitboard.Companion.Coordinate(0, 4), true))
 
-        /*println(bitboardToString(bitboard.getTargetMovements("queen","white",0, 4)))
-        println(bitboard.getTargetMovements("queen","white",0, 4))*/
+        bitboard = Bitboard(chessFormationArray,figureMap)
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,1,4,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(0,6,0,5)))
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(0,1,0,2)))
     }
 
 
@@ -438,11 +449,11 @@ class BasicMoveTest {
         val entry2 = mapOf<String,Array<ULong>>(
             "entry2" to arrayOf()
         )
-        bitboard.addEntryToHistory(entry1)
-        assertTrue(bitboard.moveHistory[0].containsKey("entry1"))
-        bitboard.addEntryToHistory(entry2)
-        assertTrue(bitboard.moveHistory[0].containsKey("entry1"))
-        assertTrue(bitboard.moveHistory[1].containsKey("entry2"))
+        bitboard.addEntryToHistory()
+        assertTrue(bitboard.boardStateHistory[0].containsKey("entry1"))
+        bitboard.addEntryToHistory()
+        assertTrue(bitboard.boardStateHistory[0].containsKey("entry1"))
+        assertTrue(bitboard.boardStateHistory[1].containsKey("entry2"))
     }
 
     @Test
@@ -468,7 +479,7 @@ class BasicMoveTest {
         //white enpassante left
         assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,1), true))
         assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,1,2,3)))
-        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,3), true))
+        assertEquals(17179869184uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,3), true))
         assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,4)))
         assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,3,2,4)))
         assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(1,6,1,4)))
@@ -484,6 +495,11 @@ class BasicMoveTest {
         assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,3,4,2)))
         assertEquals(2199023315712uL, bitboard.bbFigures["pawn"]!![0])
         assertEquals(68961369295159296uL, bitboard.bbFigures["pawn"]!![1])
+
+        //pawn can do 2 step move only at beginning
+        bitboard = Bitboard(chessFormationArray,figureMap)
+        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,1,4,3)))
+        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(0,6,0,5)))
     }
 
     @Test

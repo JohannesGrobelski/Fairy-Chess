@@ -50,12 +50,12 @@ class Bitboard(
     var playerWithDrawOpportunity = ""
     var promotionCoordinate : Coordinate? = null
     var moveColor = "white"
-    val moveHistory = mutableListOf<Map<String, Array<ULong>>>() //move history, for each move map (figureName -> Bitboard)
+    val boardStateHistory = mutableListOf<Map<String, Array<ULong>>>() //move history, for each move map (figureName -> Bitboard)
+    val boardStateHistoryComposite = mutableListOf<ULong>()
     val movedCapturedHistory = mutableListOf<ULong>() //history of bbMovedCaptured for each move
     val blackCapturedPieces = mutableListOf<ChessActivity.CapturedPiece>()
     val whiteCapturedPieces = mutableListOf<ChessActivity.CapturedPiece>()
     constructor(figureMap: Map<String, FigureParser.Figure>) : this(null,figureMap)
-
 
     init {
         if(chessFormationArray != null){
@@ -82,6 +82,7 @@ class Bitboard(
                 figureList.addAll(generateCoordinatesFrom64BPosition(bbFigures[key]?.get(1) ?: 0uL))
             }
         }
+        addEntryToHistory()
     }
 
     fun promotePawn(coordinate: Coordinate, name : String){
@@ -121,7 +122,7 @@ class Bitboard(
         blackCapturedPieces.clear(); blackCapturedPieces.addAll(bitboard.blackCapturedPieces)
         whiteCapturedPieces.clear(); whiteCapturedPieces.addAll(bitboard.whiteCapturedPieces)
         moveColor = bitboard.moveColor
-        moveHistory.clear(); moveHistory.addAll(bitboard.moveHistory)
+        clearHistory(); boardStateHistory.addAll(bitboard.boardStateHistory)
         movedCapturedHistory.clear(); movedCapturedHistory.addAll(bitboard.movedCapturedHistory)
         bbMovedCaptured = bitboard.bbMovedCaptured
     }
@@ -138,7 +139,7 @@ class Bitboard(
         newBitboard.blackCapturedPieces.addAll(blackCapturedPieces)
         newBitboard.whiteCapturedPieces.addAll(whiteCapturedPieces)
         newBitboard.moveColor = moveColor
-        newBitboard.moveHistory.addAll(moveHistory)
+        newBitboard.copyHistory(this)
         newBitboard.movedCapturedHistory.addAll(movedCapturedHistory)
         return newBitboard
     }
@@ -216,7 +217,7 @@ class Bitboard(
         bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
 
         bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
-        addEntryToHistory(bbFigures)
+        addEntryToHistory();
         movedCapturedHistory.add(bbMovedCaptured)
         //add current position (as map bbFigures) to history
         if(movement.movementNotation in arrayOf(CASTLING_LONG_BLACK, CASTLING_SHORT_WHITE,
@@ -247,7 +248,7 @@ class Bitboard(
             bbComposite = bbComposite or bbSource
             bbColorComposite[pos] = bbColorComposite[pos] xor (bbSource or bbTarget)
             bbColorComposite[1-pos] = bbColorComposite[1-pos] xor (bbTarget)
-            moveHistory.removeLast()
+            boardStateHistory.removeLast()
             movedCapturedHistory.removeLast()
             switchMoveColor()
         } else {
@@ -276,40 +277,43 @@ class Bitboard(
                         bbMovedCaptured = bbMovedCaptured xor (bbSource or generate64BPositionFromCoordinate(Coordinate(0,7)))
                     }
                 }
-                repeat(4) { moveHistory.removeLast(); movedCapturedHistory.removeLast()}
+                repeat(4) { boardStateHistory.removeLast(); movedCapturedHistory.removeLast()}
                 switchMoveColor()
             }
-
             //case capture: move capturing piece to sourceCoordinate and set captured piece @ targetCoordinate
-            else if(move.movementNotation.conditions.contains("c")){
+            else if(move.movementNotation.conditions.contains("c") || moveWasCapture(move)){
                 if(checkIfEnpassanteMove(getPieceName(move.getSourceCoordinate()),getPosition(moveColor),move)){
                 //sub case: en passante
                     val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
                     val bbRemovedFigure = generate64BPositionFromCoordinate(move.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
                     recreateFigure(getCapturedPieceFromLastMove(bbRemovedFigure,pos),1-pos,bbRemovedFigure)
-                    bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
-                    moveHistory.removeLast(); movedCapturedHistory.removeLast()
+                    boardStateHistory.removeLast(); movedCapturedHistory.removeLast()
                 } else {
                 //normal capture
                     move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
-                    moveHistory.removeLast(); movedCapturedHistory.removeLast()
+                    boardStateHistory.removeLast(); movedCapturedHistory.removeLast()
                     recreateFigure(getCapturedPieceFromLastMove(bbTarget,pos),1-pos,bbTarget)
                     //don't change bbMovedCaptured, bbTarget, switchMoveColor etc. (because it's already changed in move(...))
-                    moveHistory.removeLast(); movedCapturedHistory.removeLast()
+                    boardStateHistory.removeLast(); movedCapturedHistory.removeLast()
                 }
+                bbMovedCaptured = movedCapturedHistory[movedCapturedHistory.lastIndex]
             }
             else {
                 //normal case: move piece from targetCoordinate to sourceCoordinate
                 move(moveColor,Movement(move.getTargetCoordinate(),move.getSourceCoordinate()))
                 bbMovedCaptured = bbMovedCaptured xor bbSource xor bbTarget
-                repeat(2) { moveHistory.removeLast(); movedCapturedHistory.removeLast()}
+                repeat(2) { boardStateHistory.removeLast(); movedCapturedHistory.removeLast()}
             }
         }
     }
 
+    fun moveWasCapture(movement: Movement) : Boolean {
+        return boardStateHistoryComposite[boardStateHistoryComposite.lastIndex-1] and generate64BPositionFromCoordinate(movement.getTargetCoordinate()) != 0uL
+    }
+
     fun getCapturedPieceFromLastMove(bbTarget : ULong, pos : Int) : String {
-        for(key in moveHistory[moveHistory.lastIndex-1].keys){
-            if(moveHistory[moveHistory.lastIndex-1][key]!![1-pos] and bbTarget == bbTarget){
+        for(key in boardStateHistory[boardStateHistory.lastIndex-1].keys){
+            if(boardStateHistory[boardStateHistory.lastIndex-1][key]!![1-pos] and bbTarget == bbTarget){
                 return key
             }
         }
@@ -344,7 +348,7 @@ class Bitboard(
             bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
             bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
             bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
-            addEntryToHistory(bbFigures)
+            addEntryToHistory()
             movedCapturedHistory.add(bbMovedCaptured)
             switchMoveColor()
         }
@@ -354,7 +358,7 @@ class Bitboard(
     /** checks if movement is en passante */
     fun checkIfEnpassanteMove(name : String, pos: Int, movement: Movement) : Boolean {
         //check for special case enpassante
-        if(moveHistory.size < 2)return false
+        if(boardStateHistory.size < 2)return false
         if(name == "pawn" && movement.getRankDif() == 1
             && bbFigures["pawn"]!![1-pos] and generate64BPositionFromCoordinate(movement.getTargetCoordinate()) == 0uL){
             //pawn moved diagonaly, but there is no target on target square
@@ -364,7 +368,7 @@ class Bitboard(
                 //therefore an enemy pawn must be above (black pawn) or under (white pawn) the target square
                 val removeFileActual = movement.targetFile + fileOffset
                 val removeFileSupposed = round(3.5 + -fileOffset*.1).toInt() //4 for white, 3 for black
-                val bbPawnPositionLastMove = moveHistory[moveHistory.lastIndex - 1]["pawn"]!![1-pos]
+                val bbPawnPositionLastMove = boardStateHistory[boardStateHistory.lastIndex - 1]["pawn"]!![1-pos]
                 val bbPawnPositionNow = bbFigures["pawn"]!![1-pos]
                 val bbCurrentPositionOfPawnWhoMovedLast = bbPawnPositionNow and bbPawnPositionLastMove.inv()
                 if(bbCurrentPositionOfPawnWhoMovedLast and bbRemoveFigure != 0uL && removeFileActual == removeFileSupposed){
@@ -399,19 +403,38 @@ class Bitboard(
             bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
             bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
             bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
-            addEntryToHistory(bbFigures)
+            addEntryToHistory()
             movedCapturedHistory.add(bbMovedCaptured)
             switchMoveColor()
         }
         return isEnpassante
     }
 
-    fun addEntryToHistory(bbFig : Map<String, Array<ULong>>){
+    fun addEntryToHistory() {
         val newBB = mutableMapOf<String,Array<ULong>>()
-        for(key in bbFig.keys){
-            newBB[key] = bbFig[key]!!.copyOf()
+        for(key in bbFigures.keys){
+            newBB[key] = bbFigures[key]!!.copyOf()
         }
-        moveHistory.add(newBB.toMap())
+        boardStateHistory.add(newBB.toMap())
+        boardStateHistoryComposite.add(bbComposite)
+    }
+
+    fun clearHistory(numberOfEntries : Int = boardStateHistory.size){
+        if(numberOfEntries == boardStateHistory.size){
+            boardStateHistory.clear()
+            boardStateHistoryComposite.clear()
+        } else {
+            repeat(numberOfEntries){
+                boardStateHistory.clear()
+                boardStateHistoryComposite.clear()
+            }
+        }
+    }
+
+    fun copyHistory(bitboard: Bitboard){
+        clearHistory()
+        boardStateHistory.addAll(bitboard.boardStateHistory)
+        boardStateHistoryComposite.addAll(bitboard.boardStateHistoryComposite)
     }
 
     private fun makeCastlingMove(color: String, movement : Movement){
@@ -524,8 +547,8 @@ class Bitboard(
                 //there is an enemy pawn above/under target square
                 val fileOffset = ((-1.0).pow(pos.toDouble())*2).toInt() //2 for white, -2 for black
                 val bbtargetPawnInitialPosition = generate64BPositionFromCoordinate(Coordinate(targetRank,coordinate.file + fileOffset))
-                if(moveHistory.size > 1
-                    && moveHistory[moveHistory.lastIndex-1]["pawn"]!![1-pos] and bbtargetPawnInitialPosition == bbtargetPawnInitialPosition){
+                if(boardStateHistory.size > 1
+                    && boardStateHistory[boardStateHistory.lastIndex-1]["pawn"]!![1-pos] and bbtargetPawnInitialPosition == bbtargetPawnInitialPosition){
                     //last position of target pawn was 2 steps above/under the current position => target pawn moved 2 steps in the last move
                     val movement = Movement(coordinate.rank,coordinate.file,targetRank,coordinate.file + fileOffset/2)
                     addCoordinateToMovementBitboard(color, MovementNotation.PAWN_ENPASSANTE,movement,bbTargetsMap)
@@ -654,7 +677,7 @@ class Bitboard(
                            bbFigure: ULong,
                            bbFigureNonRelativeTargets: MutableMap<MovementNotation,ULong>,
                            movementNotationList: List<MovementNotation> ) : MutableMap<MovementNotation,ULong>{
-        val pos = (color != "black").toInt()
+        val pos = getPosition(color)
         for(movementNotation in movementNotationList){
             if(movementNotation.conditions.contains("o")) {//May not be used for a capture (e.g. pawn's forward move)
                 //thus bbFigureNonRelativeTargets and bbColorComposite must be bitwise different
@@ -662,15 +685,15 @@ class Bitboard(
                     bbFigureNonRelativeTargets[movementNotation]!! and bbComposite.inv()
             }
             if(movementNotation.conditions.contains("c")) {//May only be made on a capture (e.g. pawn's diagonal capture)
-                //thus bbFigureNonRelativeTargets and bbColorComposite must be bitwise the same
+                //thus bbFigureNonRelativeTargets and bbColorComposite of opponent must be bitwise the same
                 bbFigureNonRelativeTargets[movementNotation] =
-                    bbFigureNonRelativeTargets[movementNotation]!! and bbColorComposite[pos]
+                    bbFigureNonRelativeTargets[movementNotation]!! and bbColorComposite[1-pos]
             }
             if(movementNotation.conditions.contains("i")) {//May only be made on the initial move (e.g. pawn's 2 moves forward)
-                if(moveHistory.isNotEmpty()){
+                if(boardStateHistory.isNotEmpty()){
                     /* current position of the figure must match initial position (first entry of the movehistory)
                        or move history is empty (first movement) */
-                    if(bbFigure and moveHistory[0][figureName]!![1-pos] == 0uL){ //1-pos is the index of player color (ai)
+                    if(bbFigure and boardStateHistory[0][figureName]!![pos] == 0uL){ //1-pos is the index of player color (ai)
                         bbFigureNonRelativeTargets[movementNotation] = 0uL
                     }
                 }
@@ -1365,7 +1388,7 @@ class Bitboard(
         if (playerWithDrawOpportunity != other.playerWithDrawOpportunity) return false
         if (promotionCoordinate != other.promotionCoordinate) return false
         if (moveColor != other.moveColor) return false
-        if (moveHistory != other.moveHistory) return false
+        if (boardStateHistory != other.boardStateHistory) return false
         if (movedCapturedHistory != other.movedCapturedHistory) return false
         if (blackCapturedPieces != other.blackCapturedPieces) return false
         if (whiteCapturedPieces != other.whiteCapturedPieces) return false
@@ -1391,7 +1414,7 @@ class Bitboard(
         result = 31 * result + playerWithDrawOpportunity.hashCode()
         result = 31 * result + (promotionCoordinate?.hashCode() ?: 0)
         result = 31 * result + moveColor.hashCode()
-        result = 31 * result + moveHistory.hashCode()
+        result = 31 * result + boardStateHistory.hashCode()
         result = 31 * result + movedCapturedHistory.hashCode()
         result = 31 * result + blackCapturedPieces.hashCode()
         result = 31 * result + whiteCapturedPieces.hashCode()
