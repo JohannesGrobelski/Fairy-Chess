@@ -13,8 +13,10 @@ class ChessAI {
     private var cntHashHits = 0
     private var cntHashFails = 0
 
+
     //Fields
     var cnt_movements = 0
+    var transpositionTableHits = 0
 
     var color: String
 
@@ -23,13 +25,13 @@ class ChessAI {
     }
 
     //Fields for move ordering
-    private val transpositionTable = Hashtable<String, MovementValue>()
+    val transpositionTable = Hashtable<MutableMap<String, Array<ULong>>, MinimaxResult>()
 
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
         when (algorithm) {
             "alphabeta" -> {
-                return alphabeta(bitboard, 2, Int.MIN_VALUE, Int.MAX_VALUE).movement
+                return alphabeta(bitboard, 4, Int.MIN_VALUE, Int.MAX_VALUE).movement
             }
         }
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
@@ -49,47 +51,53 @@ class ChessAI {
         if(level <= 0){
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
-            val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
-            if(allMovesList.isNotEmpty()){
-                var targetMove = emptyMovement()
-                var bestValue : Int
-                if(bitboard.moveColor == "black"){
-                    //find best move (highest points for black) by going through all possible moves
-                    bestValue = Int.MIN_VALUE
-                    for(move in allMovesList){
-                        val copyBitboard = bitboard.clone()
-                        bitboard.move(bitboard.moveColor,move)
-                        val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
-                        if(valuePosition > bestValue){
-                            targetMove = move
-                            bestValue = valuePosition
-                        }
-                        bitboard.set(copyBitboard)
-                        //beta cutoff
-                        if(valuePosition >= _beta)break
-                        _alpha = max(_alpha,valuePosition)
-                    }
-                } else {
-                    //find best move (highest points for white) by going through all possible moves
-                    bestValue = Int.MAX_VALUE
-                    for(i in allMovesList.indices){
-                        val move = allMovesList[i]
-                        val copyBitboard = bitboard.clone()
-                        bitboard.move(bitboard.moveColor,move)
-                        val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
-                        if(valuePosition < bestValue){
-                            targetMove = move
-                            bestValue = valuePosition
-                        }
-                        bitboard.set(copyBitboard)
-                        //alpha cutoff
-                        if(valuePosition <= _alpha)break
-                        _beta = min(_beta,valuePosition)
-                    }
-                }
-                return MinimaxResult(targetMove,bestValue)
+            if(transpositionTable.contains(bitboard.bbFigures)){
+                ++transpositionTableHits
+                return transpositionTable[bitboard.bbFigures]!!
             } else {
-                return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
+                val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
+                if(allMovesList.isNotEmpty()){
+                    var targetMove = emptyMovement()
+                    var bestValue : Int
+                    if(bitboard.moveColor == "black"){
+                        //find best move (highest points for black) by going through all possible moves
+                        bestValue = Int.MIN_VALUE
+                        for(move in allMovesList){
+                            val copyBitboard = bitboard.clone()
+                            bitboard.move(bitboard.moveColor,move)
+                            val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            if(valuePosition > bestValue){
+                                targetMove = move
+                                bestValue = valuePosition
+                            }
+                            bitboard.set(copyBitboard)
+                            //beta cutoff
+                            if(valuePosition >= _beta)break
+                            _alpha = max(_alpha,valuePosition)
+                        }
+                    } else {
+                        //find best move (highest points for white) by going through all possible moves
+                        bestValue = Int.MAX_VALUE
+                        for(i in allMovesList.indices){
+                            val move = allMovesList[i]
+                            val copyBitboard = bitboard.clone()
+                            bitboard.move(bitboard.moveColor,move)
+                            val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            if(valuePosition < bestValue){
+                                targetMove = move
+                                bestValue = valuePosition
+                            }
+                            bitboard.set(copyBitboard)
+                            //alpha cutoff
+                            if(valuePosition <= _alpha)break
+                            _beta = min(_beta,valuePosition)
+                        }
+                    }
+                    transpositionTable[bitboard.bbFigures] = MinimaxResult(targetMove,bestValue)
+                    return MinimaxResult(targetMove,bestValue)
+                } else {
+                    return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
+                }
             }
         }
     }

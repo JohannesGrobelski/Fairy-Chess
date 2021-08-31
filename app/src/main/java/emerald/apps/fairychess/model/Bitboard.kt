@@ -398,7 +398,7 @@ class Bitboard(
         return resultMovement
     }
 
-    private fun genSpecialMoves(name: String, color: String, coordinate : Coordinate, bbTargetsMap: MutableMap<MovementNotation,ULong>, generateCastlingMoves: Boolean)
+    fun genSpecialMoves(name: String, color: String, coordinate : Coordinate, bbTargetsMap: MutableMap<MovementNotation,ULong>, generateCastlingMoves: Boolean)
         : MutableMap<MovementNotation,ULong> {
         if(name == "king" && generateCastlingMoves){//create castling moves, if possible
             return genCastlingMoves(color,coordinate,bbTargetsMap)
@@ -544,7 +544,7 @@ class Bitboard(
     /**
      * does the movement fullfil condition in Movement.MovementNotation.Condition?
      */
-    private fun deleteIllegalMoves(figureName : String,
+    fun deleteIllegalMoves(figureName : String,
                            color: String,
                            bbFigure: ULong,
                            bbFigureNonRelativeTargets: MutableMap<MovementNotation,ULong>,
@@ -587,7 +587,7 @@ class Bitboard(
     }
 
     /** generate a bitboard representing the target squares of the non relative movement for a piece */
-    private fun generateMovements(
+    fun generateMovements(
         color: String,
         coordinate: Coordinate,
         movementNotationList: List<MovementNotation>
@@ -884,7 +884,6 @@ class Bitboard(
             bbMovementMap
         )
     }
-
 
 
 
