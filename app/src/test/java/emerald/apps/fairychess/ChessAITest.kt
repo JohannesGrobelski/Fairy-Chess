@@ -29,7 +29,7 @@ class ChessAITest {
         val bitboard = Bitboard(chessFormationArray,figureMap)
         Assert.assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,1,4,3)))
         val move = chessAIBlack.calcMove(bitboard)
-        bitboard.checkMoveAndMove("black",move)
+        Assert.assertEquals("",bitboard.checkMoveAndMove("black",move))
         println(bitboard.toString())
     }
 
@@ -50,10 +50,7 @@ class ChessAITest {
             println(bitboard.toString())
             if(bitboard.gameFinished)break
         }
-
     }
-
-
 
     @Test
     fun testAlgorithmCapturePiece() {
@@ -83,8 +80,6 @@ class ChessAITest {
         assert(chessBoardNormal.checkMoveAndMove("black", Movement.fromStringToMovement("0_5_1_4")).isEmpty())
         assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("2_1_2_3")).isEmpty())
         assert(chessBoardNormal.checkMoveAndMove("black", stubChessAI.calcMove(chessBoardNormal)!!).isEmpty())
-
-
 
         println(chessBoardNormal.toString())
         println(stubChessAI.cnt_movements.toString()+" moves")

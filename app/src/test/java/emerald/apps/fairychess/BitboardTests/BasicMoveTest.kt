@@ -191,7 +191,7 @@ class BasicMoveTest {
         //white enpassante left
         assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,1), true))
         assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,1,2,3)))
-        assertEquals(4415226380288uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,3), true))
+        assertEquals(17179869184uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,3), true))
         assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,4)))
         assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,3,2,4)))
         assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(1,6,1,4)))
@@ -228,7 +228,7 @@ class BasicMoveTest {
     /** result: undoMove is 5x faster for >10E6 moves */
     fun testUndoMovePerformance(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
-        val iterations = 100000
+        val iterations = 100
         val implUndoMove = (measureTimeMillis {
             for(i in 0..iterations){
                 val allMoves = bitboard.getAllPossibleMovesAsList("white")
@@ -438,22 +438,6 @@ class BasicMoveTest {
 
        /* println(bitboardToString(bitboard.getTargetMovements("rook","black",0, 7)))
         println(bitboard.getTargetMovements("rook","black",0, 7))*/
-    }
-
-    @Test
-    fun testMoveHistory(){
-        val bitboard = Bitboard(chessFormationArray,figureMap)
-        val entry1 = mapOf<String,Array<ULong>>(
-            "entry1" to arrayOf()
-        )
-        val entry2 = mapOf<String,Array<ULong>>(
-            "entry2" to arrayOf()
-        )
-        bitboard.addEntryToHistory()
-        assertTrue(bitboard.boardStateHistory[0].containsKey("entry1"))
-        bitboard.addEntryToHistory()
-        assertTrue(bitboard.boardStateHistory[0].containsKey("entry1"))
-        assertTrue(bitboard.boardStateHistory[1].containsKey("entry2"))
     }
 
     @Test

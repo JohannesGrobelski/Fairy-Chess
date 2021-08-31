@@ -47,7 +47,7 @@ class ChessAI {
         var _alpha = alpha
         var _beta = beta
         if(level <= 0){
-            return MinimaxResult(emptyMovement(),getPointDif(bitboard))
+            return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
             val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
             if(allMovesList.isNotEmpty()){
@@ -61,7 +61,7 @@ class ChessAI {
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition > bestValue){
                             targetMove = move
-                            bestValue = getPointDif(bitboard)
+                            bestValue = valuePosition
                         }
                         bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
                         //beta cutoff
@@ -74,11 +74,10 @@ class ChessAI {
                     for(i in allMovesList.indices){
                         val move = allMovesList[i]
                         bitboard.move(bitboard.moveColor,move)
-
                         val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
                         if(valuePosition < bestValue){
                             targetMove = move
-                            bestValue = getPointDif(bitboard)
+                            bestValue = valuePosition
                         }
                         bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
                         //alpha cutoff
@@ -88,12 +87,12 @@ class ChessAI {
                 }
                 return MinimaxResult(targetMove,bestValue)
             } else {
-                return MinimaxResult(emptyMovement(),getPointDif(bitboard))
+                return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
             }
         }
     }
 
-    fun getPointDif(bitboard: Bitboard) : Int{
+    fun getPointDifBW(bitboard: Bitboard) : Int{
         ++cnt_movements
         return bitboard.pointsBlack() - bitboard.pointsWhite()
     }
