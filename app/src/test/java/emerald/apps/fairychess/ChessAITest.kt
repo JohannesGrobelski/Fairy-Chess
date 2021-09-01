@@ -156,6 +156,7 @@ class ChessAITest {
     fun testZobristHash(){
         val bitBoardNormal = Bitboard(chessFormationArray, figureMap)
         val zobristHash = ZobristHash(bitBoardNormal.figureMap.keys.toList())
+        val initHash = zobristHash.generateHash(bitBoardNormal)
         val stubChessAI = ChessAI("black")
     }
 

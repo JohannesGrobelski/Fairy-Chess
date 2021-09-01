@@ -14,21 +14,20 @@ import kotlin.random.nextULong
  */
 @ExperimentalUnsignedTypes
 class ZobristHash(figureNameList : List<String>) {
-    class PieceCoordinate(val figureName : String, val coordinate: Bitboard.Companion.Coordinate)
 
-    var pieceMap = mutableMapOf<PieceCoordinate,ULong>()
+    var pieceMap = mutableMapOf<String,ULong>() //key: "PiecenameRankFile"
     var sideToMoveIsBlack = 0uL
     var castlingRightMap = mutableMapOf<MovementNotation,ULong>()
     var enpassanteSquareMap = mutableMapOf<Bitboard.Companion.Coordinate,ULong>()
 
-    private var randomSeed = 0
+    private lateinit var random : Random
 
     init {
-        randomSeed = generateRandomSeed(figureNameList)
+        random = generateRandom(figureNameList)
         for(name in figureNameList){
             for(rank in 0..8){
                 for(file in 0..8){
-                    pieceMap[PieceCoordinate(name,Bitboard.Companion.Coordinate(rank,file))] =
+                    pieceMap[generatePieceMapKey(name,rank,file)] =
                         getPseudoRandomNumber()
                 }
             }
@@ -42,16 +41,20 @@ class ZobristHash(figureNameList : List<String>) {
         }
     }
 
-    fun generateRandomSeed(figureNameList: List<String>) : Int {
+    private fun generatePieceMapKey(figureName:String, rank:Int, file:Int) : String{
+        return figureName+rank.toString()+file.toString()
+    }
+
+    fun generateRandom(figureNameList: List<String>) : Random {
         var randomSeed = 0
         for(name in figureNameList){
             randomSeed = randomSeed xor name.hashCode()
         }
-        return randomSeed
+        return Random(randomSeed)
     }
 
     fun getPseudoRandomNumber() : ULong {
-        return Random(randomSeed).nextULong()
+        return random.nextULong()
     }
 
     /** transform a board position of arbitrary size
@@ -62,8 +65,10 @@ class ZobristHash(figureNameList : List<String>) {
             for(file in 0..7){
                 val coordinate = Bitboard.Companion.Coordinate(rank,file)
                 val pieceName = bitboard.getPieceName(coordinate)
-                val pieceCoordinate = pieceMap[PieceCoordinate(pieceName,coordinate)]!!
-                hashKey = hashKey xor pieceCoordinate
+                if(pieceName.isEmpty())continue
+                if(pieceMap.containsKey(generatePieceMapKey(pieceName,rank,file))){
+                    hashKey = hashKey xor pieceMap[generatePieceMapKey(pieceName,rank,file)]!!
+                }
             }
         }
         if(bitboard.moveColor == "black")hashKey = hashKey xor sideToMoveIsBlack
