@@ -1,11 +1,11 @@
 package emerald.apps.fairychess.model
 
-import emerald.apps.fairychess.model.Bitboard.Companion.oppositeColor
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
+@ExperimentalUnsignedTypes
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
@@ -19,16 +19,18 @@ class ChessAI {
     var transpositionTableHits = 0
 
     var color: String
+    lateinit var zobristHash : ZobristHash
 
     constructor(color: String) {
         this.color = color
     }
 
     //Fields for move ordering
-    val transpositionTable = Hashtable<Int, MinimaxResult>()
+    val transpositionTable = Hashtable<ULong, MinimaxResult>()
 
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
+        zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
         when (algorithm) {
             "alphabeta" -> {
                 return alphabeta(bitboard, 4, Int.MIN_VALUE, Int.MAX_VALUE).movement
@@ -51,9 +53,9 @@ class ChessAI {
         if(level <= 0){
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
-            if(transpositionTable.contains(ZobristHash.zobristHash(bitboard))){
+            if(transpositionTable.contains(zobristHash.generateHash(bitboard))){
                 ++transpositionTableHits
-                return transpositionTable[ZobristHash.zobristHash(bitboard)]!!
+                return transpositionTable[zobristHash.generateHash(bitboard)]!!
             } else {
                 val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
                 if(allMovesList.isNotEmpty()){
@@ -93,7 +95,7 @@ class ChessAI {
                             _beta = min(_beta,valuePosition)
                         }
                     }
-                    transpositionTable[ZobristHash.zobristHash(bitboard)] = MinimaxResult(targetMove,bestValue)
+                    transpositionTable[zobristHash.generateHash(bitboard)] = MinimaxResult(targetMove,bestValue)
                     return MinimaxResult(targetMove,bestValue)
                 } else {
                     return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))

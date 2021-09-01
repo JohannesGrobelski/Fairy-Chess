@@ -20,21 +20,9 @@ import kotlin.math.sign
 
 class Bitboard(
     private val chessFormationArray: Array<Array<String>>?,
-    private val figureMap: Map<String, FigureParser.Figure>
+    val figureMap: Map<String, FigureParser.Figure>
 ) {
 
-    /* TODO: implementation
-        1. fullfillsCondition einbinden
-        2. enpassante
-        3. castling
-        4. in chessgame einbinden und so movegeneration prüfen
-        5. draw rules implen
-     */
-
-    /* TODO: performance improvements
-    - HashTable of calculated moves for each tuple (color,figureName,file,rank)
-
-     */
     private val colors = arrayOf("white","black")
 
     //map from name of figure to 2D-Array
@@ -54,6 +42,7 @@ class Bitboard(
     val movedCapturedHistory = mutableListOf<ULong>() //history of bbMovedCaptured for each move
     val blackCapturedPieces = mutableListOf<ChessActivity.CapturedPiece>()
     val whiteCapturedPieces = mutableListOf<ChessActivity.CapturedPiece>()
+
     constructor(figureMap: Map<String, FigureParser.Figure>) : this(null,figureMap)
 
 
@@ -333,7 +322,7 @@ class Bitboard(
             for(file in 0..7){
                 val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))
                 if((bbColorComposite[pos] and bbFigure) == bbFigure){
-                    val name = getNameOfFigure(pos, bbFigure)
+                    val name = getPieceName(pos, bbFigure)
                     if(name.isEmpty())continue //empty field
                     allPossibleMoves[Coordinate(rank,file)] = getTargetMovements(
                         name,
@@ -365,11 +354,19 @@ class Bitboard(
 
 
 
-    fun getNameOfFigure(pos: Int, bbFigure:ULong) : String{
+    fun getPieceName(pos: Int, bbFigure:ULong) : String{
         for(name in bbFigures.keys){
             if(bbFigures[name]!![pos] and bbFigure == bbFigure){
                 return name
             }
+        }
+        return ""
+    }
+
+    fun getPieceName(coordinate: Coordinate) : String{
+        val bbFigure = generate64BPositionFromCoordinate(coordinate)
+        for(pieceName in bbFigures.keys){
+            if((bbFigures[pieceName]!![0] or bbFigures[pieceName]!![1]) and bbFigure == bbFigure)return pieceName
         }
         return ""
     }
@@ -408,6 +405,11 @@ class Bitboard(
         return bbTargetsMap
     }
 
+    //TODO: implement
+    fun getEnpassanteSquares() : List<Coordinate> {
+        return emptyList()
+    }
+
     private fun generateEnpassanteMove(color : String, coordinate : Coordinate,bbTargetsMap: MutableMap<MovementNotation,ULong>)
         : MutableMap<MovementNotation,ULong> {
         val targetRankLeft = coordinate.rank - 1
@@ -428,6 +430,11 @@ class Bitboard(
             }
         }
         return bbTargetsMap
+    }
+
+    //TODO: implement
+    fun getCastlingRights() : List<Coordinate> {
+        return emptyList()
     }
 
     private fun genCastlingMoves(color: String, coordinate : Coordinate, bbTargetsMap: MutableMap<MovementNotation,ULong>)
@@ -519,7 +526,7 @@ class Bitboard(
         val bbFigure = generate64BPositionFromCoordinate(coordinate)
         if(bbComposite and bbFigure == 0uL)return emptyList()
         val movementList = mutableListOf<Movement>()
-        val name = getNameOfFigure(pos, bbFigure)
+        val name = getPieceName(pos, bbFigure)
         if(name in figureMap.keys){
             val movementString = (figureMap[name] as FigureParser.Figure).movementParlett
             val movementNotationList = getMovementNotation(movementString)
@@ -1042,6 +1049,20 @@ class Bitboard(
     }
 
     companion object {
+        val castlingMoves = arrayOf(
+            MovementNotation.CASTLING_SHORT_WHITE,
+            MovementNotation.CASTLING_SHORT_BLACK,
+            MovementNotation.CASTLING_LONG_WHITE,
+            MovementNotation.CASTLING_LONG_WHITE,
+        )
+        val enpassanteSquares = arrayOf(
+            Coordinate(0,2), Coordinate(1,2), Coordinate(2,2), Coordinate(3,2),
+            Coordinate(4,2), Coordinate(5,2), Coordinate(6,2), Coordinate(7,2),
+            Coordinate(0,5), Coordinate(1,5), Coordinate(2,5), Coordinate(3,5),
+            Coordinate(4,5), Coordinate(5,5), Coordinate(6,5), Coordinate(7,5),
+        )
+
+
         const val UNLIMITED_DISTANCE = Int.MAX_VALUE
         val colors = arrayOf("white","black")
         fun randomColor() : String {
@@ -1225,13 +1246,7 @@ class Bitboard(
     }
 
 
-    fun getPieceName(coordinate: Coordinate) : String{
-        val bbFigure = generate64BPositionFromCoordinate(coordinate)
-        for(pieceName in bbFigures.keys){
-            if((bbFigures[pieceName]!![0] or bbFigures[pieceName]!![1]) and bbFigure == bbFigure)return pieceName
-        }
-        return ""
-    }
+
 
     fun getPieceColor(rank: Int, file: Int) : String{
         return when (val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))) {

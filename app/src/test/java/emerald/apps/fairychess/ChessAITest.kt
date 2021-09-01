@@ -1,6 +1,5 @@
 package emerald.apps.fairychess
 
-import android.media.midi.MidiOutputPort
 import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.utility.FigureParser
 import org.junit.Assert
@@ -110,7 +109,7 @@ class ChessAITest {
                 movementList = mutableListOf<Movement>();
                 pos = ("black" == color).toInt()
                 bbFigure = Bitboard.generate64BPositionFromCoordinate(coordinate)
-                name = bitboard.getNameOfFigure(pos, bbFigure)
+                name = bitboard.getPieceName(pos, bbFigure)
             }.toInt()
 
             if(name in figureMap.keys){
@@ -151,7 +150,13 @@ class ChessAITest {
         println("timeDeleteIllegalMoves: $timeDeleteIllegalMoves ns ("+(timeDeleteIllegalMoves.toDouble()/timeOverall.toDouble())*100+"%)")
         println("timeSpecialMoveGeneration: $timeSpecialMoveGeneration ns ("+(timeSpecialMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
         println("timeTransformation: $timeTransformation ns ("+(timeTransformation.toDouble()/timeOverall.toDouble())*100+"%)")
+    }
 
+    @Test
+    fun testZobristHash(){
+        val bitBoardNormal = Bitboard(chessFormationArray, figureMap)
+        val zobristHash = ZobristHash(bitBoardNormal.figureMap.keys.toList())
+        val stubChessAI = ChessAI("black")
     }
 
     @Test
