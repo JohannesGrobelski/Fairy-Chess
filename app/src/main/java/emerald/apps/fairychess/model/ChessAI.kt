@@ -9,7 +9,7 @@ import kotlin.math.min
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
-    private val recursionDepth = 2
+    private val recursionDepth = 4
     private var cntHashHits = 0
     private var cntHashFails = 0
 
@@ -53,53 +53,61 @@ class ChessAI {
         if(level <= 0){
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
-            if(transpositionTable.contains(zobristHash.generateHash(bitboard))){
-                ++transpositionTableHits
-                return transpositionTable[zobristHash.generateHash(bitboard)]!!
-            } else {
-                val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
-                if(allMovesList.isNotEmpty()){
-                    var targetMove = emptyMovement()
-                    var bestValue : Int
-                    if(bitboard.moveColor == "black"){
-                        //find best move (highest points for black) by going through all possible moves
-                        bestValue = Int.MIN_VALUE
-                        for(move in allMovesList){
-                            val copyBitboard = bitboard.clone()
-                            bitboard.move(bitboard.moveColor,move)
-                            val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
-                            if(valuePosition > bestValue){
-                                targetMove = move
-                                bestValue = valuePosition
-                            }
-                            bitboard.set(copyBitboard)
-                            //beta cutoff
-                            if(valuePosition >= _beta)break
-                            _alpha = max(_alpha,valuePosition)
+            val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
+            if(allMovesList.isNotEmpty()){
+                var targetMove = emptyMovement()
+                var bestValue : Int
+                if(bitboard.moveColor == "black"){
+                    //find best move (highest points for black) by going through all possible moves
+                    bestValue = Int.MIN_VALUE
+                    for(move in allMovesList){
+                        val copyBitboard = bitboard.clone()
+                        bitboard.move(bitboard.moveColor,move)
+                        var valuePosition = 0
+                        if(transpositionTable.contains(zobristHash.generateHash(bitboard))) {
+                            ++transpositionTableHits
+                            valuePosition = transpositionTable[zobristHash.generateHash(bitboard)]!!.value
+                        } else {
+                            valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            transpositionTable[zobristHash.generateHash(bitboard)] = MinimaxResult(move,valuePosition)
                         }
-                    } else {
-                        //find best move (highest points for white) by going through all possible moves
-                        bestValue = Int.MAX_VALUE
-                        for(i in allMovesList.indices){
-                            val move = allMovesList[i]
-                            val copyBitboard = bitboard.clone()
-                            bitboard.move(bitboard.moveColor,move)
-                            val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
-                            if(valuePosition < bestValue){
-                                targetMove = move
-                                bestValue = valuePosition
-                            }
-                            bitboard.set(copyBitboard)
-                            //alpha cutoff
-                            if(valuePosition <= _alpha)break
-                            _beta = min(_beta,valuePosition)
+                        if(valuePosition > bestValue){
+                            targetMove = move
+                            bestValue = valuePosition
                         }
+                        bitboard.set(copyBitboard)
+                        //beta cutoff
+                        if(valuePosition >= _beta)break
+                        _alpha = max(_alpha,valuePosition)
                     }
-                    transpositionTable[zobristHash.generateHash(bitboard)] = MinimaxResult(targetMove,bestValue)
-                    return MinimaxResult(targetMove,bestValue)
                 } else {
-                    return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
+                    //find best move (highest points for white) by going through all possible moves
+                    bestValue = Int.MAX_VALUE
+                    for(i in allMovesList.indices){
+                        val move = allMovesList[i]
+                        val copyBitboard = bitboard.clone()
+                        bitboard.move(bitboard.moveColor,move)
+                        var valuePosition = 0
+                        if(transpositionTable.contains(zobristHash.generateHash(bitboard))) {
+                            ++transpositionTableHits
+                            valuePosition = transpositionTable[zobristHash.generateHash(bitboard)]!!.value
+                        } else {
+                            valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            transpositionTable[zobristHash.generateHash(bitboard)] = MinimaxResult(move,valuePosition)
+                        }
+                        if(valuePosition < bestValue){
+                            targetMove = move
+                            bestValue = valuePosition
+                        }
+                        bitboard.set(copyBitboard)
+                        //alpha cutoff
+                        if(valuePosition <= _alpha)break
+                        _beta = min(_beta,valuePosition)
+                    }
                 }
+                return MinimaxResult(targetMove,bestValue)
+            } else {
+                return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
             }
         }
     }

@@ -2,6 +2,7 @@ package emerald.apps.fairychess
 
 import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.utility.FigureParser
+import junit.framework.Assert.assertEquals
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +19,7 @@ class ChessAITest {
     lateinit var chessAIWhite: ChessAI
 
     companion object {
-        const val DEBUG = false
+        const val DEBUG = true
     }
 
     @Before
@@ -72,10 +73,12 @@ class ChessAITest {
 
         var allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
         var copyBitboard : Bitboard; var move : Movement
-        var timeCopy = 0; var timeSearch = 0; var timeMove = 0; var timeSet = 0; var timeChoose = 0
+        var timeCopy = 0; var timeSearch = 0; var timeZobrist = 0; var timeMove = 0; var timeSet = 0; var timeChoose = 0
         val timeOverall = measureTimeMillis {
+            val zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
             for(i in 0..iterations){
                 timeSearch += measureTimeMillis {if(i%movesPerIteration == 0)allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)}.toInt()
+                timeZobrist += measureTimeMillis {val bbHash = zobristHash.generateHash(bitboard)}.toInt()
                 timeChoose += measureTimeMillis {move = allMovesList[(random()*allMovesList.size).toInt()]}.toInt()
                 timeCopy += measureTimeMillis{copyBitboard = bitboard.clone()}.toInt()
                 timeMove += measureTimeMillis {bitboard.move(bitboard.moveColor,move)}.toInt()
@@ -85,6 +88,7 @@ class ChessAITest {
 
         if(DEBUG)println("$iterations iterations: $timeOverall ms")
         if(DEBUG)println("timeSearch: $timeSearch ms ("+(timeSearch.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeZobrist: $timeZobrist ms ("+(timeZobrist.toDouble()/timeOverall.toDouble())*100+"%)")
         if(DEBUG)println("timeCopy: $timeCopy ms ("+(timeCopy.toDouble()/timeOverall.toDouble())*100+"%)")
         if(DEBUG)println("timeMove: $timeMove ms ("+(timeMove.toDouble()/timeOverall.toDouble())*100+"%)")
         if(DEBUG)println("timeSet: $timeSet ms ("+(timeSet.toDouble()/timeOverall.toDouble())*100+"%)")
@@ -158,11 +162,52 @@ class ChessAITest {
 
     @Test
     fun testZobristHash(){
-        val bitBoardNormal = Bitboard(chessFormationArray, figureMap)
+        var bitBoardNormal = Bitboard(chessFormationArray, figureMap)
         val zobristHash = ZobristHash(bitBoardNormal.figureMap.keys.toList())
-        val initHash = zobristHash.generateHash(bitBoardNormal)
-        val stubChessAI = ChessAI("black")
+
+        val movePairs = listOf(
+            arrayOf(
+                Movement(1,0,2,2),
+                Movement(1,7,2,5)
+            ),
+            arrayOf(
+                Movement(6,0,5,2),
+                Movement(6,7,5,5)
+            ),
+        )
+        for(movepair in movePairs){
+            assertEquals("",bitBoardNormal.move("white",movepair[0]))
+            assertEquals("",bitBoardNormal.move("black",movepair[1]))
+        }
+        var hashOriginal = zobristHash.generateHash(bitBoardNormal)
+
+        val permutations = getPermutations(movePairs, listOf())
+        for(permutation in permutations){
+            bitBoardNormal = Bitboard(chessFormationArray, figureMap)
+            for(movepair in permutation){
+                assertEquals("",bitBoardNormal.move("white",movepair[0]))
+                assertEquals("",bitBoardNormal.move("black",movepair[1]))
+            }
+            assertEquals(hashOriginal,zobristHash.generateHash(bitBoardNormal))
+        }
     }
+
+    
+
+
+    @Test
+    fun testPermutations(){
+        assertEquals(1,getPermutations(listOf(1), listOf()).size)
+        for(i in 2..10){
+            assertEquals(factorial(i),getPermutations((1..i).toList(), listOf()).size)
+        }
+    }
+
+    fun factorial(i : Int) : Int {
+        return if(i == 0 || i == 1) 1
+        else i*factorial(i-1)
+    }
+
 
     @Test
     fun testAlgorithmCapturePiece() {
