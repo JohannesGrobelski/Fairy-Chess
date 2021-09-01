@@ -192,7 +192,25 @@ class ChessAITest {
         }
     }
 
-    
+    fun <T> getPermutations(original: List<T>, result: List<List<T>>): List<List<T>> {
+        if(original.size == 1){
+            return listOf(original)
+        } else {
+            val firstElement = original.first()
+            val shorterList = original.subList(1,original.size)
+            val shorterListPermutations = getPermutations(shorterList,result)
+            val permutations = mutableListOf<List<T>>()
+            for(shorterListPermutation in shorterListPermutations){
+                for(i in 0..shorterListPermutation.size){
+                    val permutation = mutableListOf<T>()
+                    permutation.addAll(shorterList)
+                    permutation.add(i,firstElement)
+                    permutations.add(permutation)
+                }
+            }
+            return permutations
+        }
+    }
 
 
     @Test
