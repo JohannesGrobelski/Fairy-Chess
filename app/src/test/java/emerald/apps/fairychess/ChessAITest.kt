@@ -251,18 +251,45 @@ class ChessAITest {
     }
 
     @Test
-    fun testMinimax() {
-        val chessBoardNormal = Bitboard(chessFormationArray, figureMap)
+    fun testTrapsForAI() {
+        var bitboard = Bitboard(chessFormationArray, figureMap)
         val chessAi = ChessAI("black")
 
-        assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("1_1_1_3")).isEmpty())
-        assert(chessBoardNormal.checkMoveAndMove("black", Movement.fromStringToMovement("0_6_0_5")).isEmpty())
-        assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("1_3_1_4")).isEmpty())
-        assert(chessBoardNormal.checkMoveAndMove("black", Movement.fromStringToMovement("0_5_1_4")).isEmpty())
-        assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("2_1_2_3")).isEmpty())
-        assert(chessBoardNormal.checkMoveAndMove("black", chessAi.calcMove(chessBoardNormal)!!).isEmpty())
+        //simple trap: ai can capture pawn but loses rook
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,1,2,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,6,0,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,1,1,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,4,1,3)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(3,1,3,2)))
 
-        if(DEBUG)println(chessBoardNormal.toString())
-        if(DEBUG)println(chessAi.cnt_movements.toString()+" moves")
+        var aiMove = chessAi.calcMove(bitboard)
+        bitboard.move("black",aiMove)
+        assertEquals(bitboard.pointsBlack() - 1,bitboard.pointsWhite())
+
+        bitboard = Bitboard(chessFormationArray, figureMap)
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,1,2,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,6,0,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,1,1,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,5,0,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,3,0,4)))
+        val calcTime = measureTimeMillis {aiMove = chessAi.calcMove(bitboard)}
+        println("calcTime: $calcTime ms")
+        println("cnt_movements: "+chessAIBlack.cnt_movements)
+        println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
+        println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        bitboard.move("black",aiMove)
+        assertEquals(bitboard.pointsBlack(),bitboard.pointsWhite())
+
+        println(bitboard.toString())
+
+    }
+
+
+    @Test
+    fun test(){
+        val bitboard = Bitboard(chessFormationArray, figureMap)
+        val chessAi = ChessAI("black")
+        val zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
+        assertTrue(zobristHash.enpassanteSquareMap.containsKey(Bitboard.Companion.Coordinate(2,2).hashCode()))
     }
 }

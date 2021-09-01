@@ -1166,6 +1166,14 @@ class Bitboard(
             fun newCoordinateFromRankOffset(rankOffset : Int): Coordinate {
                 return Coordinate(rank + rankOffset, file)
             }
+
+            override fun hashCode(): Int {
+                var result = rank
+                result = 31 * result + file
+                return result
+            }
+
+
         }
 
         val bbCastlingRoomShortWhite = horizontalLineToBitboard(Movement(4,0,6,0))

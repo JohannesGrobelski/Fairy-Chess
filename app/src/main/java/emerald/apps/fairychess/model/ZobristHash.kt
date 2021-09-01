@@ -18,7 +18,7 @@ class ZobristHash(figureNameList : List<String>) {
     var pieceMap = mutableMapOf<String,ULong>() //key: "PiecenameRankFile"
     var sideToMoveIsBlack = 0uL
     var castlingRightMap = mutableMapOf<MovementNotation,ULong>()
-    var enpassanteSquareMap = mutableMapOf<Bitboard.Companion.Coordinate,ULong>()
+    var enpassanteSquareMap = mutableMapOf<Int,ULong>()
 
     private var random : Random
 
@@ -37,7 +37,7 @@ class ZobristHash(figureNameList : List<String>) {
             castlingRightMap[castlingMove] = getPseudoRandomNumber()
         }
         for(enpassanteSquare in enpassanteSquares){
-            enpassanteSquareMap[enpassanteSquare] = getPseudoRandomNumber()
+            enpassanteSquareMap[enpassanteSquare.hashCode()] = getPseudoRandomNumber()
         }
     }
 
@@ -74,7 +74,11 @@ class ZobristHash(figureNameList : List<String>) {
             hashKey = hashKey xor castlingRightMap[castlingCoordinate]!!
         }
         for(enpassanteSquare in bitboard.getEnpassanteSquares()){
-            hashKey = hashKey xor enpassanteSquareMap[enpassanteSquare]!!
+            if(enpassanteSquareMap.containsKey(enpassanteSquare)){
+                hashKey = hashKey xor enpassanteSquareMap[enpassanteSquare]!!
+            } else {
+                print(2)
+            }
         }
         return hashKey
     }
