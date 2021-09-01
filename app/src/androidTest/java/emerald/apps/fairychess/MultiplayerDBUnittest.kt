@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
+import emerald.apps.fairychess.model.Movement
 import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDBGameInterface
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
@@ -160,7 +161,7 @@ class MultiplayerDBUnittest : MultiplayerDBSearchInterface, MultiplayerDBGameInt
         //create movement and check for changes
         gameChanged = false
         signal = CountDownLatch(1);
-        val movement = ChessPiece.Movement(sourceRank = 0,sourceFile = 0,targetFile = 6,targetRank = 6)
+        val movement = Movement(sourceRank = 0,sourceFile = 0,targetFile = 6,targetRank = 6)
         multiplayerDB.writePlayerMovement(createdGameID, movement)
         signal.await(firestoreConnectionTimeoutSeconds, TimeUnit.SECONDS)
         assertTrue(gameChanged)

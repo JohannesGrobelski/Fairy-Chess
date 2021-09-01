@@ -1,35 +1,39 @@
 package emerald.apps.fairychess.model
 
-import emerald.apps.fairychess.model.Bitboard.Companion.oppositeColor
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
+@ExperimentalUnsignedTypes
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
-    private val recursionDepth = 2
+    private val recursionDepth = 4
     private var cntHashHits = 0
     private var cntHashFails = 0
 
+
     //Fields
     var cnt_movements = 0
+    var transpositionTableHits = 0
 
     var color: String
+    lateinit var zobristHash : ZobristHash
 
     constructor(color: String) {
         this.color = color
     }
 
     //Fields for move ordering
-    private val transpositionTable = Hashtable<String, MovementValue>()
+    val transpositionTable = Hashtable<ULong, MinimaxResult>()
 
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
+        zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
         when (algorithm) {
             "alphabeta" -> {
-                return alphabeta(bitboard, 2, Int.MIN_VALUE, Int.MAX_VALUE).movement
+                return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
             }
         }
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
@@ -57,13 +61,21 @@ class ChessAI {
                     //find best move (highest points for black) by going through all possible moves
                     bestValue = Int.MIN_VALUE
                     for(move in allMovesList){
+                        val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move)
-                        val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                        var valuePosition = 0
+                        if(transpositionTable.contains(zobristHash.generateHash(bitboard))) {
+                            ++transpositionTableHits
+                            valuePosition = transpositionTable[zobristHash.generateHash(bitboard)]!!.value
+                        } else {
+                            valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            transpositionTable[zobristHash.generateHash(bitboard)] = MinimaxResult(move,valuePosition)
+                        }
                         if(valuePosition > bestValue){
                             targetMove = move
                             bestValue = valuePosition
                         }
-                        bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
+                        bitboard.set(copyBitboard)
                         //beta cutoff
                         if(valuePosition >= _beta)break
                         _alpha = max(_alpha,valuePosition)
@@ -73,13 +85,21 @@ class ChessAI {
                     bestValue = Int.MAX_VALUE
                     for(i in allMovesList.indices){
                         val move = allMovesList[i]
+                        val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move)
-                        val valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                        var valuePosition = 0
+                        if(transpositionTable.contains(zobristHash.generateHash(bitboard))) {
+                            ++transpositionTableHits
+                            valuePosition = transpositionTable[zobristHash.generateHash(bitboard)]!!.value
+                        } else {
+                            valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            transpositionTable[zobristHash.generateHash(bitboard)] = MinimaxResult(move,valuePosition)
+                        }
                         if(valuePosition < bestValue){
                             targetMove = move
                             bestValue = valuePosition
                         }
-                        bitboard.undoLastMove(oppositeColor(bitboard.moveColor),move)
+                        bitboard.set(copyBitboard)
                         //alpha cutoff
                         if(valuePosition <= _alpha)break
                         _beta = min(_beta,valuePosition)
