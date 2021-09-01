@@ -405,9 +405,27 @@ class Bitboard(
         return bbTargetsMap
     }
 
-    //TODO: implement
+    /** returns a list of enpassante coordinates (the coordinate of the target-square of the enpassante movement) */
     fun getEnpassanteSquares() : List<Coordinate> {
-        return emptyList()
+        val enpassanteCoordinates = mutableListOf<Coordinate>()
+        for(targetFile in arrayOf(3,4)){
+            val pos = abs(3-targetFile) //white: 0, black: 1
+            for(enpassanteRank in 0..7){
+                val bbtargetPawn = generate64BPositionFromCoordinate(Coordinate(enpassanteRank,targetFile))
+                if(bbtargetPawn and bbFigures["pawn"]!![pos] == bbtargetPawn){
+                    //there is an enemy pawn above/under target square
+                    val fileOffset = 1-((-1.0).pow(pos.toDouble())*2).toInt() //-2 for white, 2 for black
+                    val enpassanteFile = targetFile + fileOffset //values: 2 for white, 5 for black
+                    val bbtargetPawnInitialPosition = generate64BPositionFromCoordinate(Coordinate(enpassanteRank,enpassanteFile))
+                    if(boardStateHistory.size > 1
+                        && boardStateHistory[boardStateHistory.lastIndex-1]["pawn"]!![1-pos] and bbtargetPawnInitialPosition == bbtargetPawnInitialPosition){
+                        //last position of target pawn was 2 steps above/under the current position => target pawn moved 2 steps in the last move
+                        enpassanteCoordinates.add(Coordinate(enpassanteRank,enpassanteFile))
+                    }
+                }
+            }
+        }
+        return enpassanteCoordinates
     }
 
     private fun generateEnpassanteMove(color : String, coordinate : Coordinate,bbTargetsMap: MutableMap<MovementNotation,ULong>)
@@ -416,15 +434,17 @@ class Bitboard(
         val targetRankRight = coordinate.rank + 1
         val pos = ("black" == color).toInt()
         for(targetRank in arrayOf(targetRankLeft,targetRankRight)){
+            if(targetRank !in 0..7)continue
             val bbtargetPawn = generate64BPositionFromCoordinate(Coordinate(targetRank,coordinate.file))
             if(bbtargetPawn and bbFigures["pawn"]!![1-pos] == bbtargetPawn){
                 //there is an enemy pawn above/under target square
-                val fileOffset = ((-1.0).pow(pos.toDouble())*2).toInt() //2 for white, -2 for black
-                val bbtargetPawnInitialPosition = generate64BPositionFromCoordinate(Coordinate(targetRank,coordinate.file + fileOffset))
+                val fileOffsetOp = ((-1.0).pow(pos.toDouble())*2).toInt() //2 for white, -2 for black
+                val fileOpponent = coordinate.file + fileOffsetOp
+                val bbtargetPawnInitialPosition = generate64BPositionFromCoordinate(Coordinate(targetRank,fileOpponent))
                 if(boardStateHistory.size > 1
                     && boardStateHistory[boardStateHistory.lastIndex-1]["pawn"]!![1-pos] and bbtargetPawnInitialPosition == bbtargetPawnInitialPosition){
                     //last position of target pawn was 2 steps above/under the current position => target pawn moved 2 steps in the last move
-                    val movement = Movement(coordinate.rank,coordinate.file,targetRank,coordinate.file + fileOffset/2)
+                    val movement = Movement(coordinate.rank,coordinate.file,targetRank,coordinate.file + fileOffsetOp/2)
                     addCoordinateToMovementBitboard(color, MovementNotation.PAWN_ENPASSANTE,movement,bbTargetsMap)
                 }
             }
