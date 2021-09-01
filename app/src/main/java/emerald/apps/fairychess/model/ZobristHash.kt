@@ -66,9 +66,7 @@ class ZobristHash(figureNameList : List<String>) {
                 val coordinate = Bitboard.Companion.Coordinate(rank,file)
                 val pieceName = bitboard.getPieceName(coordinate)
                 if(pieceName.isEmpty())continue
-                if(pieceMap.containsKey(generatePieceMapKey(pieceName,rank,file))){
-                    hashKey = hashKey xor pieceMap[generatePieceMapKey(pieceName,rank,file)]!!
-                }
+                hashKey = hashKey xor pieceMap[generatePieceMapKey(pieceName,rank,file)]!!
             }
         }
         if(bitboard.moveColor == "black")hashKey = hashKey xor sideToMoveIsBlack

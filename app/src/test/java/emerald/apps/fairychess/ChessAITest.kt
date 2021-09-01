@@ -3,6 +3,7 @@ package emerald.apps.fairychess
 import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -174,12 +175,16 @@ class ChessAITest {
                 Movement(6,0,5,2),
                 Movement(6,7,5,5)
             ),
+
         )
         for(movepair in movePairs){
             assertEquals("",bitBoardNormal.move("white",movepair[0]))
             assertEquals("",bitBoardNormal.move("black",movepair[1]))
         }
         var hashOriginal = zobristHash.generateHash(bitBoardNormal)
+        val transpoTable = mutableMapOf<ULong,ChessAI.MinimaxResult>()
+        transpoTable[hashOriginal] = ChessAI.MinimaxResult(
+            Movement.emptyMovement(),0)
 
         val permutations = getPermutations(movePairs, listOf())
         for(permutation in permutations){
@@ -188,6 +193,7 @@ class ChessAITest {
                 assertEquals("",bitBoardNormal.move("white",movepair[0]))
                 assertEquals("",bitBoardNormal.move("black",movepair[1]))
             }
+            assertTrue(transpoTable.containsKey(zobristHash.generateHash(bitBoardNormal)))
             assertEquals(hashOriginal,zobristHash.generateHash(bitBoardNormal))
         }
     }
@@ -247,16 +253,16 @@ class ChessAITest {
     @Test
     fun testMinimax() {
         val chessBoardNormal = Bitboard(chessFormationArray, figureMap)
-        val stubChessAI = ChessAI("black")
+        val chessAi = ChessAI("black")
 
         assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("1_1_1_3")).isEmpty())
         assert(chessBoardNormal.checkMoveAndMove("black", Movement.fromStringToMovement("0_6_0_5")).isEmpty())
         assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("1_3_1_4")).isEmpty())
         assert(chessBoardNormal.checkMoveAndMove("black", Movement.fromStringToMovement("0_5_1_4")).isEmpty())
         assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("2_1_2_3")).isEmpty())
-        assert(chessBoardNormal.checkMoveAndMove("black", stubChessAI.calcMove(chessBoardNormal)!!).isEmpty())
+        assert(chessBoardNormal.checkMoveAndMove("black", chessAi.calcMove(chessBoardNormal)!!).isEmpty())
 
         if(DEBUG)println(chessBoardNormal.toString())
-        if(DEBUG)println(stubChessAI.cnt_movements.toString()+" moves")
+        if(DEBUG)println(chessAi.cnt_movements.toString()+" moves")
     }
 }
