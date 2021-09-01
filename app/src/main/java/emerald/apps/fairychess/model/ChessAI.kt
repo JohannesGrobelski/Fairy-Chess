@@ -33,7 +33,7 @@ class ChessAI {
         zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
         when (algorithm) {
             "alphabeta" -> {
-                return alphabeta(bitboard, 4, Int.MIN_VALUE, Int.MAX_VALUE).movement
+                return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
             }
         }
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)

@@ -17,12 +17,16 @@ class ChessAITest {
     lateinit var chessAIBlack: ChessAI
     lateinit var chessAIWhite: ChessAI
 
+    companion object {
+        const val DEBUG = false
+    }
+
     @Before
     fun initNormalChessVariables(){
         chessFormationArray = ChessGameUnitTest.parseChessFormation("normal_chess")
         figureMap = ChessGameUnitTest.parseFigureMapFromFile()
         chessAIBlack = ChessAI("black")
-        chessAIWhite = ChessAI("black")
+        chessAIWhite = ChessAI("white")
     }
 
     @Test
@@ -47,14 +51,14 @@ class ChessAITest {
         for(i in 0 .. 10){
             val moveBlack = chessAIBlack.calcMove(bitboard)
             bitboard.checkMoveAndMove("black",moveBlack)
-            println(moveBlack.asString("black"))
-            println(bitboard.toString())
+            if(DEBUG)println(moveBlack.asString("black"))
+            if(DEBUG)println(bitboard.toString())
             if(bitboard.gameFinished)break
 
             val moveWhite = chessAIWhite.calcMove(bitboard)
             bitboard.checkMoveAndMove("white",moveWhite)
-            println(moveWhite.asString("white"))
-            println(bitboard.toString())
+            if(DEBUG)println(moveWhite.asString("white"))
+            if(DEBUG)println(bitboard.toString())
             if(bitboard.gameFinished)break
         }
     }
@@ -79,11 +83,11 @@ class ChessAITest {
             }
         }
 
-        println("$iterations iterations: $timeOverall ms")
-        println("timeSearch: $timeSearch ms ("+(timeSearch.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeCopy: $timeCopy ms ("+(timeCopy.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeMove: $timeMove ms ("+(timeMove.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeSet: $timeSet ms ("+(timeSet.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("$iterations iterations: $timeOverall ms")
+        if(DEBUG)println("timeSearch: $timeSearch ms ("+(timeSearch.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeCopy: $timeCopy ms ("+(timeCopy.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeMove: $timeMove ms ("+(timeMove.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeSet: $timeSet ms ("+(timeSet.toDouble()/timeOverall.toDouble())*100+"%)")
         //println("timeChoose: $timeChoose ms ("+(timeChoose.toDouble()/timeOverall.toDouble())*100+"%)")
     }
 
@@ -144,12 +148,12 @@ class ChessAITest {
             }
         }.toInt()
 
-        println("timeOverall: $timeOverall ns ("+(timeOverall.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeParameters: $timeParameters ns ("+(timeParameters.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeMoveGeneration: $timeMoveGeneration ns ("+(timeMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeDeleteIllegalMoves: $timeDeleteIllegalMoves ns ("+(timeDeleteIllegalMoves.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeSpecialMoveGeneration: $timeSpecialMoveGeneration ns ("+(timeSpecialMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
-        println("timeTransformation: $timeTransformation ns ("+(timeTransformation.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeOverall: $timeOverall ns ("+(timeOverall.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeParameters: $timeParameters ns ("+(timeParameters.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeMoveGeneration: $timeMoveGeneration ns ("+(timeMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeDeleteIllegalMoves: $timeDeleteIllegalMoves ns ("+(timeDeleteIllegalMoves.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeSpecialMoveGeneration: $timeSpecialMoveGeneration ns ("+(timeSpecialMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeTransformation: $timeTransformation ns ("+(timeTransformation.toDouble()/timeOverall.toDouble())*100+"%)")
     }
 
     @Test
@@ -189,7 +193,7 @@ class ChessAITest {
         assert(chessBoardNormal.checkMoveAndMove("white", Movement.fromStringToMovement("2_1_2_3")).isEmpty())
         assert(chessBoardNormal.checkMoveAndMove("black", stubChessAI.calcMove(chessBoardNormal)!!).isEmpty())
 
-        println(chessBoardNormal.toString())
-        println(stubChessAI.cnt_movements.toString()+" moves")
+        if(DEBUG)println(chessBoardNormal.toString())
+        if(DEBUG)println(stubChessAI.cnt_movements.toString()+" moves")
     }
 }

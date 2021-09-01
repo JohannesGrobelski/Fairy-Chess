@@ -20,7 +20,7 @@ class ZobristHash(figureNameList : List<String>) {
     var castlingRightMap = mutableMapOf<MovementNotation,ULong>()
     var enpassanteSquareMap = mutableMapOf<Bitboard.Companion.Coordinate,ULong>()
 
-    private lateinit var random : Random
+    private var random : Random
 
     init {
         random = generateRandom(figureNameList)
@@ -72,7 +72,7 @@ class ZobristHash(figureNameList : List<String>) {
             }
         }
         if(bitboard.moveColor == "black")hashKey = hashKey xor sideToMoveIsBlack
-        for(castlingCoordinate in bitboard.getCastlingRights()){
+        for(castlingCoordinate in bitboard.getCastlingRights(bitboard.moveColor)){
             hashKey = hashKey xor castlingRightMap[castlingCoordinate]!!
         }
         for(enpassanteSquare in bitboard.getEnpassanteSquares()){

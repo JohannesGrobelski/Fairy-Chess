@@ -432,56 +432,52 @@ class Bitboard(
         return bbTargetsMap
     }
 
-    //TODO: implement
-    fun getCastlingRights() : List<Coordinate> {
-        return emptyList()
-    }
-
-    private fun genCastlingMoves(color: String, coordinate : Coordinate, bbTargetsMap: MutableMap<MovementNotation,ULong>)
-        : MutableMap<MovementNotation,ULong> {
+    fun getCastlingRights(color: String) : List<MovementNotation> {
         val ownColorPos = ("black" == color).toInt()
         var bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
+        var castlingRights = mutableListOf<MovementNotation>()
 
-        //1. king has not moved
-        val bbKingCurrentPosition = generate64BPositionFromCoordinate(coordinate)
-        val kingNotMoved = bbKingOriginalPosition[ownColorPos] and bbKingCurrentPosition and bbMovedCaptured.inv() != 0uL
-        if(bbFigures["king"]!![ownColorPos] and generate64BPositionFromCoordinate(coordinate) == bbFigures["king"]!![ownColorPos]
-            && kingNotMoved){
-            var bbRook: ULong
-            var bbMoveRoom : ULong
-            if(color == "white"){
+        var bbRook: ULong
+        var bbMoveRoom : ULong
+        if(color == "white"){
+            //1. king has not moved
+            val bbWhiteKingCurrentPosition = bbFigures["king"]!![0]
+            val whiteKingNotMoved = bbKingOriginalPosition[ownColorPos] and bbWhiteKingCurrentPosition and bbMovedCaptured.inv() != 0uL
+            if(whiteKingNotMoved) {
                 //SHORT castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomShortWhite and bbEnemyMoves.inv() == bbCastlingRoomShortWhite){
+                if (bbCastlingRoomShortWhite and bbEnemyMoves.inv() == bbCastlingRoomShortWhite) {
                     //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinate(Coordinate(7,0))
-                    if(bbMovedCaptured and bbRook == 0uL){
+                    bbRook = generate64BPositionFromCoordinate(Coordinate(7, 0))
+                    if (bbMovedCaptured and bbRook == 0uL) {
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomShortWhite and bbRook.inv()
                         bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                        if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
-                            addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
-                                CASTLING_SHORT_WHITE,coordinate,6,0),bbTargetsMap)
+                        if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                            castlingRights.add(CASTLING_SHORT_WHITE)
                         }
                     }
                 }
                 //LONG castling
                 //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomLongWhite and bbEnemyMoves.inv() == bbCastlingRoomLongWhite){
+                if (bbCastlingRoomLongWhite and bbEnemyMoves.inv() == bbCastlingRoomLongWhite) {
                     //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinate(Coordinate(0,0))
-                    if(bbMovedCaptured and bbRook == 0uL){
+                    bbRook = generate64BPositionFromCoordinate(Coordinate(0, 0))
+                    if (bbMovedCaptured and bbRook == 0uL) {
                         //4. no pieces between rook and king
                         bbMoveRoom = bbCastlingRoomLongWhite and bbRook.inv()
                         bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                        if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
-                            addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
-                                CASTLING_LONG_WHITE,coordinate,2,0),bbTargetsMap)
+                        if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                            castlingRights.add(CASTLING_LONG_WHITE)
                         }
                     }
                 }
-
-            } else {
+            }
+        } else {
+            //1. king has not moved
+            val bbBlackKingCurrentPosition = bbFigures["king"]!![1]
+            val blackKingNotMoved = bbKingOriginalPosition[ownColorPos] and bbBlackKingCurrentPosition and bbMovedCaptured.inv() != 0uL
+            if(blackKingNotMoved) {
                 //SHORT castling
                 //2. check if king and space between rook and king are not under attack
                 if(bbCastlingRoomShortBlack and bbEnemyMoves.inv() == bbCastlingRoomShortBlack){
@@ -492,8 +488,7 @@ class Bitboard(
                         bbMoveRoom = bbCastlingRoomShortBlack and bbRook.inv()
                         bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
                         if(bbMoveRoom and bbComposite.inv().toULong() == bbMoveRoom){
-                            addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
-                                CASTLING_SHORT_BLACK,coordinate,6,7),bbTargetsMap)
+                            castlingRights.add(CASTLING_SHORT_BLACK)
                         }
                     }
                 }
@@ -507,10 +502,37 @@ class Bitboard(
                         bbMoveRoom = bbCastlingRoomLongBlack and bbRook.inv()
                         bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
                         if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
-                            addCoordinateToMovementBitboard(color, MovementNotation.KING, Movement(
-                                CASTLING_LONG_BLACK,coordinate,2,7),bbTargetsMap)
+                            castlingRights.add(CASTLING_LONG_BLACK)
                         }
                     }
+                }
+            }
+        }
+        return castlingRights
+    }
+
+    /**adds (if legal) castling moves (move of king) to bbTargetsMap
+     * calls getCastlingRights */
+    private fun genCastlingMoves(color: String, coordinate : Coordinate, bbTargetsMap: MutableMap<MovementNotation,ULong>)
+        : MutableMap<MovementNotation,ULong> {
+        val castlingRightsList = getCastlingRights(color)
+        for(castlingRight in castlingRightsList){
+            when(castlingRight){
+                CASTLING_SHORT_WHITE -> {
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
+                        CASTLING_SHORT_WHITE,coordinate,6,0),bbTargetsMap)
+                }
+                CASTLING_LONG_WHITE -> {
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
+                        CASTLING_LONG_WHITE,coordinate,2,0),bbTargetsMap)
+                }
+                CASTLING_SHORT_BLACK -> {
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
+                        CASTLING_SHORT_BLACK,coordinate,6,7),bbTargetsMap)
+                }
+                CASTLING_LONG_BLACK -> {
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING, Movement(
+                        CASTLING_LONG_BLACK,coordinate,2,7),bbTargetsMap)
                 }
             }
         }
