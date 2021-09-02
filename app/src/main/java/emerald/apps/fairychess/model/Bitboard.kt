@@ -132,13 +132,7 @@ class Bitboard(
         return newBitboard
     }
 
-    fun checkMoveAndMove(color:String, movement: Movement) : String{
-        if(moveColor != color)return "wrong player!"
-        val name = getPieceName(movement.getSourceCoordinate())
-        return preMoveCheck(name, color, movement)
-    }
-
-    fun preMoveCheck(name: String, color : String, movement: Movement) : String{
+    fun checkMoveAndMove(color: String, movement: Movement) : String{
         if(moveColor != color)return "wrong color"
         if(movement.sourceFile == movement.targetFile && movement.sourceRank == movement.targetRank)return "same square"
         val pos = getPosition(color)
@@ -151,7 +145,10 @@ class Bitboard(
             && legalMove.sourceFile == movement.sourceFile
             && legalMove.targetFile == movement.targetFile
             && legalMove.targetRank == movement.targetRank){
-                return move(color, movement)
+                val returnString = move(color, movement)
+                checkForDraw()
+                checkForWinner()
+                return returnString
             }
         }
         return "not a legal move"
@@ -161,87 +158,84 @@ class Bitboard(
      *  @param name of the piece set
      * moves figure from coordinate (sourceFile,sourceRow) to coordinate (targetFile,targetRow)
      * does not check if move is legal */
-    fun move(color : String, movement: Movement) : String{
+    fun move(color : String, movement: Movement) : String {
         val pos = getPosition(color)
         val name = getPieceName(movement.getSourceCoordinate())
-        if(checkForAndMakeEnpassanteMove(name, color, pos, movement))return ""
+        if(checkIfEnpassanteMove(name, pos, movement)) {
+            doEnpassanteMove(name, color, pos, movement)
+        } else { //other moves
+            var bbFigureColor = bbFigures[name]!![pos]
+            val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
+            val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
 
-        var bbFigureColor = bbFigures[name]!![pos]
-        val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
-        val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+            val targetName = getPieceName(movement.getTargetCoordinate())
+            if(targetName.isNotEmpty()){
+                var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
+                bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
+                bbFigures[targetName]?.set(1-pos,bbFigureOppositeColor)
+            }
 
-        //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-        val targetName = getPieceName(movement.getTargetCoordinate())
-        if(targetName.isNotEmpty()){
-            var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
-            bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
-            bbFigures[targetName]?.set(1-pos,bbFigureOppositeColor)
+            //calculate change vector with set bits on old and new position
+            val bbPath = bbSource or bbTarget
+
+            if(movement is PromotionMovement){
+                val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
+                bbFigures["pawn"]!![pos] = bbPawns
+                val bbPromotion = bbFigures[movement.promotion]!![pos] or bbTarget
+                bbFigures[movement.promotion]!![pos] = bbPromotion
+            } else {
+                //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
+                //and thus move the piece
+                bbFigureColor = bbFigureColor xor bbPath
+                bbFigures[name]?.set(pos,bbFigureColor)
+            }
+
+            //write move into bbComposite (important: cannot xor with bbChange because figure can stand on target square)
+            //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position
+            bbComposite = bbComposite or bbTarget
+            //no figure can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+            bbComposite = bbComposite and bbSource.inv()
+
+            //write move into bbColorComposite for move color like above
+            bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+            bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
+
+            bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
+            addEntryToHistory();
+            movedCapturedHistory.add(bbMovedCaptured)
+            //add current position (as map bbFigures) to history
+            if(movement.movementNotation in arrayOf(CASTLING_LONG_BLACK, CASTLING_SHORT_WHITE,
+                    CASTLING_SHORT_BLACK, CASTLING_LONG_WHITE)){
+                makeCastlingMove(color,movement)
+                switchMoveColor()
+            }
         }
-
-        //calculate change vector with set bits on old and new position
-        val bbPath = bbSource or bbTarget
-
-        if(movement is PromotionMovement){
-            val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
-            bbFigures["pawn"]!![pos] = bbPawns
-            val bbPromotion = bbFigures[movement.promotion]!![pos] or bbTarget
-            bbFigures[movement.promotion]!![pos] = bbPromotion
-        } else {
-            //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
-            //and thus move the piece
-            bbFigureColor = bbFigureColor xor bbPath
-            bbFigures[name]?.set(pos,bbFigureColor)
-        }
-
-        //write move into bbComposite (important: cannot xor with bbChange because figure can stand on target square)
-        //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position
-        bbComposite = bbComposite or bbTarget
-        //no figure can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-        bbComposite = bbComposite and bbSource.inv()
-
-        //write move into bbColorComposite for move color like above
-        bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
-        //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-        bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
-
-        bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
-        addEntryToHistory();
-        movedCapturedHistory.add(bbMovedCaptured)
-        //add current position (as map bbFigures) to history
-        if(movement.movementNotation in arrayOf(CASTLING_LONG_BLACK, CASTLING_SHORT_WHITE,
-                CASTLING_SHORT_BLACK, CASTLING_LONG_WHITE)){
-            makeCastlingMove(color,movement)
-        } else {
-            checkForPromotion()
-            switchMoveColor()
-        }
+        checkForPromotion()
+        switchMoveColor()
         return ""
     }
 
     /** checks if movement is en passante and if so makes en passante move*/
-    fun checkForAndMakeEnpassanteMove(name: String, color : String, pos : Int, movement : Movement) : Boolean {
-        val isEnpassante = checkIfEnpassanteMove(name, pos, movement)
-        if(isEnpassante){
-            val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
-            val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
-            val bbPath = bbSource or bbTarget
-            val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
-            val bbRemoveFigure = generate64BPositionFromCoordinate(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
+    fun doEnpassanteMove(name: String, color : String, pos : Int, movement : Movement) {
+        val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
+        val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+        val bbPath = bbSource or bbTarget
+        val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
+        val bbRemoveFigure = generate64BPositionFromCoordinate(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
 
-            //remove enemy pawn
-            bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
-            //move pawn
-            bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
+        //remove enemy pawn
+        bbFigures["pawn"]!![1-pos] = bbFigures["pawn"]!![1-pos] and bbRemoveFigure.inv()
+        //move pawn
+        bbFigures["pawn"]!![pos] = bbFigures["pawn"]!![pos] xor bbPath
 
-            bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
-            bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
-            bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
-            bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
-            addEntryToHistory()
-            movedCapturedHistory.add(bbMovedCaptured)
-            switchMoveColor()
-        }
-        return isEnpassante
+        bbComposite = (bbComposite and bbSource.inv() and bbRemoveFigure.inv()) or bbTarget
+        bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbRemoveFigure.inv()
+        bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+        bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget or bbRemoveFigure
+        addEntryToHistory()
+        movedCapturedHistory.add(bbMovedCaptured)
     }
 
     /** checks if movement is en passante */
@@ -1038,13 +1032,18 @@ class Bitboard(
     /** calculate the winner (if one exists yet)*/
     private fun checkForWinner() {
        if(bbFigures["king"]?.get(0) == 0uL){
-           gameWinner = "white"
-           gameFinished = true
-       }
-       if(bbFigures["king"]?.get(0) == 0uL){
            gameWinner = "black"
            gameFinished = true
        }
+       if(bbFigures["king"]?.get(1) == 0uL){
+           gameWinner = "white"
+           gameFinished = true
+       }
+    }
+
+    //TODO
+    private fun checkForDraw(){
+
     }
 
     private fun checkForPromotion() {
@@ -1294,7 +1293,6 @@ class Bitboard(
             return arrayOf()
         }
     }
-
 
 
 

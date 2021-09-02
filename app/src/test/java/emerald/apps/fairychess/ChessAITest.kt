@@ -285,6 +285,29 @@ class ChessAITest {
 
     }
 
+    @Test
+    fun testFoolsMate(){
+        var bitboard = Bitboard(chessFormationArray, figureMap)
+        val chessAi = ChessAI("black")
+        val moves = arrayOf(
+            Movement(4,1,4,2),
+            Movement(5,0,2,3),
+            Movement(3,0,7,4),
+            Movement(7,4,5,6),
+            Movement(2,3,5,6),
+        )
+        var moveCounter = 0
+        var foolsMateSuccessful = true
+        for(move in moves){
+            foolsMateSuccessful = ("" == bitboard.checkMoveAndMove("white",move))
+            if(!foolsMateSuccessful)break
+            if(!bitboard.gameFinished)assertEquals("",bitboard.move("black",chessAi.calcMove(bitboard)))
+        }
+        foolsMateSuccessful = bitboard.gameFinished
+        println("fools mate accomplished: $foolsMateSuccessful")
+        println(bitboard.toString())
+    }
+
 
     @Test
     fun test(){

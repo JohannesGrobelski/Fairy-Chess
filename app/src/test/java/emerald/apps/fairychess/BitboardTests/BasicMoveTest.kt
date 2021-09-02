@@ -7,14 +7,11 @@ import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessForma
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
 import emerald.apps.fairychess.model.Movement
 import emerald.apps.fairychess.model.MovementNotation
-import emerald.apps.fairychess.model.PromotionMovement
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.lang.Math.random
 import kotlin.math.pow
-import kotlin.system.measureTimeMillis
 
 
 @kotlin.ExperimentalUnsignedTypes
@@ -34,7 +31,7 @@ class BasicMoveTest {
     fun testClone(){
         val bitboardOriginal = Bitboard(chessFormationArray,figureMap)
         val bitboardClone = bitboardOriginal.clone()
-        assertEquals("",bitboardOriginal.preMoveCheck("pawn","white", Movement(1,1,1,3)))
+        assertEquals("",bitboardOriginal.checkMoveAndMove("white", Movement(1,1,1,3)))
         assertEquals("7 | r | n | b | q | k | b | n | r | \n" +
                 "--+---+---+---+---+---+---+---+---+\n" +
                 "6 | p | p | p | p | p | p | p | p | \n" +
@@ -98,18 +95,18 @@ class BasicMoveTest {
     fun testPromotion(){
         //push white kingside pawn and black queenside pawn to enemy pawn line
         val bitboard = Bitboard(chessFormationArray,figureMap)
-        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,1,4,3)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,6,3,4)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,3,4,4)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,4,3,3)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,4,4,5)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,3,3,2)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,6,3,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,3,4,4)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,4,3,3)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,4,4,5)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,3,3,2)))
         //... and take pawn
-        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(4,5,5,6)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(3,2,2,1)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,5,5,6)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,2,2,1)))
 
         //take knight and promote white kingside pawn to queen
-        assertEquals("",bitboard.preMoveCheck("pawn","white", Movement(5,6,6,7)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(5,6,6,7)))
         assertEquals(Bitboard.Companion.Coordinate(6,7),bitboard.promotionCoordinate)
         bitboard.promotePawn(Bitboard.Companion.Coordinate(6,7),"queen")
         assertEquals(60160uL,bitboard.bbFigures["pawn"]!![0])
@@ -117,7 +114,7 @@ class BasicMoveTest {
 
 
         //take knight and promote black queenside pawn to rook
-        assertEquals("",bitboard.preMoveCheck("pawn","black", Movement(2,1,1,0)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(2,1,1,0)))
         assertEquals(Bitboard.Companion.Coordinate(1,0),bitboard.promotionCoordinate)
         bitboard.promotePawn(Bitboard.Companion.Coordinate(1,0),"rook")
         assertEquals(60517119992791040uL,bitboard.bbFigures["pawn"]!![1])
@@ -140,46 +137,58 @@ class BasicMoveTest {
 
         //small castling
         //move knights and bishops
-        assertEquals("",bitboard.preMoveCheck("knight","white",Movement(6,0,7,2)))
-        assertEquals("",bitboard.preMoveCheck("knight","black",Movement(6,7,7,5)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(6,1,6,2)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(6,6,6,5)))
-        assertEquals("",bitboard.preMoveCheck("bishop","white",Movement(5,0,6,1)))
-        assertEquals("",bitboard.preMoveCheck("bishop","black",Movement(5,7,6,6)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(6,0,7,2)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(6,7,7,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(6,1,6,2)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(6,6,6,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(5,0,6,1)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(5,7,6,6)))
         //check if both kings can castle kingside
         assertEquals(96uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0), true))
         assertEquals(6917529027641081856uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(4, 7), true))
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","white",Movement(MovementNotation.CASTLING_SHORT_WHITE,4,0,6,0)))
+        assertEquals("",bitboard.checkMoveAndMove(
+            "white",
+            Movement(MovementNotation.CASTLING_SHORT_WHITE,4,0,6,0)
+        ))
         assertEquals(64uL,bitboard.bbFigures["king"]!![0])
         assertEquals(33uL,bitboard.bbFigures["rook"]!![0])
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","black",Movement(MovementNotation.CASTLING_SHORT_BLACK,4,7,6,7)))
+        assertEquals("",bitboard.checkMoveAndMove(
+            "black",
+            Movement(MovementNotation.CASTLING_SHORT_BLACK,4,7,6,7)
+        ))
         assertEquals(4611686018427387904uL,bitboard.bbFigures["king"]!![1])
         assertEquals(2377900603251621888uL,bitboard.bbFigures["rook"]!![1])
 
         //large castling
         //move knights, bishops and queens
         bitboard = Bitboard(chessFormationArray,figureMap)
-        assertEquals("",bitboard.preMoveCheck("knight","white",Movement(1,0,0,2)))
-        assertEquals("",bitboard.preMoveCheck("knight","black",Movement(1,7,0,5)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,1,2,2)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(2,6,2,5)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(3,1,3,2)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,5)))
-        assertEquals("",bitboard.preMoveCheck("bishop","white", Movement(2,0,3,1)))
-        assertEquals("",bitboard.preMoveCheck("bishop","black",Movement(2,7,3,6)))
-        assertEquals("",bitboard.preMoveCheck("queen","white",Movement(3,0,2,1)))
-        assertEquals("",bitboard.preMoveCheck("queen","black",Movement(3,7,2,6)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,0,0,2)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(1,7,0,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,1,2,2)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(2,6,2,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(3,1,3,2)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,6,3,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,0,3,1)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(2,7,3,6)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(3,0,2,1)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,7,2,6)))
         //check if both kings can castle queenside
         assertEquals(12uL,bitboard.getTargetMovements("king", "white", Bitboard.Companion.Coordinate(4, 0), true))
         assertEquals(864691128455135232uL,bitboard.getTargetMovements("king", "black", Bitboard.Companion.Coordinate(4, 7), true))
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","white",Movement(MovementNotation.CASTLING_LONG_WHITE,4,0,2,0)))
+        assertEquals("",bitboard.checkMoveAndMove(
+            "white",
+            Movement(MovementNotation.CASTLING_LONG_WHITE,4,0,2,0)
+        ))
         assertEquals(4uL,bitboard.bbFigures["king"]!![0])
         assertEquals(136uL,bitboard.bbFigures["rook"]!![0])
         //make castling move and check positions of rook and king
-        assertEquals("",bitboard.preMoveCheck("king","black",Movement(MovementNotation.CASTLING_LONG_BLACK,4,7,2,7)))
+        assertEquals("",bitboard.checkMoveAndMove(
+            "black",
+            Movement(MovementNotation.CASTLING_LONG_BLACK,4,7,2,7)
+        ))
         assertEquals(288230376151711744uL,bitboard.bbFigures["king"]!![1])
         assertEquals(9799832789158199296uL,bitboard.bbFigures["rook"]!![1])
     }
@@ -198,9 +207,9 @@ class BasicMoveTest {
         assertEquals(4389507238144uL,bitboard.getTargetMovements("queen", "black", Bitboard.Companion.Coordinate(0, 4), true))
 
         bitboard = Bitboard(chessFormationArray,figureMap)
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,1,4,3)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(0,6,0,5)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(0,1,0,2)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,6,0,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(0,1,0,2)))
     }
 
 
@@ -209,12 +218,12 @@ class BasicMoveTest {
     fun testCapture(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         //push kingside (white) and queenside (black) pawn
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,1,4,3)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,6,3,4)))
         //capture black pawn with white pawn
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,3,3,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,3,3,4)))
         //capture white pawn with queen
-        assertEquals("",bitboard.preMoveCheck("queen","black",Movement(3,7,3,4)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,7,3,4)))
         assertEquals(1038,bitboard.pointsWhite())
         assertEquals(1038,bitboard.pointsBlack())
         assertEquals(61184uL,bitboard.bbFigures["pawn"]!![0])
@@ -271,10 +280,10 @@ class BasicMoveTest {
         assertEquals(2190450163968uL,bitboard.getTargetMovements("rook", "black", Bitboard.Companion.Coordinate(0, 4), true))
         //rook in corner
         //preperation - move pawn and knight
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(0,1,0,3)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(0,6,0,4)))
-        assertEquals("",bitboard.preMoveCheck("knight","white",Movement(1,0,2,2)))
-        assertEquals("",bitboard.preMoveCheck("knight","black",Movement(1,7,2,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(0,1,0,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,6,0,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,0,2,2)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(1,7,2,5)))
         assertEquals(65794uL,bitboard.getTargetMovements("rook", "white", Bitboard.Companion.Coordinate(0, 0), true))
         assertEquals(144397762564194304uL,bitboard.getTargetMovements("rook", "black", Bitboard.Companion.Coordinate(0, 7), true))
 
@@ -304,28 +313,28 @@ class BasicMoveTest {
         bitboard = Bitboard(chessFormationArray,figureMap)
         //white enpassante left
         assertEquals(67371008uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,1), true))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,1,2,3)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,1,2,3)))
         assertEquals(17179869184uL,bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2,3), true))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,4)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,3,2,4)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(1,6,1,4)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,6,3,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,3,2,4)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(1,6,1,4)))
         assertEquals(6597069766656uL, bitboard.getTargetMovements("pawn", "white", Bitboard.Companion.Coordinate(2, 4), true))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,4,1,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,4,1,5)))
         assertEquals(2199023319808uL, bitboard.bbFigures["pawn"]!![0])
         assertEquals(68961403653849088uL, bitboard.bbFigures["pawn"]!![1])
 
         //black enpassante right
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,4,3,3)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,1,4,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,4,3,3)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,1,4,3)))
         assertEquals(1572864uL, bitboard.getTargetMovements("pawn", "black", Bitboard.Companion.Coordinate(3,3), true))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,3,4,2)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,3,4,2)))
         assertEquals(2199023315712uL, bitboard.bbFigures["pawn"]!![0])
         assertEquals(68961369295159296uL, bitboard.bbFigures["pawn"]!![1])
 
         //pawn can do 2 step move only at beginning
         bitboard = Bitboard(chessFormationArray,figureMap)
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(4,1,4,3)))
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(0,6,0,5)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,1,4,3)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,6,0,5)))
     }
 
     @Test
@@ -333,7 +342,7 @@ class BasicMoveTest {
     fun testMoveFigure(){
         val bitboard = Bitboard(chessFormationArray,figureMap)
         //initial pawn move
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,1,2,3)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,1,2,3)))
         assertEquals(18446462598800014335uL,bitboard.bbComposite)
         assertEquals(67173375uL,bitboard.bbColorComposite[0])
         assertEquals(67173120uL,bitboard.bbFigures["pawn"]!![0])
@@ -341,8 +350,8 @@ class BasicMoveTest {
         assertEquals(67173120uL,bitboard.bbFigures["pawn"]!![0])
 
         //capture black pawn with white pawn
-        assertEquals("",bitboard.preMoveCheck("pawn","black",Movement(3,6,3,4)))
-        assertEquals("",bitboard.preMoveCheck("pawn","white",Movement(2,3,3,4)))
+        assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,6,3,4)))
+        assertEquals("",bitboard.checkMoveAndMove("white", Movement(2,3,3,4)))
         assertEquals(18444210833278958591uL,bitboard.bbComposite)
         assertEquals(34359802879uL,bitboard.bbColorComposite[0])
         assertEquals(18444210798919155712uL,bitboard.bbColorComposite[1])

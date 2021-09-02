@@ -9,7 +9,7 @@ import kotlin.math.min
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
-    private val recursionDepth = 2
+    private val recursionDepth = 3
     private var cntHashHits = 0
     private var cntHashFails = 0
 
