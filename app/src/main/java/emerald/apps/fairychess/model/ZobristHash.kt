@@ -76,11 +76,8 @@ class ZobristHash(figureNameList : List<String>) {
         for(castlingCoordinate in castlingRights){
             hashKey = hashKey xor castlingRightMap[castlingCoordinate]!!
         }
-        val enpassanteSquares = bitboard.getEnpassanteSquares()
-        for(enpassanteSquare in enpassanteSquares){
-            if(enpassanteSquareMap.containsKey(enpassanteSquare)){
-                hashKey = hashKey xor enpassanteSquareMap[enpassanteSquare]!!
-            }
+        if(bitboard.enpassanteSquare != null && enpassanteSquareMap.containsKey(bitboard.enpassanteSquare.hashCode())){
+            hashKey = hashKey xor enpassanteSquareMap[bitboard.enpassanteSquare.hashCode()]!!
         }
         if(bitboard.moveColor == "black")hashKey = hashKey xor sideToMoveIsBlack
         lastHash = hashKey

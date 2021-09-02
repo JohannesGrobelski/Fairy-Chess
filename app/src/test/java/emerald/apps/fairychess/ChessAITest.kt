@@ -271,8 +271,6 @@ class ChessAITest {
         bitboard.move("black",aiMove)
         assertEquals(bitboard.pointsBlack() - 1,bitboard.pointsWhite())
 
-
-
         println(bitboard.toString())
 
     }
@@ -289,12 +287,12 @@ class ChessAITest {
         assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,5,0,4)))
         assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,3,0,4)))
         var calcTime = measureTimeMillis {aiMove = chessAi.calcMove(bitboard)}
+        bitboard.move("black",aiMove)
         println("move: ${aiMove.asString("black")}")
         println("calcTime: $calcTime ms")
         println("cnt_movements: "+chessAIBlack.cnt_movements)
         println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
         println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
-        bitboard.move("black",aiMove)
         assertEquals(bitboard.pointsBlack(),bitboard.pointsWhite())
 
         //(>= depth2) ai doesnt capture protected piece with a more valuable piece (case: rook with queen)

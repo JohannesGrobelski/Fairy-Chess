@@ -43,6 +43,9 @@ class Bitboard(
     val blackCapturedPieces = mutableListOf<ChessActivity.CapturedPiece>()
     val whiteCapturedPieces = mutableListOf<ChessActivity.CapturedPiece>()
 
+    //ai helper fields
+    var enpassanteSquare : Coordinate? = null
+
     constructor(figureMap: Map<String, FigureParser.Figure>) : this(null,figureMap)
 
 
@@ -161,6 +164,7 @@ class Bitboard(
     fun move(color : String, movement: Movement) : String {
         val pos = getPosition(color)
         val name = getPieceName(movement.getSourceCoordinate())
+
         if(checkIfEnpassanteMove(name, pos, movement)) {
             doEnpassanteMove(name, color, pos, movement)
         } else { //other moves
@@ -212,6 +216,7 @@ class Bitboard(
                 switchMoveColor()
             }
         }
+        setEnpassanteSquare(name, movement)//important: execute AFTER checkIfEnpassanteMove(...)
         checkForPromotion()
         switchMoveColor()
         return ""
@@ -238,32 +243,21 @@ class Bitboard(
         movedCapturedHistory.add(bbMovedCaptured)
     }
 
+    fun setEnpassanteSquare(name:String,movement: Movement){
+        enpassanteSquare = null
+        if(name == "pawn" && abs(movement.sourceFile-movement.targetFile) > 1){
+            val enpassanteFile = movement.sourceFile + (movement.targetFile - movement.sourceFile)/2
+            enpassanteSquare = Coordinate(movement.sourceRank, enpassanteFile)
+        }
+    }
+
     /** checks if movement is en passante */
     fun checkIfEnpassanteMove(name : String, pos: Int, movement: Movement) : Boolean {
         //check for special case enpassante
-        if(boardStateHistory.size < 2)return false
-        if(name == "pawn" && movement.getRankDif() == 1
-            && bbFigures["pawn"]!![1-pos] and generate64BPositionFromCoordinate(movement.getTargetCoordinate()) == 0uL){
-            //pawn moved diagonaly, but there is no target on target square
-            val fileOffset = -((-1.0).pow(pos.toDouble())).toInt() //-1 for white, +1 for black
-            val bbRemoveFigure = generate64BPositionFromCoordinate(movement.getTargetCoordinate().newCoordinateFromFileOffset(fileOffset))
-            if(bbFigures["pawn"]!![1-pos] and bbRemoveFigure == bbRemoveFigure){
-                //therefore an enemy pawn must be above (black pawn) or under (white pawn) the target square
-                val removeFileActual = movement.targetFile + fileOffset
-                val removeFileSupposed = round(3.5 + -fileOffset*.1).toInt() //4 for white, 3 for black
-                val bbPawnPositionLastMove = boardStateHistory[boardStateHistory.lastIndex - 1]["pawn"]!![1-pos]
-                val bbPawnPositionNow = bbFigures["pawn"]!![1-pos]
-                val bbCurrentPositionOfPawnWhoMovedLast = bbPawnPositionNow and bbPawnPositionLastMove.inv()
-                if(bbCurrentPositionOfPawnWhoMovedLast and bbRemoveFigure != 0uL && removeFileActual == removeFileSupposed){
-                    //check if the pawn made his first move in last move and if this move took place on the correct file (3 or 4)
-                    //all conditions are met, thus make enpassante move
-                    return true
-                }
-                return false
-            }
-            return false
-        }
-        return false
+        return (enpassanteSquare != null
+                && name == "pawn"
+                && movement.getRankDif() == 1
+                && movement.getTargetCoordinate().equals(enpassanteSquare))
     }
 
 
@@ -399,29 +393,6 @@ class Bitboard(
         return bbTargetsMap
     }
 
-    /** returns a list of enpassante coordinates (the coordinate of the target-square of the enpassante movement) */
-    fun getEnpassanteSquares() : List<Coordinate> {
-        val enpassanteCoordinates = mutableListOf<Coordinate>()
-        for(targetFile in arrayOf(3,4)){
-            val pos = abs(3-targetFile) //white: 0, black: 1
-            for(enpassanteRank in 0..7){
-                val bbtargetPawn = generate64BPositionFromCoordinate(Coordinate(enpassanteRank,targetFile))
-                if(bbtargetPawn and bbFigures["pawn"]!![pos] == bbtargetPawn){
-                    //there is an enemy pawn above/under target square
-                    val fileOffset = 1-((-1.0).pow(pos.toDouble())*2).toInt() //-2 for white, 2 for black
-                    val enpassanteFile = targetFile + fileOffset //values: 2 for white, 5 for black
-                    val bbtargetPawnInitialPosition = generate64BPositionFromCoordinate(Coordinate(enpassanteRank,enpassanteFile))
-                    if(boardStateHistory.size > 1
-                        && boardStateHistory[boardStateHistory.lastIndex-1]["pawn"]!![1-pos] and bbtargetPawnInitialPosition == bbtargetPawnInitialPosition){
-                        //last position of target pawn was 2 steps above/under the current position => target pawn moved 2 steps in the last move
-                        enpassanteCoordinates.add(Coordinate(enpassanteRank,enpassanteFile))
-                    }
-                }
-            }
-        }
-        return enpassanteCoordinates
-    }
-
     private fun generateEnpassanteMove(color : String, coordinate : Coordinate,bbTargetsMap: MutableMap<MovementNotation,ULong>)
         : MutableMap<MovementNotation,ULong> {
         val targetRankLeft = coordinate.rank - 1
@@ -467,7 +438,7 @@ class Bitboard(
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
                     if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
                         //4. check if king and space between rook and king are not under attack
-                        bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
+                        if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
                         if (bbCastlingRoomShortWhite and bbEnemyMoves.inv() == bbCastlingRoomShortWhite) {
                             castlingRights.add(CASTLING_SHORT_WHITE)
                         }
