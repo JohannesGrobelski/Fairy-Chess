@@ -2,6 +2,7 @@ package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.model.Bitboard.Companion.castlingMoves
 import emerald.apps.fairychess.model.Bitboard.Companion.enpassanteSquares
+import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromCoordinate
 import kotlin.random.Random
 import kotlin.random.nextULong
 
@@ -21,13 +22,14 @@ class ZobristHash(figureNameList : List<String>) {
     var enpassanteSquareMap = mutableMapOf<Int,ULong>()
 
     private var random : Random
+    private var lastHash = 0uL
 
     init {
         random = generateRandom(figureNameList)
         for(name in figureNameList){
             for(rank in 0..8){
                 for(file in 0..8){
-                    pieceMap[generatePieceMapKey(name,rank,file)] =
+                    pieceMap[generateMapKey(name,rank,file)] =
                         getPseudoRandomNumber()
                 }
             }
@@ -41,7 +43,7 @@ class ZobristHash(figureNameList : List<String>) {
         }
     }
 
-    private fun generatePieceMapKey(figureName:String, rank:Int, file:Int) : String{
+    private fun generateMapKey(figureName:String, rank:Int, file:Int) : String{
         return figureName+rank.toString()+file.toString()
     }
 
@@ -64,25 +66,28 @@ class ZobristHash(figureNameList : List<String>) {
         for(rank in 0..7){
             for(file in 0..7){
                 val coordinate = Bitboard.Companion.Coordinate(rank,file)
+                val bbPiece = generate64BPositionFromCoordinate(coordinate)
+                if(bbPiece and bitboard.bbComposite == 0uL)continue
                 val pieceName = bitboard.getPieceName(coordinate)
-                if(pieceName.isEmpty())continue
-                hashKey = hashKey xor pieceMap[generatePieceMapKey(pieceName,rank,file)]!!
+                hashKey = hashKey xor pieceMap[generateMapKey(pieceName,rank,file)]!!
+            }
+        }
+        val castlingRights = bitboard.getCastlingRights(bitboard.moveColor)
+        for(castlingCoordinate in castlingRights){
+            hashKey = hashKey xor castlingRightMap[castlingCoordinate]!!
+        }
+        val enpassanteSquares = bitboard.getEnpassanteSquares()
+        for(enpassanteSquare in enpassanteSquares){
+            if(enpassanteSquareMap.containsKey(enpassanteSquare)){
+                hashKey = hashKey xor enpassanteSquareMap[enpassanteSquare]!!
             }
         }
         if(bitboard.moveColor == "black")hashKey = hashKey xor sideToMoveIsBlack
-        for(castlingCoordinate in bitboard.getCastlingRights(bitboard.moveColor)){
-            hashKey = hashKey xor castlingRightMap[castlingCoordinate]!!
-        }
-        for(enpassanteSquare in bitboard.getEnpassanteSquares()){
-            if(enpassanteSquareMap.containsKey(enpassanteSquare)){
-                hashKey = hashKey xor enpassanteSquareMap[enpassanteSquare]!!
-            } else {
-                print(2)
-            }
-        }
-        return hashKey
+        lastHash = hashKey
+        return lastHash
     }
 
-
-
+    fun updateHash(movement: Movement) : ULong {
+        return lastHash
+    }
 }

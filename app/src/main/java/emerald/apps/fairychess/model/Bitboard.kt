@@ -448,8 +448,8 @@ class Bitboard(
 
     fun getCastlingRights(color: String) : List<MovementNotation> {
         val ownColorPos = ("black" == color).toInt()
-        var bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
-        var castlingRights = mutableListOf<MovementNotation>()
+        val castlingRights = mutableListOf<MovementNotation>()
+        var bbEnemyMoves = 0uL
 
         var bbRook: ULong
         var bbMoveRoom : ULong
@@ -459,29 +459,31 @@ class Bitboard(
             val whiteKingNotMoved = bbKingOriginalPosition[ownColorPos] and bbWhiteKingCurrentPosition and bbMovedCaptured.inv() != 0uL
             if(whiteKingNotMoved) {
                 //SHORT castling
-                //2. check if king and space between rook and king are not under attack
-                if (bbCastlingRoomShortWhite and bbEnemyMoves.inv() == bbCastlingRoomShortWhite) {
-                    //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinate(Coordinate(7, 0))
-                    if (bbMovedCaptured and bbRook == 0uL) {
-                        //4. no pieces between rook and king
-                        bbMoveRoom = bbCastlingRoomShortWhite and bbRook.inv()
-                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                        if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                //2. check if rook has not moved
+                bbRook = generate64BPositionFromCoordinate(Coordinate(7, 0))
+                if (bbMovedCaptured and bbRook == 0uL) {
+                    //3. no pieces between rook and king
+                    bbMoveRoom = bbCastlingRoomShortWhite and bbRook.inv()
+                    bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                    if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                        //4. check if king and space between rook and king are not under attack
+                        bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
+                        if (bbCastlingRoomShortWhite and bbEnemyMoves.inv() == bbCastlingRoomShortWhite) {
                             castlingRights.add(CASTLING_SHORT_WHITE)
                         }
                     }
                 }
                 //LONG castling
-                //2. check if king and space between rook and king are not under attack
-                if (bbCastlingRoomLongWhite and bbEnemyMoves.inv() == bbCastlingRoomLongWhite) {
-                    //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinate(Coordinate(0, 0))
-                    if (bbMovedCaptured and bbRook == 0uL) {
-                        //4. no pieces between rook and king
-                        bbMoveRoom = bbCastlingRoomLongWhite and bbRook.inv()
-                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                        if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                //2. check if rook has not moved
+                bbRook = generate64BPositionFromCoordinate(Coordinate(0, 0))
+                if (bbMovedCaptured and bbRook == 0uL) {
+                    //3. no pieces between rook and king
+                    bbMoveRoom = bbCastlingRoomLongWhite and bbRook.inv()
+                    bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                    if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                        //4. check if king and space between rook and king are not under attack
+                        if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
+                        if (bbCastlingRoomLongWhite and bbEnemyMoves.inv() == bbCastlingRoomLongWhite) {
                             castlingRights.add(CASTLING_LONG_WHITE)
                         }
                     }
@@ -493,29 +495,31 @@ class Bitboard(
             val blackKingNotMoved = bbKingOriginalPosition[ownColorPos] and bbBlackKingCurrentPosition and bbMovedCaptured.inv() != 0uL
             if(blackKingNotMoved) {
                 //SHORT castling
-                //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomShortBlack and bbEnemyMoves.inv() == bbCastlingRoomShortBlack){
-                    //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinate(Coordinate(7,7))
-                    if(bbMovedCaptured and bbRook == 0uL){
-                        //4. no pieces between rook and king
-                        bbMoveRoom = bbCastlingRoomShortBlack and bbRook.inv()
-                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                        if(bbMoveRoom and bbComposite.inv().toULong() == bbMoveRoom){
+                //2. check if rook has not moved
+                bbRook = generate64BPositionFromCoordinate(Coordinate(7,7))
+                if(bbMovedCaptured and bbRook == 0uL){
+                    //3. no pieces between rook and king
+                    bbMoveRoom = bbCastlingRoomShortBlack and bbRook.inv()
+                    bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                    if(bbMoveRoom and bbComposite.inv().toULong() == bbMoveRoom){
+                        //4. check if king and space between rook and king are not under attack
+                        if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
+                        if(bbCastlingRoomShortBlack and bbEnemyMoves.inv() == bbCastlingRoomShortBlack){
                             castlingRights.add(CASTLING_SHORT_BLACK)
                         }
                     }
                 }
                 //LONG castling
-                //2. check if king and space between rook and king are not under attack
-                if(bbCastlingRoomLongBlack and bbEnemyMoves.inv() == bbCastlingRoomLongBlack){
-                    //3. check if rook has not moved
-                    bbRook = generate64BPositionFromCoordinate(Coordinate(0,7))
-                    if(bbMovedCaptured and bbRook == 0uL){
-                        //4. no pieces between rook and king
-                        bbMoveRoom = bbCastlingRoomLongBlack and bbRook.inv()
-                        bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                        if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
+                //2. check if rook has not moved
+                bbRook = generate64BPositionFromCoordinate(Coordinate(0,7))
+                if(bbMovedCaptured and bbRook == 0uL){
+                    //3. no pieces between rook and king
+                    bbMoveRoom = bbCastlingRoomLongBlack and bbRook.inv()
+                    bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
+                    if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
+                        //4. check if king and space between rook and king are not under attack
+                        if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
+                        if(bbCastlingRoomLongBlack and bbEnemyMoves.inv() == bbCastlingRoomLongBlack){
                             castlingRights.add(CASTLING_LONG_BLACK)
                         }
                     }

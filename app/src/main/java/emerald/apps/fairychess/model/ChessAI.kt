@@ -9,7 +9,7 @@ import kotlin.math.min
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
-    private val recursionDepth = 3
+    private var recursionDepth = 4
     private var cntHashHits = 0
     private var cntHashFails = 0
 
@@ -24,10 +24,14 @@ class ChessAI {
 
     //helper-fields
     lateinit var zobristHash : ZobristHash
-    lateinit var equalMoves : MutableMap<Int,MutableList<Movement>> //level -> List<equalMoves>
 
     constructor(color: String) {
         this.color = color
+    }
+
+    constructor(color: String, recursionDepth : Int) {
+        this.color = color
+        this.recursionDepth = recursionDepth
     }
 
     //Fields for move ordering
@@ -36,8 +40,6 @@ class ChessAI {
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
         zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
-        equalMoves = mutableMapOf();
-        for(level in 1..recursionDepth){equalMoves[level] = mutableListOf()}
         when (algorithm) {
             "alphabeta" -> {
                 return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
@@ -60,9 +62,9 @@ class ChessAI {
         if(level <= 0){
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
+            val equalMoves = mutableListOf<Movement>()
             val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
             if(allMovesList.isNotEmpty()){
-                var targetMove = emptyMovement()
                 var bestValue : Int
                 if(bitboard.moveColor == "black"){
                     //find best move (highest points for black) by going through all possible moves
@@ -71,20 +73,12 @@ class ChessAI {
                         val copyBitboard = bitboard.clone()
                         ++cnt_movements
                         bitboard.move(bitboard.moveColor,move)
-                        /*val hash = zobristHash.generateHash(bitboard)
-                        var valuePosition = 0
-                        if(transpositionTable.keys.contains(hash)){
-                            transpositionTable[hash]!!.value; ++transpositionTableHits
-                        } else {
-                            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
-                            transpositionTable[hash] = MinimaxResult(move,valuePosition)
-                        }*/
-                        var valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value;
+                        val valuePosition = getValueOfPosition(bitboard, move, level, _alpha, _beta)
                         if(valuePosition > bestValue){
-                            equalMoves[level]!!.clear()
+                            equalMoves.clear()
                             bestValue = valuePosition
                         }
-                        if(valuePosition == bestValue)equalMoves[level]!!.add(move)
+                        if(valuePosition == bestValue)equalMoves.add(move)
                         bitboard.set(copyBitboard)
                         //beta cutoff
                         if(valuePosition >= _beta)break
@@ -93,43 +87,46 @@ class ChessAI {
                 } else {
                     //find best move (highest points for white) by going through all possible moves
                     bestValue = Int.MAX_VALUE
-                    for(i in allMovesList.indices){
-                        val move = allMovesList[i]
+                    for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
                         ++cnt_movements
                         bitboard.move(bitboard.moveColor,move)
-                        /*val hash = zobristHash.generateHash(bitboard)
-                        var valuePosition = 0
-                        if(transpositionTable.keys.contains(hash)){
-                            transpositionTable[hash]!!.value; ++transpositionTableHits
-                        } else {
-                            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
-                            transpositionTable[hash] = MinimaxResult(move,valuePosition)
-                        }*/
-                        var valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value;
+                        val valuePosition = getValueOfPosition(bitboard, move, level, _alpha, _beta)
                         if(valuePosition < bestValue){
-                            equalMoves[level]!!.clear()
+                            equalMoves.clear()
                             bestValue = valuePosition
                         }
-                        if(valuePosition == bestValue)equalMoves[level]!!.add(move)
+                        if(valuePosition == bestValue)equalMoves.add(move)
                         bitboard.set(copyBitboard)
                         //alpha cutoff
                         if(valuePosition <= _alpha)break
                         _beta = min(_beta,valuePosition)
                     }
                 }
-                targetMove = heuristic(level)
-                return MinimaxResult(targetMove,bestValue)
+                return MinimaxResult(heuristic(equalMoves),bestValue)
             } else {
                 return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
             }
         }
     }
 
+    fun getValueOfPosition(bitboard: Bitboard, move: Movement, level: Int, _alpha:Int, _beta: Int) : Int{
+        var valuePosition = 0
+        //valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value;
+        val hash = zobristHash.generateHash(bitboard)
+        valuePosition = 0
+        if(transpositionTable.keys.contains(hash)){
+            transpositionTable[hash]!!.value; ++transpositionTableHits
+        } else {
+            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
+            transpositionTable[hash] = MinimaxResult(move,valuePosition)
+        }
+        return valuePosition
+    }
+
     /** chooses a move from equal moves (point-wise) with the help of different heuristics */
-    fun heuristic(level: Int) : Movement {
-        var targetMovement = equalMoves[level]!![0]
-        equalMoves[level]!!.clear()
+    fun heuristic(equalMoves : List<Movement>) : Movement {
+        val targetMovement = equalMoves[0]
         return targetMovement
     }
 
