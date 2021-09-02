@@ -21,11 +21,20 @@ class ZobristHash(figureNameList : List<String>) {
     var castlingRightMap = mutableMapOf<MovementNotation,ULong>()
     var enpassanteSquareMap = mutableMapOf<Int,ULong>()
 
+    private var initHash = 0uL
     private var random : Random
     private var lastHash = 0uL
 
+    //DEBUG
+    //var zobristHashMap = mutableMapOf<ULong,Bitboard>()
+
+    companion object {
+        const val DEBUG = true
+    }
+
     init {
         random = generateRandom(figureNameList)
+        initHash = getPseudoRandomNumber()
         for(name in figureNameList){
             for(rank in 0..8){
                 for(file in 0..8){
@@ -62,7 +71,7 @@ class ZobristHash(figureNameList : List<String>) {
     /** transform a board position of arbitrary size
      * into a number of a set length */
     fun generateHash(bitboard: Bitboard) : ULong {
-        var hashKey = getPseudoRandomNumber()
+        var hashKey = initHash
         for(rank in 0..7){
             for(file in 0..7){
                 val coordinate = Bitboard.Companion.Coordinate(rank,file)
@@ -72,9 +81,9 @@ class ZobristHash(figureNameList : List<String>) {
                 hashKey = hashKey xor pieceMap[generateMapKey(pieceName,rank,file)]!!
             }
         }
-        val castlingRights = bitboard.getCastlingRights(bitboard.moveColor)
-        for(castlingCoordinate in castlingRights){
-            hashKey = hashKey xor castlingRightMap[castlingCoordinate]!!
+        val castlingMoves = bitboard.getCastlingRights(bitboard.moveColor)
+        for(castlingMove in castlingMoves){
+            hashKey = hashKey xor castlingRightMap[castlingMove]!!
         }
         if(bitboard.enpassanteSquare != null && enpassanteSquareMap.containsKey(bitboard.enpassanteSquare.hashCode())){
             hashKey = hashKey xor enpassanteSquareMap[bitboard.enpassanteSquare.hashCode()]!!

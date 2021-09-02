@@ -1066,10 +1066,10 @@ class Bitboard(
 
     companion object {
         val castlingMoves = arrayOf(
-            MovementNotation.CASTLING_SHORT_WHITE,
-            MovementNotation.CASTLING_SHORT_BLACK,
-            MovementNotation.CASTLING_LONG_WHITE,
-            MovementNotation.CASTLING_LONG_WHITE,
+            CASTLING_SHORT_WHITE,
+            CASTLING_SHORT_BLACK,
+            CASTLING_LONG_WHITE,
+            CASTLING_LONG_BLACK,
         )
         val enpassanteSquares = arrayOf(
             Coordinate(0,2), Coordinate(1,2), Coordinate(2,2), Coordinate(3,2),
