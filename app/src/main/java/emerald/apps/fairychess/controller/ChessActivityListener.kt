@@ -9,6 +9,7 @@ import android.widget.*
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.model.*
+import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import emerald.apps.fairychess.model.TimerUtils.Companion.transformLongToTimeString
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
@@ -78,6 +79,8 @@ import kotlinx.android.synthetic.main.activity_chess_white_perspective.H6
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H7
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
 import kotlinx.coroutines.*
+import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
 
 /** controller that propagates inputs from view to model and changes from model to view */
 class ChessActivityListener() : MultiplayerDBGameInterface
@@ -210,7 +213,16 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     //calculate ai move in coroutine to avoid blocking the ui thread
                     calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
                         try{
-                            val aiMovement = chessAI.calcMove(chessgame.getBitboard().clone())
+                            var aiMovement :Movement
+                            val calcTime = measureTimeMillis {
+                                aiMovement = chessAI.calcMove(chessgame.getBitboard().clone())
+                            }
+                            println("move: "+aiMovement.asString("black"))
+                            println("calcTime: $calcTime ms")
+                            println("cnt_movements: "+chessAI.cnt_movements)
+                            println("transpositionTableHits: "+chessAI.transpositionTableHits)
+                            println("transpositionTableFails: "+chessAI.transpositionTableFails)
+                            println("transpositionTableSize: "+chessAI.transpositionTable.size)
                             chessgame.movePlayer(aiMovement, chessAI.color)
                             withContext(Dispatchers.Main){
                                 displayFigures()

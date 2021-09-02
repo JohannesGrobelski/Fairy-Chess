@@ -9,7 +9,7 @@ import kotlin.math.min
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
-    private val recursionDepth = 4
+    private val recursionDepth = 2
     private var cntHashHits = 0
     private var cntHashFails = 0
 
@@ -17,13 +17,14 @@ class ChessAI {
     //DEBUG
     var cnt_movements = 0
     var transpositionTableHits = 0
+    var transpositionTableFails = 0
 
     //fields
     var color: String
 
     //helper-fields
     lateinit var zobristHash : ZobristHash
-    var equalMoves = mutableListOf<Movement>()
+    lateinit var equalMoves : MutableMap<Int,MutableList<Movement>> //level -> List<equalMoves>
 
     constructor(color: String) {
         this.color = color
@@ -35,6 +36,8 @@ class ChessAI {
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
         zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
+        equalMoves = mutableMapOf();
+        for(level in 1..recursionDepth){equalMoves[level] = mutableListOf()}
         when (algorithm) {
             "alphabeta" -> {
                 return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
@@ -68,20 +71,20 @@ class ChessAI {
                         val copyBitboard = bitboard.clone()
                         ++cnt_movements
                         bitboard.move(bitboard.moveColor,move)
-                        val hash = zobristHash.generateHash(bitboard)
+                        /*val hash = zobristHash.generateHash(bitboard)
                         var valuePosition = 0
                         if(transpositionTable.keys.contains(hash)){
-                            ++transpositionTableHits
-                            transpositionTable[hash]!!.value
+                            transpositionTable[hash]!!.value; ++transpositionTableHits
                         } else {
-                            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
                             transpositionTable[hash] = MinimaxResult(move,valuePosition)
-                        }
+                        }*/
+                        var valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value;
                         if(valuePosition > bestValue){
-                            equalMoves.clear()
+                            equalMoves[level]!!.clear()
                             bestValue = valuePosition
                         }
-                        equalMoves.add(move)
+                        if(valuePosition == bestValue)equalMoves[level]!!.add(move)
                         bitboard.set(copyBitboard)
                         //beta cutoff
                         if(valuePosition >= _beta)break
@@ -95,20 +98,20 @@ class ChessAI {
                         val copyBitboard = bitboard.clone()
                         ++cnt_movements
                         bitboard.move(bitboard.moveColor,move)
-                        val hash = zobristHash.generateHash(bitboard)
+                        /*val hash = zobristHash.generateHash(bitboard)
                         var valuePosition = 0
                         if(transpositionTable.keys.contains(hash)){
-                            ++transpositionTableHits
-                            transpositionTable[hash]!!.value
+                            transpositionTable[hash]!!.value; ++transpositionTableHits
                         } else {
-                            valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
+                            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
                             transpositionTable[hash] = MinimaxResult(move,valuePosition)
-                        }
+                        }*/
+                        var valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value;
                         if(valuePosition < bestValue){
-                            equalMoves.clear()
+                            equalMoves[level]!!.clear()
                             bestValue = valuePosition
                         }
-                        equalMoves.add(move)
+                        if(valuePosition == bestValue)equalMoves[level]!!.add(move)
                         bitboard.set(copyBitboard)
                         //alpha cutoff
                         if(valuePosition <= _alpha)break
@@ -125,8 +128,8 @@ class ChessAI {
 
     /** chooses a move from equal moves (point-wise) with the help of different heuristics */
     fun heuristic(level: Int) : Movement {
-        var targetMovement = equalMoves[0]
-        equalMoves.clear()
+        var targetMovement = equalMoves[level]!![0]
+        equalMoves[level]!!.clear()
         return targetMovement
     }
 

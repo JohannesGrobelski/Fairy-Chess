@@ -43,6 +43,7 @@ class ChessAITest {
         println("calcTime: $calcTime ms")
         println("cnt_movements: "+chessAIBlack.cnt_movements)
         println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
+        println("transpositionTableFails: "+chessAIBlack.transpositionTableFails)
         println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
     }
 
