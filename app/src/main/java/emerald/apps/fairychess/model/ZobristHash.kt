@@ -62,7 +62,7 @@ class ZobristHash(figureNameList : List<String>) {
     /** transform a board position of arbitrary size
      * into a number of a set length */
     fun generateHash(bitboard: Bitboard) : ULong {
-        var hashKey = 0uL
+        var hashKey = getPseudoRandomNumber()
         for(rank in 0..7){
             for(file in 0..7){
                 val coordinate = Bitboard.Companion.Coordinate(rank,file)
