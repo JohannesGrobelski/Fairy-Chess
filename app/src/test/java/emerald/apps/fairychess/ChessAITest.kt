@@ -4,6 +4,7 @@ import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
+import org.apache.tools.ant.taskdefs.Move
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -40,11 +41,13 @@ class ChessAITest {
             move = chessAIBlack.calcMove(bitboard)
         }
         Assert.assertEquals("",bitboard.checkMoveAndMove("black",move))
-        println("calcTime: $calcTime ms")
-        println("cnt_movements: "+chessAIBlack.cnt_movements)
-        println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
-        println("transpositionTableFails: "+chessAIBlack.transpositionTableFails)
-        println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        if(DEBUG){
+            println("calcTime: $calcTime ms")
+            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
+            println("transpositionTableFails: "+chessAIBlack.transpositionTableFails)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        }
     }
 
 
@@ -150,10 +153,12 @@ class ChessAITest {
         assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,4,1,3)))
         assertEquals("",bitboard.checkMoveAndMove("white", Movement(3,1,3,2)))
         var calcTime = measureTimeMillis {aiMove = chessAi.calcMove(bitboard)}
-        println("calcTime: $calcTime ms")
-        println("cnt_movements: "+chessAIBlack.cnt_movements)
-        println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
-        println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        if(DEBUG){
+            println("calcTime: $calcTime ms")
+            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        }
         bitboard.move("black",aiMove)
         assertEquals(bitboard.pointsBlack() - 1,bitboard.pointsWhite())
 
@@ -174,18 +179,49 @@ class ChessAITest {
         assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,3,0,4)))
         var calcTime = measureTimeMillis {aiMove = chessAi.calcMove(bitboard)}
         bitboard.move("black",aiMove)
-        println("move: ${aiMove.asString("black")}")
-        println("calcTime: $calcTime ms")
-        println("cnt_movements: "+chessAIBlack.cnt_movements)
-        println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
-        println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        if(DEBUG){
+            println("move: ${aiMove.asString("black")}")
+            println("calcTime: $calcTime ms")
+            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        }
 
-       // assertEquals(bitboard.pointsBlack(),bitboard.pointsWhite())
+        //
+        bitboard = Bitboard(chessFormationArray, figureMap)
+        val moves = arrayOf(
+            Movement(4,1,4,3),
+            Movement(0,6,0,4),
+            Movement(3,1,3,3),
+            Movement(0,4,0,3),
+            Movement(1,0,2,2),
+            Movement(0,3,0,2),
+            Movement(6,0,5,2),
+            Movement(0,2,1,1),
+            Movement(5,0,2,3),
+        )
+        for(i in moves.indices){
+            val color = arrayOf("white","black")[i%2]
+            assertEquals("",bitboard.checkMoveAndMove(color,moves[i]))
+        }
+        calcTime = measureTimeMillis {aiMove = chessAIBlack.calcMove(bitboard)}
+        assertEquals("",bitboard.checkMoveAndMove("black",aiMove))
+        if(DEBUG){
+            println(bitboard.toString())
+            println("move: ${aiMove.asString("black")}")
+            println("calcTime: $calcTime ms")
+            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+        }
+        assertTrue(aiMove.equalCoordinates(Movement(1,1,0,0)))
+
 
         //(>= depth2) ai doesnt capture protected piece with a more valuable piece (case: rook with queen)
 
 
     }
+
 
     @Test
     fun testFoolsMate(){

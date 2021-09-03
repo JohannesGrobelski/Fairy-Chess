@@ -31,6 +31,13 @@ open class Movement(val movementNotation : MovementNotation = MovementNotation("
         return sign(targetRank.toDouble() - sourceRank.toDouble()).toInt()
     }
 
+    fun equalCoordinates(other : Movement) : Boolean {
+        return (sourceRank == other.sourceRank
+                    && sourceFile == other.sourceFile
+                    && targetRank == other.targetRank
+                    && targetFile == other.targetFile)
+    }
+
     override fun equals(other: Any?) : Boolean {
         return if(other is Movement){
             (sourceRank == other.sourceRank

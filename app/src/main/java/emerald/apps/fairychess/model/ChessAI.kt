@@ -9,6 +9,7 @@ import kotlin.math.min
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
+    private val zobristOn = true
     private var recursionDepth = 4
     private var cntHashHits = 0
     private var cntHashFails = 0
@@ -39,7 +40,7 @@ class ChessAI {
 
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
-        zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
+        zobristHash = ZobristHash(bitboard.figureMap.keys.toMutableList())
         when (algorithm) {
             "alphabeta" -> {
                 return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
@@ -106,15 +107,18 @@ class ChessAI {
 
     fun getValueOfPosition(bitboard: Bitboard, move: Movement, level: Int, _alpha:Int, _beta: Int) : Int{
         var valuePosition = 0
-        //valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value;
-        val hash = zobristHash.generateHash(bitboard)
-        valuePosition = 0
-        if(transpositionTable.keys.contains(hash)){
-            transpositionTable[hash]!!; ++transpositionTableHits
-        } else {
-            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
-            transpositionTable[hash] = valuePosition
+        if(!zobristOn)valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value;
+        else {
+            val hash = zobristHash.generateHash(bitboard)
+            valuePosition = 0
+            if(transpositionTable.keys.contains(hash)){
+                transpositionTable[hash]!!; ++transpositionTableHits
+            } else {
+                valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
+                transpositionTable[hash] = valuePosition
+            }
         }
+
         return valuePosition
     }
 

@@ -35,11 +35,13 @@ class ZobristHash(figureNameList : List<String>) {
     init {
         random = generateRandom(figureNameList)
         initHash = getPseudoRandomNumber()
-        for(name in figureNameList){
-            for(rank in 0..8){
-                for(file in 0..8){
-                    pieceMap[generateMapKey(name,rank,file)] =
-                        getPseudoRandomNumber()
+        for(color in arrayOf("white","black")) {
+            for(name in figureNameList){
+                for(rank in 0..7){
+                    for(file in 0..7){
+                        pieceMap[generateMapKey(color,name,rank,file)] =
+                            getPseudoRandomNumber()
+                    }
                 }
             }
         }
@@ -52,8 +54,8 @@ class ZobristHash(figureNameList : List<String>) {
         }
     }
 
-    private fun generateMapKey(figureName:String, rank:Int, file:Int) : String{
-        return figureName+rank.toString()+file.toString()
+    private fun generateMapKey(figureColor: String, figureName:String, rank:Int, file:Int) : String{
+        return figureColor+figureName+rank.toString()+file.toString()
     }
 
     fun generateRandom(figureNameList: List<String>) : Random {
@@ -72,13 +74,13 @@ class ZobristHash(figureNameList : List<String>) {
      * into a number of a set length */
     fun generateHash(bitboard: Bitboard) : ULong {
         var hashKey = initHash
-        for(rank in 0..7){
-            for(file in 0..7){
+        for(rank in 0..7) {
+            for (file in 0..7) {
                 val coordinate = Bitboard.Companion.Coordinate(rank,file)
-                val bbPiece = generate64BPositionFromCoordinate(coordinate)
-                if(bbPiece and bitboard.bbComposite == 0uL)continue
                 val pieceName = bitboard.getPieceName(coordinate)
-                hashKey = hashKey xor pieceMap[generateMapKey(pieceName,rank,file)]!!
+                if(pieceName.isEmpty())continue
+                val pieceColor = bitboard.getPieceColor(rank, file)
+                hashKey = hashKey xor pieceMap[generateMapKey(pieceColor,pieceName,rank,file)]!!
             }
         }
         val castlingMoves = bitboard.getCastlingRights(bitboard.moveColor)
