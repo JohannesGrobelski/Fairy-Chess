@@ -15,13 +15,13 @@ import java.io.InputStream
 import java.lang.Math.random
 import kotlin.math.abs
 import kotlin.math.pow
-import kotlin.math.round
 import kotlin.math.sign
 
 class Bitboard(
     private val chessFormationArray: Array<Array<String>>?,
     val figureMap: Map<String, FigureParser.Figure>
 ) {
+
 
     private val colors = arrayOf("white","black")
 
@@ -650,16 +650,23 @@ class Bitboard(
                 generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,-dis2, -dis1)
             } else {
                 if (distance1 == "x" && distance2 == "x") {//only in pairs (x,x): any distance in the given direction equal to its twin or zero
-                    for (distance in -7..7) {
-                        //orthogonal
-                        generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,0, distance)
-                        generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,distance, 0)
-                        //diagonal
-                        generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,distance, distance)
-                        generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,-distance, distance)
-                        generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,distance, -distance)
-                        generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,-distance, -distance)
+                    if(movementNotation.movetype == "g"){
+                        generateHopperMovements(bbMovementMap, coordinate, color, movementNotation)
+                    } else {
+                        for (distance in 1..7) {
+                            //orthogonal
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,0, distance)
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,0, -distance)
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,distance, 0)
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,-distance, 0)
+                            //diagonal
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,distance, distance)
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,-distance, distance)
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,distance, -distance)
+                            generateLeaperMovement(color,bbMovementMap,movementNotation,coordinate,-distance, -distance)
+                        }
                     }
+
                 }
             }
         }
@@ -689,6 +696,73 @@ class Bitboard(
                 )
             }
         }
+    }
+
+    private fun generateHopperMovements(bbMovementMap: MutableMap<MovementNotation, ULong>,
+                                        coordinate : Coordinate,
+                                        color: String,
+                                        movementNotation : MovementNotation){
+        val signCoordinates = listOf(
+            //keys describe all directions a hopper can hop,
+            //values describe state the hopper searching this direction is in (e.g. has)
+            Coordinate(0,1), //vertical
+            Coordinate(0,-1), //vertical
+            Coordinate(1,0), //horizontal
+            Coordinate(-1,0), //horizontal
+            Coordinate(1,1), //diagonal
+            Coordinate(-1,1),
+            Coordinate(1,-1),
+            Coordinate(-1,-1)
+        )
+        for(signDirection in signCoordinates){
+            generateHopperMovement(color,
+                bbMovementMap,
+                movementNotation,
+                coordinate,
+                signDirection.rank,
+                signDirection.file)
+        }
+
+    }
+
+    /** add a hopper movement to targetSquares defined by an delta (fileDif,rankDif) */
+    private fun generateHopperMovement(
+        color: String,
+        bbMovementMap : MutableMap<MovementNotation,ULong>,
+        movementNotation: MovementNotation,
+        position : Coordinate,
+        rankSign: Int,
+        fileSign: Int
+    ) {
+        val pos = getPosition(color)
+        for(distance in 1..7){
+            val newRank = position.rank + rankSign*distance
+            val newFile = position.file + fileSign*distance
+            if(newFile in 0..7 && newRank in 0..7) {
+                val newPosition = Coordinate(newRank,newFile)
+                val bbPosition = generate64BPositionFromCoordinate(newPosition)
+                if(bbPosition and bbComposite == bbPosition){//found a hurdle (i.e. a piece to jump over)
+                    val targetRank = position.rank + rankSign*(distance+1)
+                    val targetFile = position.file + fileSign*(distance+1)
+                    if(targetFile in 0..7 && targetRank in 0..7) {
+                        val targetPosition = Coordinate(targetRank,targetFile)
+                        val bbTarget = generate64BPositionFromCoordinate(targetPosition)
+                        if (bbTarget and bbComposite == 0uL //hopped on empty square
+                            || bbTarget and bbColorComposite[1 - pos] == bbTarget
+                        ) { //hopped enemy => capture
+                            addCoordinateToMovementBitboard(
+                                color,
+                                movementNotation,
+                                Movement(position, targetPosition),
+                                bbMovementMap
+                            )
+                        }
+                        return
+                    }
+                }
+            }
+        }
+
     }
 
 
@@ -913,19 +987,13 @@ class Bitboard(
         movementNotation: MovementNotation,
         movement : Movement,
         bbMovementMap: MutableMap<MovementNotation, ULong>
-    ) {
-        //TODO delete fullfills condition
-            //check if move is legal
-            //if(fullfillsCondition(color,sourceFile, sourceRank, targetFile, targetRank, movementNotation)){
-            val a = bbMovementMap.keys.toTypedArray()[0].hashCode()
-            val b = movementNotation.hashCode()
+        ) {
             val targetBB =  generate64BPositionFromCoordinate(movement.getTargetCoordinate())
             if(bbMovementMap.keys.contains(movementNotation)){
                 bbMovementMap[movementNotation] = bbMovementMap[movementNotation]!! or targetBB
             } else {
                 bbMovementMap[movementNotation] = targetBB
             }
-            //}
     }
 
     /**
@@ -1072,6 +1140,7 @@ class Bitboard(
     }
 
     companion object {
+        enum class HOPPERSTATE {PREHOP,HOP,POSTHOP}
         val castlingMoves = arrayOf(
             CASTLING_SHORT_WHITE,
             CASTLING_SHORT_BLACK,

@@ -122,6 +122,21 @@ class BasicMoveTest {
     }
 
     @Test
+    fun testMovegenerationGrashopper(){
+        chessFormationArray = parseChessFormation("grasshopper_chess")
+        val bitboard = Bitboard(chessFormationArray,figureMap)
+        var moves = bitboard.getTargetMovements("grasshopper","black",Bitboard.Companion.Coordinate(3,6),true)
+        assertEquals(180388626432uL,moves)
+
+        assertEquals("",bitboard.move("white",Movement(4,1,4,3)))
+        assertEquals("",bitboard.move("black",Movement(5,6,5,4)))
+        assertEquals("",bitboard.move("white",Movement(4,3,4,6)))
+        moves = bitboard.getTargetMovements("grasshopper","black",Bitboard.Companion.Coordinate(0,6),true)
+        assertEquals(21474836480uL,moves)
+        assertEquals("",bitboard.move("black",Movement(4,6,4,6)))
+    }
+
+    @Test
     fun testMovegenerationKings(){
         var bitboard = Bitboard(chessFormationArray,figureMap)
         //kings initial position

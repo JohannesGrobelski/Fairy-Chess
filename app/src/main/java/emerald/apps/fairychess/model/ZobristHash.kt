@@ -82,6 +82,9 @@ class ZobristHash(figureNameList : List<String>) {
                 val pieceName = bitboard.getPieceName(coordinate)
                 if(pieceName.isEmpty())continue
                 val pieceColor = bitboard.getPieceColor(rank, file)
+                if(!pieceMap.containsKey(generateMapKey(pieceColor,pieceName,rank,file))){
+                    generateMapKey(pieceColor,pieceName,rank,file)
+                }
                 hashKey = hashKey xor pieceMap[generateMapKey(pieceColor,pieceName,rank,file)]!!
             }
         }
