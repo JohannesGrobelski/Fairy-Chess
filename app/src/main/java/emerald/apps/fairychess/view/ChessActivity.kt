@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
 
 
+@ExperimentalUnsignedTypes
 class ChessActivity : AppCompatActivity() {
     private lateinit var chessActivityListener: ChessActivityListener
     private lateinit var playerColor : String

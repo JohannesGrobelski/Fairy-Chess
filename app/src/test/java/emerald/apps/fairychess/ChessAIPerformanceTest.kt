@@ -1,13 +1,17 @@
 package emerald.apps.fairychess
 
 import emerald.apps.fairychess.model.*
+import emerald.apps.fairychess.model.Bitboard.Companion.parseFigureMapFromFile
+import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.utility.FigureParser
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 import kotlin.math.pow
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
+@ExperimentalUnsignedTypes
 class ChessAIPerformanceTest {
 
     lateinit var chessFormationArray : Array<Array<String>>
@@ -19,6 +23,13 @@ class ChessAIPerformanceTest {
         const val DEBUG = true
     }
 
+    @Before
+    fun initNormalChessVariables(){
+        chessFormationArray = parseChessFormation("normal_chess")
+        figureMap = parseFigureMapFromFile()
+        chessAIBlack = ChessAI("black")
+        chessAIWhite = ChessAI("white")
+    }
 
     @Test
     fun testSimpleGame(){
@@ -27,14 +38,14 @@ class ChessAIPerformanceTest {
         for(i in 0 .. 10){
             val moveBlack = chessAIBlack.calcMove(bitboard)
             bitboard.checkMoveAndMove("black",moveBlack)
-            if(ChessAITest.DEBUG)println(moveBlack.asString("black"))
-            if(ChessAITest.DEBUG)println(bitboard.toString())
+            if(DEBUG)println(moveBlack.asString("black"))
+            if(DEBUG)println(bitboard.toString())
             if(bitboard.gameFinished)break
 
             val moveWhite = chessAIWhite.calcMove(bitboard)
             bitboard.checkMoveAndMove("white",moveWhite)
-            if(ChessAITest.DEBUG)println(moveWhite.asString("white"))
-            if(ChessAITest.DEBUG)println(bitboard.toString())
+            if(DEBUG)println(moveWhite.asString("white"))
+            if(DEBUG)println(bitboard.toString())
             if(bitboard.gameFinished)break
         }
     }
@@ -61,27 +72,27 @@ class ChessAIPerformanceTest {
             }
         }
 
-        if(ChessAITest.DEBUG)println("$iterations iterations: $timeOverall ms")
-        if(ChessAITest.DEBUG)println("timeSearch: $timeSearch ms ("+(timeSearch.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeZobrist: $timeZobrist ms ("+(timeZobrist.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeCopy: $timeCopy ms ("+(timeCopy.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeMove: $timeMove ms ("+(timeMove.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeSet: $timeSet ms ("+(timeSet.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("$iterations iterations: $timeOverall ms")
+        if(DEBUG)println("timeSearch: $timeSearch ms ("+(timeSearch.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeZobrist: $timeZobrist ms ("+(timeZobrist.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeCopy: $timeCopy ms ("+(timeCopy.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeMove: $timeMove ms ("+(timeMove.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeSet: $timeSet ms ("+(timeSet.toDouble()/timeOverall.toDouble())*100+"%)")
         //println("timeChoose: $timeChoose ms ("+(timeChoose.toDouble()/timeOverall.toDouble())*100+"%)")
     }
 
     @Test
     fun testSearchPerformance(){
         var timeParameters = 0; var timeMoveGeneration = 0; var timeDeleteIllegalMoves = 0; var timeSpecialMoveGeneration = 0; var timeTransformation = 0
-        var timeOverall = 0
+        val timeOverall: Int
 
-        var bitboard = Bitboard(chessFormationArray,figureMap)
+        val bitboard = Bitboard(chessFormationArray,figureMap)
         lateinit var coordinate: Bitboard.Companion.Coordinate
         lateinit var color : String
         lateinit var name : String
         lateinit var movementString : String
-        var pos = 0
-        var bbFigure = 0uL
+        var pos: Int
+        var bbFigure: ULong
         lateinit var movementList : MutableList<Movement>
         lateinit var movementNotationList : List<MovementNotation>
 
@@ -89,7 +100,7 @@ class ChessAIPerformanceTest {
             timeParameters += measureNanoTime {
                 coordinate = Bitboard.Companion.Coordinate(1,1)
                 color = "white"
-                movementList = mutableListOf<Movement>();
+                movementList = mutableListOf()
                 pos = ("black" == color).toInt()
                 bbFigure = Bitboard.generate64BPositionFromCoordinate(coordinate)
                 name = bitboard.getPieceName(pos, bbFigure)
@@ -127,12 +138,12 @@ class ChessAIPerformanceTest {
             }
         }.toInt()
 
-        if(ChessAITest.DEBUG)println("timeOverall: $timeOverall ns ("+(timeOverall.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeParameters: $timeParameters ns ("+(timeParameters.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeMoveGeneration: $timeMoveGeneration ns ("+(timeMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeDeleteIllegalMoves: $timeDeleteIllegalMoves ns ("+(timeDeleteIllegalMoves.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeSpecialMoveGeneration: $timeSpecialMoveGeneration ns ("+(timeSpecialMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
-        if(ChessAITest.DEBUG)println("timeTransformation: $timeTransformation ns ("+(timeTransformation.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeOverall: $timeOverall ns ("+(timeOverall.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeParameters: $timeParameters ns ("+(timeParameters.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeMoveGeneration: $timeMoveGeneration ns ("+(timeMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeDeleteIllegalMoves: $timeDeleteIllegalMoves ns ("+(timeDeleteIllegalMoves.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeSpecialMoveGeneration: $timeSpecialMoveGeneration ns ("+(timeSpecialMoveGeneration.toDouble()/timeOverall.toDouble())*100+"%)")
+        if(DEBUG)println("timeTransformation: $timeTransformation ns ("+(timeTransformation.toDouble()/timeOverall.toDouble())*100+"%)")
     }
 
 }

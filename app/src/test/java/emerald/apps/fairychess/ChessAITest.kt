@@ -4,15 +4,12 @@ import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
-import org.apache.tools.ant.taskdefs.Move
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import java.lang.Math.random
-import kotlin.math.pow
-import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
+@ExperimentalUnsignedTypes
 class ChessAITest {
 
     lateinit var chessFormationArray : Array<Array<String>>
@@ -43,7 +40,7 @@ class ChessAITest {
         Assert.assertEquals("",bitboard.checkMoveAndMove("black",move))
         if(DEBUG){
             println("calcTime: $calcTime ms")
-            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
             println("transpositionTableFails: "+chessAIBlack.transpositionTableFails)
             println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
@@ -71,7 +68,7 @@ class ChessAITest {
             assertEquals("",bitBoardNormal.move("white",movepair[0]))
             assertEquals("",bitBoardNormal.move("black",movepair[1]))
         }
-        var hashOriginal = zobristHash.generateHash(bitBoardNormal)
+        val hashOriginal = zobristHash.generateHash(bitBoardNormal)
         val transpoTable = mutableMapOf<ULong,ChessAI.MinimaxResult>()
         transpoTable[hashOriginal] = ChessAI.MinimaxResult(
             Movement.emptyMovement(),0)
@@ -142,7 +139,7 @@ class ChessAITest {
 
     @Test
     fun testTrapsForAI() {
-        var bitboard = Bitboard(chessFormationArray, figureMap)
+        val bitboard = Bitboard(chessFormationArray, figureMap)
         val chessAi = ChessAI("black")
         var aiMove : Movement
 
@@ -152,10 +149,10 @@ class ChessAITest {
         assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,1,1,3)))
         assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,4,1,3)))
         assertEquals("",bitboard.checkMoveAndMove("white", Movement(3,1,3,2)))
-        var calcTime = measureTimeMillis {aiMove = chessAi.calcMove(bitboard)}
+        val calcTime = measureTimeMillis {aiMove = chessAi.calcMove(bitboard)}
         if(DEBUG){
             println("calcTime: $calcTime ms")
-            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
             println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
         }
@@ -178,14 +175,17 @@ class ChessAITest {
         assertEquals("",bitboard.checkMoveAndMove("black", Movement(0,5,0,4)))
         assertEquals("",bitboard.checkMoveAndMove("white", Movement(1,3,0,4)))
         var calcTime = measureTimeMillis {aiMove = chessAi.calcMove(bitboard)}
-        bitboard.move("black",aiMove)
+        assertEquals("",bitboard.move("black",aiMove))
         if(DEBUG){
             println("move: ${aiMove.asString("black")}")
             println("calcTime: $calcTime ms")
-            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
             println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+            println(bitboard.toString())
         }
+        assertTrue(aiMove.equalCoordinates(Movement(0,7,0,4)))
+
 
         //
         bitboard = Bitboard(chessFormationArray, figureMap)
@@ -207,12 +207,12 @@ class ChessAITest {
         calcTime = measureTimeMillis {aiMove = chessAIBlack.calcMove(bitboard)}
         assertEquals("",bitboard.checkMoveAndMove("black",aiMove))
         if(DEBUG){
-            println(bitboard.toString())
             println("move: ${aiMove.asString("black")}")
             println("calcTime: $calcTime ms")
-            println("cnt_movements: "+chessAIBlack.cnt_movements)
+            println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
             println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+            println(bitboard.toString())
         }
         assertTrue(aiMove.equalCoordinates(Movement(1,1,0,0)))
 
@@ -225,7 +225,7 @@ class ChessAITest {
 
     @Test
     fun testFoolsMate(){
-        var bitboard = Bitboard(chessFormationArray, figureMap)
+        val bitboard = Bitboard(chessFormationArray, figureMap)
         val chessAi = ChessAI("black",4)
         val moves = arrayOf(
             Movement(4,1,4,2),

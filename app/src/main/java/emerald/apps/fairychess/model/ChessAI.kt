@@ -11,12 +11,9 @@ class ChessAI {
     private val algorithm = "alphabeta"
     private val zobristOn = true
     private var recursionDepth = 4
-    private var cntHashHits = 0
-    private var cntHashFails = 0
-
 
     //DEBUG
-    var cnt_movements = 0
+    var moveCounter = 0
     var transpositionTableHits = 0
     var transpositionTableFails = 0
 
@@ -39,7 +36,7 @@ class ChessAI {
     val transpositionTable = Hashtable<ULong, Int>() //map from zobristHash(Bitboard) -> value(Bitboard)
 
     fun calcMove(bitboard: Bitboard) : Movement{
-        cnt_movements = 0
+        moveCounter = 0
         zobristHash = ZobristHash(bitboard.figureMap.keys.toMutableList())
         when (algorithm) {
             "alphabeta" -> {
@@ -71,8 +68,11 @@ class ChessAI {
                     bestValue = Int.MIN_VALUE //find best move (max(getPointDifBW) for black)
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
-                        bitboard.move(bitboard.moveColor,move); ++cnt_movements
-                        val valuePosition = getValueOfPosition(bitboard, move, level, newAlpha, newBeta)
+                        if(level == 4 && move.equalCoordinates(Movement(0,7,0,4))){
+                            println()
+                        }
+                        bitboard.move(bitboard.moveColor,move); ++moveCounter
+                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta)
                         if(valuePosition > bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
@@ -86,8 +86,8 @@ class ChessAI {
                     bestValue = Int.MAX_VALUE //find best move (min(getPointDifBW) for white)
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
-                        bitboard.move(bitboard.moveColor,move); ++cnt_movements
-                        val valuePosition = getValueOfPosition(bitboard, move, level, newAlpha, newBeta)
+                        bitboard.move(bitboard.moveColor,move); ++moveCounter
+                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta)
                         if(valuePosition < bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
@@ -105,32 +105,29 @@ class ChessAI {
         }
     }
 
-    fun getValueOfPosition(bitboard: Bitboard, move: Movement, level: Int, _alpha:Int, _beta: Int) : Int{
-        var valuePosition = 0
-        if(!zobristOn)valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value;
+    fun getValueOfPosition(bitboard: Bitboard, level: Int, _alpha: Int, _beta: Int) : Int{
+        val valuePosition: Int
+        if(!zobristOn)valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
         else {
             val hash = zobristHash.generateHash(bitboard)
-            valuePosition = 0
             if(transpositionTable.keys.contains(hash)){
-                transpositionTable[hash]!!; ++transpositionTableHits
+                ++transpositionTableHits
+                valuePosition = transpositionTable[hash]!!
             } else {
-                valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
+                ++transpositionTableFails
+                valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value
                 transpositionTable[hash] = valuePosition
             }
         }
-
         return valuePosition
     }
 
     /** chooses a move from equal moves (point-wise) with the help of different heuristics */
-    fun heuristic(equalMoves : List<Movement>) : Movement {
-        val targetMovement = equalMoves[0]
-        return targetMovement
+    fun heuristic(equalMoves: List<Movement>): Movement {
+        return equalMoves[0]
     }
 
     fun getPointDifBW(bitboard: Bitboard) : Int{
         return bitboard.pointsBlack() - bitboard.pointsWhite()
     }
-
-    class MovementValue(val movement: Movement?, val value: Int)
 }

@@ -3,6 +3,7 @@ package emerald.apps.fairychess.model
 import emerald.apps.fairychess.model.Bitboard.Companion.castlingMoves
 import emerald.apps.fairychess.model.Bitboard.Companion.enpassanteSquares
 import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromCoordinate
+import emerald.apps.fairychess.model.Bitboard.Companion.getPosition
 import kotlin.random.Random
 import kotlin.random.nextULong
 
@@ -74,6 +75,7 @@ class ZobristHash(figureNameList : List<String>) {
      * into a number of a set length */
     fun generateHash(bitboard: Bitboard) : ULong {
         var hashKey = initHash
+        //xor all pieces
         for(rank in 0..7) {
             for (file in 0..7) {
                 val coordinate = Bitboard.Companion.Coordinate(rank,file)
@@ -83,13 +85,16 @@ class ZobristHash(figureNameList : List<String>) {
                 hashKey = hashKey xor pieceMap[generateMapKey(pieceColor,pieceName,rank,file)]!!
             }
         }
+        //xor castling moves
         val castlingMoves = bitboard.getCastlingRights(bitboard.moveColor)
         for(castlingMove in castlingMoves){
             hashKey = hashKey xor castlingRightMap[castlingMove]!!
         }
+        //xor enpassante
         if(bitboard.enpassanteSquare != null && enpassanteSquareMap.containsKey(bitboard.enpassanteSquare.hashCode())){
             hashKey = hashKey xor enpassanteSquareMap[bitboard.enpassanteSquare.hashCode()]!!
         }
+        //xor movecolor
         if(bitboard.moveColor == "black")hashKey = hashKey xor sideToMoveIsBlack
         lastHash = hashKey
         return lastHash

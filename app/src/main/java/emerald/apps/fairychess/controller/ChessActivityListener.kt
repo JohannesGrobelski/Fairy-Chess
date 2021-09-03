@@ -9,7 +9,6 @@ import android.widget.*
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.model.*
-import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import emerald.apps.fairychess.model.TimerUtils.Companion.transformLongToTimeString
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
@@ -79,10 +78,10 @@ import kotlinx.android.synthetic.main.activity_chess_white_perspective.H6
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H7
 import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
 import kotlinx.coroutines.*
-import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
 /** controller that propagates inputs from view to model and changes from model to view */
+@ExperimentalUnsignedTypes
 class ChessActivityListener() : MultiplayerDBGameInterface
     , ChessTimerPlayer.ChessTimerPlayerInterface
     , ChessTimerOpponent.ChessTimerOpponentInterface {
@@ -219,7 +218,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                             }
                             println("move: "+aiMovement.asString("black"))
                             println("calcTime: $calcTime ms")
-                            println("cnt_movements: "+chessAI.cnt_movements)
+                            println("cnt_movements: "+chessAI.moveCounter)
                             println("transpositionTableHits: "+chessAI.transpositionTableHits)
                             println("transpositionTableFails: "+chessAI.transpositionTableFails)
                             println("transpositionTableSize: "+chessAI.transpositionTable.size)
