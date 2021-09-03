@@ -210,6 +210,7 @@ class ChessAITest {
         println(bitboard.toString())
     }
 
+    //TODO: test ai still hangs figures
 
     @Test
     fun test(){

@@ -9,7 +9,7 @@ import kotlin.math.min
 class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
-    private var recursionDepth = 6
+    private var recursionDepth = 4
     private var cntHashHits = 0
     private var cntHashFails = 0
 
@@ -35,7 +35,7 @@ class ChessAI {
     }
 
     //Fields for move ordering
-    val transpositionTable = Hashtable<ULong, MinimaxResult>()
+    val transpositionTable = Hashtable<ULong, Int>() //map from zobristHash(Bitboard) -> value(Bitboard)
 
     fun calcMove(bitboard: Bitboard) : Movement{
         cnt_movements = 0
@@ -57,8 +57,8 @@ class ChessAI {
     class MinimaxResult(val movement: Movement, val value: Int)
 
     fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult{
-        var _alpha = alpha
-        var _beta = beta
+        var newAlpha = alpha
+        var newBeta = beta
         if(level <= 0){
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
@@ -67,40 +67,34 @@ class ChessAI {
             if(allMovesList.isNotEmpty()){
                 var bestValue : Int
                 if(bitboard.moveColor == "black"){
-                    //find best move (highest points for black) by going through all possible moves
-                    bestValue = Int.MIN_VALUE
+                    bestValue = Int.MIN_VALUE //find best move (max(getPointDifBW) for black)
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
-                        ++cnt_movements
-                        bitboard.move(bitboard.moveColor,move)
-                        val valuePosition = getValueOfPosition(bitboard, move, level, _alpha, _beta)
+                        bitboard.move(bitboard.moveColor,move); ++cnt_movements
+                        val valuePosition = getValueOfPosition(bitboard, move, level, newAlpha, newBeta)
                         if(valuePosition > bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
                         }
                         if(valuePosition == bestValue)equalMoves.add(move)
                         bitboard.set(copyBitboard)
-                        //beta cutoff
-                        if(valuePosition >= _beta)break
-                        _alpha = max(_alpha,valuePosition)
+                        if(valuePosition >= newBeta)break //beta cutoff
+                        newAlpha = max(newAlpha,valuePosition)
                     }
                 } else {
-                    //find best move (highest points for white) by going through all possible moves
-                    bestValue = Int.MAX_VALUE
+                    bestValue = Int.MAX_VALUE //find best move (min(getPointDifBW) for white)
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
-                        ++cnt_movements
-                        bitboard.move(bitboard.moveColor,move)
-                        val valuePosition = getValueOfPosition(bitboard, move, level, _alpha, _beta)
+                        bitboard.move(bitboard.moveColor,move); ++cnt_movements
+                        val valuePosition = getValueOfPosition(bitboard, move, level, newAlpha, newBeta)
                         if(valuePosition < bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
                         }
                         if(valuePosition == bestValue)equalMoves.add(move)
                         bitboard.set(copyBitboard)
-                        //alpha cutoff
-                        if(valuePosition <= _alpha)break
-                        _beta = min(_beta,valuePosition)
+                        if(valuePosition <= newAlpha)break //alpha cutoff
+                        newBeta = min(newBeta,valuePosition)
                     }
                 }
                 return MinimaxResult(heuristic(equalMoves),bestValue)
@@ -116,10 +110,10 @@ class ChessAI {
         val hash = zobristHash.generateHash(bitboard)
         valuePosition = 0
         if(transpositionTable.keys.contains(hash)){
-            transpositionTable[hash]!!.value; ++transpositionTableHits
+            transpositionTable[hash]!!; ++transpositionTableHits
         } else {
             valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value; ++transpositionTableFails
-            transpositionTable[hash] = MinimaxResult(move,valuePosition)
+            transpositionTable[hash] = valuePosition
         }
         return valuePosition
     }
@@ -133,7 +127,6 @@ class ChessAI {
     fun getPointDifBW(bitboard: Bitboard) : Int{
         return bitboard.pointsBlack() - bitboard.pointsWhite()
     }
-
 
     class MovementValue(val movement: Movement?, val value: Int)
 }
