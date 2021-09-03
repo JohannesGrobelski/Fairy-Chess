@@ -10,7 +10,7 @@ class ChessAI {
     //Settings
     private val algorithm = "alphabeta"
     private val zobristOn = true
-    private var recursionDepth = 2
+    private var recursionDepth = 4
 
     //DEBUG
     var moveCounter = 0

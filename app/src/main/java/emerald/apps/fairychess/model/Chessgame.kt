@@ -1,7 +1,8 @@
 package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.controller.MainActivityListener
-import emerald.apps.fairychess.utility.ChessFormationParser
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.CHESS960
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.parseChessFormation
 import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
 
@@ -23,12 +24,13 @@ class Chessgame() {
         gameData: MultiplayerDB.GameData,
         gameParameters: MainActivityListener.GameParameters
     ) : this() {
-        val chessFormationArray: Array<Array<String>> = ChessFormationParser.parseChessFormation(
+        val chessFormationArray: Array<Array<String>> = parseChessFormation(
             chessActivity, gameParameters.name.replace(
                 " ",
                 "_"
-            )
+            ), gameParameters.name==CHESS960
         )
+
         figureMap = FigureParser.parseFigureMapFromFile(chessActivity)
 
         bitboard = Bitboard(chessFormationArray, figureMap)

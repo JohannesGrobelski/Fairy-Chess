@@ -29,6 +29,21 @@ class ParserTest {
     }
 
     @Test
+    fun testChess960(){
+       val c960 = ChessFormationParser.generateChess960Position(
+           arrayOf(arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"),
+               arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
+               arrayOf("bishop", "pawn", "", "", "", "", "pawn", "bishop"),
+               arrayOf("queen", "pawn", "", "", "", "", "pawn", "queen"),
+               arrayOf("king", "pawn", "", "", "", "", "pawn", "king"),
+               arrayOf("bishop", "pawn", "", "", "", "", "pawn", "bishop"),
+               arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
+               arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"))
+       )
+       println(c960)
+    }
+
+    @Test
     fun testParsing() {
         val chessFormationArray: Array<Array<String>> = parseChessFormation("normal_chess")
         val figureMap : Map<String, FigureParser.Figure> = parseFigureMapFromFile()
