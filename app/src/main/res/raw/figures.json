@@ -31,7 +31,7 @@
       "movement": "~1/2"
     },
     {
-      "name": "berolina",
+      "name": "berolinaPawn",
       "value": 2,
       "movement": "o1X>,c1>,oi2X>"
     },

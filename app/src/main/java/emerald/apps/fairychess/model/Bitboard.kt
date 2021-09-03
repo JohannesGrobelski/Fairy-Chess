@@ -70,7 +70,7 @@ class Bitboard(
             }
             val figureList = mutableListOf<Coordinate>()
             for(figureName in bbFigures.keys){
-                if(figureName.contains("pawn"))pawnName = figureName
+                if(figureName.toLowerCase().contains("pawn"))pawnName = figureName
                 figureList.addAll(generateCoordinatesFrom64BPosition(bbFigures[figureName]?.get(0) ?: 0uL))
                 figureList.addAll(generateCoordinatesFrom64BPosition(bbFigures[figureName]?.get(1) ?: 0uL))
             }
@@ -122,6 +122,7 @@ class Bitboard(
 
     fun clone() : Bitboard{
         val newBitboard = Bitboard(figureMap)
+        newBitboard.pawnName = pawnName
         for(key in bbFigures.keys){
             newBitboard.bbFigures[key] = bbFigures[key]!!.clone()
         }
@@ -1027,6 +1028,10 @@ class Bitboard(
         for (rank in 0..7) {
             val firstFile = 2.0.pow((0 * 8 + rank).toDouble()).toULong()
             val lastFile = 2.0.pow((7 * 8 + rank).toDouble()).toULong()
+            if(!bbFigures.containsKey(pawnName)
+                || bbFigures[pawnName]!!.size != 2){
+                println()
+            }
             if((bbFigures[pawnName]?.get(0)!! and lastFile) == lastFile){
                 promotionCoordinate = Coordinate(rank,7)
             }

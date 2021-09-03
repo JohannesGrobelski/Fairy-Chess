@@ -211,7 +211,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 if(gameParameters.playMode=="ai"){
                     //calculate ai move in coroutine to avoid blocking the ui thread
                     calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
-                        try{
                             var aiMovement :Movement
                             val calcTime = measureTimeMillis {
                                 aiMovement = chessAI.calcMove(chessgame.getBitboard().clone())
@@ -227,20 +226,18 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                                 displayFigures()
                                 Toast.makeText(chessActivity,"AI: "+aiMovement.asString("black"),Toast.LENGTH_LONG)
                             }
-                        } catch (e: Exception) {
-                            throw RuntimeException("To catch any exception thrown for yourTask", e)
                         }
                     }
                 }
                 displayFigures()
-            }
-            //mark the clicked view
-            markFigure(clickedView)
-            if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1){
-                displayTargetMovements()
-            }
+        }
+        //mark the clicked view
+        markFigure(clickedView)
+        if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1){
+            displayTargetMovements()
         }
     }
+
 
     fun handlePromotion() : String{
         if(chessgame.getBitboard().promotionCoordinate != null) {
@@ -419,7 +416,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             return R.drawable.white_knight
         } else if (color == "white" && type == "rook") {
             return R.drawable.white_rook
-        } else if (color == "white" && type == "berolina") {
+        } else if (color == "white" && type == "berolinaPawn") {
             return R.drawable.white_berolina
         } else if (color == "white" && type == "grasshopper") {
             return R.drawable.white_grasshopper
@@ -435,7 +432,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             return R.drawable.black_knight
         } else if (color == "black" && type == "rook") {
             return R.drawable.black_rook
-        } else if (color == "black" && type == "berolina") {
+        } else if (color == "black" && type == "berolinaPawn") {
             return R.drawable.black_berolina
         } else if (color == "black" && type == "grasshopper") {
             return R.drawable.black_grasshopper

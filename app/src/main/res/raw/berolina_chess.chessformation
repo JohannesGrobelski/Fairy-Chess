@@ -3,11 +3,11 @@
 //file: [figure1,...figure8]
 {
     [rook,knight,bishop,king,queen,bishop,knight,rook],
-    [berolina,berolina,berolina,berolina,berolina,berolina,berolina,berolina],
+    [berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn],
     [,,,,,,,],
     [,,,,,,,],
     [,,,,,,,],
     [,,,,,,,],
-    [berolina,berolina,berolina,berolina,berolina,berolina,berolina,berolina],
+    [berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn,berolinaPawn],
     [rook,knight,bishop,queen,king,bishop,knight,rook],
 }
