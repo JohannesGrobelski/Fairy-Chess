@@ -68,9 +68,6 @@ class ChessAI {
                     bestValue = Int.MIN_VALUE //find best move (max(getPointDifBW) for black)
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
-                        if(level == 4 && move.equalCoordinates(Movement(0,7,0,4))){
-                            println()
-                        }
                         bitboard.move(bitboard.moveColor,move); ++moveCounter
                         val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta)
                         if(valuePosition > bestValue){

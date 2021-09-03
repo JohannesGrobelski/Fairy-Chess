@@ -81,6 +81,8 @@ class ChessAIPerformanceTest {
         //println("timeChoose: $timeChoose ms ("+(timeChoose.toDouble()/timeOverall.toDouble())*100+"%)")
     }
 
+
+
     @Test
     fun testSearchPerformance(){
         var timeParameters = 0; var timeMoveGeneration = 0; var timeDeleteIllegalMoves = 0; var timeSpecialMoveGeneration = 0; var timeTransformation = 0
