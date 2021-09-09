@@ -2,9 +2,11 @@ package emerald.apps.fairychess.utility
 
 import android.content.Context
 import android.util.Log
+import android.util.Range
 import java.io.IOException
 import java.io.InputStream
 import java.lang.Math.*
+import java.util.*
 
 /** parse chessformation-File to a 2D-Array of figure-String (Array<Array<String>>)
  * in (row,file) format */
@@ -66,65 +68,42 @@ class ChessFormationParser {
 
 
         fun getChess960Permutation() : Array<String> {
-            val outputArray = arrayOf("","","","","","","","")
-            var firstBishop = -1; var secondBishop = -1
-            var firstRook = -1; var secondRook = -1
-            var king = -1
-            var firstKnight = -1; var secondKnight = -1
+            var outputArray = arrayOf("","","","","","","","")
 
-            //place first bishop
-            firstBishop = (0..7).toList()[(Math.random()*8).toInt()]
-            outputArray[firstBishop] = "bishop"
-            //place second bishop
-            while(secondBishop == -1 || secondBishop == firstBishop%2){
-                secondBishop = (0..7).toList()[(Math.random()*8).toInt()]
+            outputArray = placeFigureRandomly("king",outputArray,-1,1 until 7)
+            val kingIndex = outputArray.toList().indexOf("king")
+            outputArray = placeFigureRandomly("rook",outputArray,-1, 0 until kingIndex)
+            outputArray = placeFigureRandomly("rook",outputArray,-1,(kingIndex+1)..7)
+            outputArray = placeFigureRandomly("bishop",outputArray)
+            val bishopIndex = outputArray.toList().indexOf("bishop")
+            outputArray = placeFigureRandomly("bishop",outputArray,(bishopIndex+1)%2)
+            if(Collections.frequency(outputArray.toList(),"bishop") != 2){
+                outputArray = placeFigureRandomly("bishop",outputArray,(bishopIndex+1)%2)
             }
-            outputArray[secondBishop] = "bishop"
-            //place first rook
-            while(firstRook == -1 || outputArray[firstRook].isNotEmpty()){
-                firstRook = (0..7).toList()[(Math.random()*8).toInt()]
-            }
-            outputArray[firstRook] = "rook"
-            //place second rook
-            while(secondRook == -1 || outputArray[secondRook].isNotEmpty()){
-                val leftRook = min(firstRook,secondRook)
-                val rightRook = max(firstRook,secondRook)
-                var placeForKing = false
-                for(i in leftRook+1 until rightRook){
-                    if(outputArray[i].isEmpty()){
-                        placeForKing = (secondRook != -1 && outputArray[secondRook].isEmpty())
-                        break
-                    }
-                }
-                if(placeForKing)break
-                secondRook = (0..7).toList()[(Math.random()*8).toInt()]
-            }
-            outputArray[secondRook] = "rook"
-            //place king
-            val leftRook = min(firstRook,secondRook)
-            val rightRook = max(firstRook,secondRook)
-            while(king == -1 || outputArray[king].isNotEmpty()){
-                king = (leftRook+1 until rightRook).toList()[(Math.random()*abs(secondRook - firstRook)).toInt()]
-            }
-            outputArray[king] = "king"
-            //place first knight
-            while(firstKnight == -1 || outputArray[firstKnight].isNotEmpty()){
-                firstKnight = (0..7).toList()[(Math.random()*8).toInt()]
-            }
-            outputArray[firstKnight] = "knight"
-            //place second knight
-            while(secondKnight == -1 || outputArray[secondKnight].isNotEmpty()){
-                secondKnight = (0..7).toList()[(Math.random()*8).toInt()]
-            }
-            outputArray[secondKnight] = "knight"
-            //place queen
-            for(i in 0..7){
-                if(outputArray[i].isEmpty()){
-                    outputArray[i] = "queen"
-                    break
-                }
-            }
+
+            outputArray = placeFigureRandomly("knight",outputArray)
+            outputArray = placeFigureRandomly("knight",outputArray)
+            outputArray = placeFigureRandomly("queen",outputArray)
             return outputArray
+        }
+
+        fun placeFigureRandomly(figure: String, inputArray: Array<String>, modulo2 : Int = -1, range : IntRange = (0..7)) : Array<String>{
+            //find number of free spaces and select a random index
+            var freeSpaces = Collections.frequency(inputArray.toList().subList(range.first,range.last+1),"")
+            var randomFreeSpaceIndex = (random()*freeSpaces).toInt()
+            var freeSpaceCount = 0
+            //find the list index of the random free space index
+            for(i in range){
+                if(inputArray[i] == ""){
+                    if((modulo2 == -1 && freeSpaceCount == randomFreeSpaceIndex)
+                    || (modulo2 != -1 && i%2 == modulo2)){
+                        inputArray[i] = figure
+                        return inputArray
+                    }
+                    ++freeSpaceCount
+                }
+            }
+            return inputArray
         }
 
 

@@ -9,6 +9,7 @@ import org.junit.runner.RunWith
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
+import java.util.*
 
 @RunWith(AndroidJUnit4::class)
 class ParserTest {
@@ -30,6 +31,34 @@ class ParserTest {
 
     @Test
     fun testChess960(){
+       //test
+       for(i in 0..1000000){
+           val cArray = ChessFormationParser.getChess960Permutation()
+           //check frequency of figures
+           assertEquals(2, Collections.frequency(cArray.toList(),"rook"))
+           assertEquals(2, Collections.frequency(cArray.toList(),"knight"))
+           assertEquals(2, Collections.frequency(cArray.toList(),"bishop"))
+           assertEquals(1, Collections.frequency(cArray.toList(),"queen"))
+           assertEquals(1, Collections.frequency(cArray.toList(),"king"))
+
+           var rooksSeen = 0
+           var indexFirstBishop = -1
+           for(i in 0..7){
+             if(cArray[i] == "rook"){++rooksSeen}
+             if(cArray[i] == "king"){
+                 if(rooksSeen != 1)println()
+                 assertEquals(1,rooksSeen) //king between rooks
+             }
+             if(cArray[i] == "bishop"){
+                 if(indexFirstBishop == -1)indexFirstBishop = i
+                 else {
+                     assertTrue(i%2 != indexFirstBishop%2) //bishops have different colors
+                 }
+             }
+           }
+       }
+
+
        val c960 = ChessFormationParser.generateChess960Position(
            arrayOf(arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"),
                arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
@@ -40,7 +69,7 @@ class ParserTest {
                arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
                arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"))
        )
-       println(c960)
+       //println(c960)
     }
 
     @Test
