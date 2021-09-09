@@ -31,7 +31,7 @@ class ChessFormationParser {
         }
 
         /** create inputstream from file and then parse JSON string from inputstream */
-        fun parseChessFormation(context: Context, fileName: String, isChess960 : Boolean = false) : Array<Array<String>> {
+        fun parseChessFormation(context: Context, fileName: String, chessFormationString : String) : Array<Array<String>> {
             try {
                 val inputStream = context.resources.openRawResource(
                     context.resources.getIdentifier(
@@ -46,7 +46,7 @@ class ChessFormationParser {
                         )
                     )
                 )
-                return if(isChess960)generateChess960Position(originalChessFormation)
+                return if(chessFormationString.isNotEmpty())generateChess960Position(originalChessFormation,chessFormationString)
                 else originalChessFormation
             } catch (e: Exception){
                 println(e.message.toString())
@@ -54,22 +54,46 @@ class ChessFormationParser {
             return arrayOf()
         }
 
-        fun generateChess960Position(inputArray: Array<Array<String>>): Array<Array<String>> {
-            val chessPermutation = getChess960Permutation()
+        /** creates a random chess formation that which meets the conditions for chess960 */
+        fun generateChess960Position(inputArray: Array<Array<String>>, chessFormationString: String): Array<Array<String>> {
             val rotatedArray = rotate2DArray(inputArray)
-            return arrayOf(
-                chessPermutation,
-                rotatedArray[1].clone(), rotatedArray[2].clone(), rotatedArray[3].clone(),
-                rotatedArray[4].clone(), rotatedArray[5].clone(), rotatedArray[6].clone(),
-                chessPermutation,
+            val homeRank = getFigureArrayFromString(chessFormationString)
+            return rotate2DArray(arrayOf(
+                    homeRank,
+                    rotatedArray[1].clone(), rotatedArray[2].clone(), rotatedArray[3].clone(),
+                    rotatedArray[4].clone(), rotatedArray[5].clone(), rotatedArray[6].clone(),
+                    homeRank,
+                )
             )
         }
 
+        fun getFigureArrayFromString(chessFormationString: String) : Array<String> {
+            val homeRank = mutableListOf<String>()
+            for(f in chessFormationString.split("")){
+                when(f){
+                    "r" -> homeRank.add("rook")
+                    "n" -> homeRank.add("knight")
+                    "b" -> homeRank.add("bishop")
+                    "q" -> homeRank.add("queen")
+                    "k" -> homeRank.add("king")
+                }
+            }
+            return homeRank.toTypedArray()
+        }
 
+        fun getChess960PermAsString() : String{
+            var permutationString = java.lang.StringBuilder("")
+            val permutationArray = getChess960Permutation()
+            for(i in permutationArray.indices){
+                if(permutationArray[i] == "knight")permutationString.append("n")
+                else permutationString.append(permutationArray[i][0])
+            }
+            return permutationString.toString()
+        }
 
+        /** creates a random home rank which meets the conditions for chess960 */
         fun getChess960Permutation() : Array<String> {
             var outputArray = arrayOf("","","","","","","","")
-
             outputArray = placeFigureRandomly("king",outputArray,-1,1 until 7)
             val kingIndex = outputArray.toList().indexOf("king")
             outputArray = placeFigureRandomly("rook",outputArray,-1, 0 until kingIndex)
@@ -80,13 +104,13 @@ class ChessFormationParser {
             if(Collections.frequency(outputArray.toList(),"bishop") != 2){
                 outputArray = placeFigureRandomly("bishop",outputArray,(bishopIndex+1)%2)
             }
-
             outputArray = placeFigureRandomly("knight",outputArray)
             outputArray = placeFigureRandomly("knight",outputArray)
             outputArray = placeFigureRandomly("queen",outputArray)
             return outputArray
         }
 
+        /** places figure randomly inside inputArray (in range) or chooses first free space in case of modulo != -1 */
         fun placeFigureRandomly(figure: String, inputArray: Array<String>, modulo2 : Int = -1, range : IntRange = (0..7)) : Array<String>{
             //find number of free spaces and select a random index
             var freeSpaces = Collections.frequency(inputArray.toList().subList(range.first,range.last+1),"")

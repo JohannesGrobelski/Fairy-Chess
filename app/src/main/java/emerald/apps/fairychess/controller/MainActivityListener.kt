@@ -17,6 +17,9 @@ import emerald.apps.fairychess.model.ChessRatingSystem
 import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDB.Companion.matchmakingWinningChanceOffset
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.CHESS960
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.getChess960PermAsString
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.getChess960Permutation
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
 import kotlinx.android.synthetic.main.activity_main.*
@@ -58,6 +61,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         const val gamePlayerNameExtra = "playerNameExtra"
         const val gamePlayerStatsExtra = "playerStatsExtra"
         const val gameOpponentNameExtra = "opponentNameExtra"
+        const val gameChess960FormationExtra = "gameChess960FormationExtra"
         const val gameOpponentStatsExtra = "opponentStatsExtra"
         const val gameModeExtra = "gameMode"
         const val gameNameExtra = "name"
@@ -200,7 +204,11 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             gameParameters.playerColor = "white"
             val diffAi = spinner_diff.selectedItem.toString().toDouble()
             this.opponentStats = MultiplayerDB.PlayerStats(0L,0L,0L,diffAi)
-            val gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi)
+            var gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi)
+            if(gameParameters.name == CHESS960){
+                gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi,
+                    getChess960PermAsString())
+            }
             start_gameWithParameters(gameData,gameParameters)
         }
 
@@ -276,7 +284,12 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         btn_search_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString()
             gameParameters.time = spinner_timemode.selectedItem.toString()
-            multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
+            if(gameParameters.name == CHESS960){
+                multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO,
+                    getChess960PermAsString())
+            } else {
+                multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
+            }
         }
         searchDialog.show()
     }
@@ -330,11 +343,13 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         intent.putExtra(gamePlayerNameExtra, gameData.playerID)
         intent.putExtra(gamePlayerStatsExtra, playerStats)
         intent.putExtra(gameOpponentNameExtra, gameData.opponentID)
+        intent.putExtra(gameChess960FormationExtra, gameData.chess960Formation)
         intent.putExtra(gameOpponentStatsExtra, opponentStats)
         intent.putExtra(gameNameExtra, gameParameters.name)
         intent.putExtra(gameModeExtra, gameParameters.playMode)
         intent.putExtra(gameTimeExtra, gameParameters.time)
         intent.putExtra(playerColorExtra, gameParameters.playerColor)
+
         mainActivity.startActivity(intent)
     }
 
@@ -434,7 +449,15 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                 AlertDialog.Builder(mainActivity)
                     .setTitle("no games found")
                     .setPositiveButton("create game"
-                    ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)}
+                    ) { _, _ -> kotlin.run{
+                        if(gameParameters.name == CHESS960){
+                            multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO,
+                            getChess960PermAsString())
+                        } else {
+                            multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
+                        }
+                        }
+                    }
                     .setNegativeButton("close",null)
                     .show()
             }
@@ -442,7 +465,15 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             AlertDialog.Builder(mainActivity)
                 .setTitle("no games found")
                 .setPositiveButton("create game"
-                ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)}
+                ) { _, _ -> kotlin.run{
+                    if(gameParameters.name == CHESS960){
+                        multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO,
+                            getChess960PermAsString())
+                    } else {
+                        multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
+                    }
+                }
+                }
                 .setNegativeButton("close",null)
                 .show()
         }

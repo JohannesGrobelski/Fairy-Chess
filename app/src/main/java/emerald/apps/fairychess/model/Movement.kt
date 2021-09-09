@@ -55,7 +55,7 @@ open class Movement(val movementNotation : MovementNotation = MovementNotation("
         }
 
         fun fromMovementToString(movement: Movement) : String {
-            return movement.sourceFile.toString()+"_"+movement.sourceRank+"_"+movement.targetFile.toString()+"_"+movement.targetRank
+            return movement.sourceRank.toString()+"_"+movement.sourceFile+"_"+movement.targetRank.toString()+"_"+movement.targetFile
         }
 
         fun fromStringToMovement(string: String) : Movement {
@@ -130,11 +130,6 @@ class PromotionMovement(movementNotation : MovementNotation = MovementNotation("
             : this(MovementNotation("", emptyList(),"",emptyList(),""),sourceRank, sourceFile, targetRank, targetFile,promotion)
 
     companion object {
-        fun fromMovementToString(promotionMovement: PromotionMovement): String {
-            return promotionMovement.sourceRank.toString() + "_" + promotionMovement.sourceFile + "_" +
-                    promotionMovement.targetRank.toString() + "_" + promotionMovement.targetFile+"_"+promotionMovement.promotion
-        }
-
         fun fromStringToMovement(string: String): Movement {
             val coordinates = string.split("_")
             if (coordinates.size == 5) {

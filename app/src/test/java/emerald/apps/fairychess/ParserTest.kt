@@ -58,7 +58,6 @@ class ParserTest {
            }
        }
 
-
        val c960 = ChessFormationParser.generateChess960Position(
            arrayOf(arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"),
                arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
@@ -69,7 +68,7 @@ class ParserTest {
                arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
                arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"))
        )
-       //println(c960)
+       println(c960.toString())
     }
 
     @Test

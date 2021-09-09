@@ -28,7 +28,7 @@ class Chessgame() {
             chessActivity, gameParameters.name.replace(
                 " ",
                 "_"
-            ), gameParameters.name==CHESS960
+            ), gameData.chess960Formation
         )
 
         figureMap = FigureParser.parseFigureMapFromFile(chessActivity)

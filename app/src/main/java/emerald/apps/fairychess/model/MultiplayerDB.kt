@@ -61,6 +61,8 @@ class MultiplayerDB {
         const val GAMEFIELD_PLAYER2ID = "player2ID"
         const val GAMEFIELD_PLAYER2Color = "player2Color"
         const val GAMEFIELD_PLAYER2ELO = "player2ELO"
+        const val GAMEFIELD_CHESS960_FORMATION = "chess960Formation"
+
     }
 
     private var multiplayerDBSearchInterface : MultiplayerDBSearchInterface? = null //interface implemented by mainactivitylistener
@@ -130,12 +132,14 @@ class MultiplayerDB {
 
     fun writePlayerMovement(gameId: String, movement: Movement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        gameRef.update("moves", FieldValue.arrayUnion(Movement.fromMovementToString(movement)));
+        val moveString = Movement.fromMovementToString(movement)
+        gameRef.update("moves", FieldValue.arrayUnion(moveString))
     }
 
     fun writePlayerMovement(gameId: String, promotionMovement: PromotionMovement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        gameRef.update("moves", FieldValue.arrayUnion(Movement.fromMovementToString(promotionMovement)));
+        val moveString = Movement.fromMovementToString(promotionMovement)
+        gameRef.update("moves", FieldValue.arrayUnion(moveString));
     }
 
     /**
@@ -184,7 +188,7 @@ class MultiplayerDB {
      * when finished call the callback function (onCreateGame in MainActivityListener)
      * @return document_id of the gameMode
      */
-    fun createGame(gameName: String, timeMode: String, player1ID: String, player1ELO: Double) {
+    fun createGame(gameName: String, timeMode: String, player1ID: String, player1ELO: Double, chess960Formation : String = "") {
         // Create a new gameMode hashmap
         val player1Color = Bitboard.randomColor()
         val player2Color = Bitboard.oppositeColor(player1Color)
@@ -199,6 +203,9 @@ class MultiplayerDB {
             GAMEFIELD_PLAYER2ID to "",
             GAMEFIELD_PLAYER2Color to player2Color
         )
+        if(chess960Formation.isNotEmpty()){
+            gameHash[GAMEFIELD_CHESS960_FORMATION] = chess960Formation
+        }
         // Add a new document with a generated ID
         db.collection(GAMECOLLECTIONPATH)
             .add(gameHash)
@@ -246,7 +253,7 @@ class MultiplayerDB {
     }
 
 
-    class GameData(val gameId: String, val playerID: String, val opponentID: String, var playerELO: Double, var opponentELO :Double)
+    class GameData(val gameId: String, val playerID: String, val opponentID: String, var playerELO: Double, var opponentELO :Double, var chess960Formation : String = "")
     /** get GameData for gameID and if successful call onJoinGame */
     fun getGameDataAndJoinGame(gameId: String,userName: String){
         db.collection(GAMECOLLECTIONPATH)
@@ -258,6 +265,10 @@ class MultiplayerDB {
                     val player2ID = docRef.getString(GAMEFIELD_PLAYER2ID)!!
                     val player1ELO = docRef.getDouble(GAMEFIELD_PLAYER1ELO)!!
                     val player2ELO = docRef.getDouble(GAMEFIELD_PLAYER2ELO)!!
+                    var chess960FormationString = ""
+                    if(docRef.contains(GAMEFIELD_CHESS960_FORMATION)){
+                        chess960FormationString = docRef.getString(GAMEFIELD_CHESS960_FORMATION)!!
+                    }
                     var opponentID = player1ID
                     var playerELO = player2ELO
                     var opponentELO = player1ELO
@@ -265,7 +276,7 @@ class MultiplayerDB {
                         opponentID = player2ID
                         opponentELO = player2ELO
                     }
-                    val gameData = GameData(gameId,userName,opponentID,playerELO,opponentELO)
+                    val gameData = GameData(gameId,userName,opponentID,playerELO,opponentELO,chess960FormationString)
 
                     val name = docRef.getString(GAMEFIELD_GAMENAME)!!
                     val playMode = "human"

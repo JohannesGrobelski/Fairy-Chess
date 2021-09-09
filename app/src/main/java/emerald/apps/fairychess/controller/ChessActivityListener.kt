@@ -125,7 +125,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             chessActivity.intent.getStringExtra(MainActivityListener.gamePlayerNameExtra)!!,
             chessActivity.intent.getStringExtra(MainActivityListener.gameOpponentNameExtra)!!,
             playerStats.ELO,
-            opponentStats.ELO
+            opponentStats.ELO,
+            chessActivity.intent.getStringExtra(MainActivityListener.gameChess960FormationExtra)!!,
         )
         gameParameters = MainActivityListener.GameParameters(
             chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!,
