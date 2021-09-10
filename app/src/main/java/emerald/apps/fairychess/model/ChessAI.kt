@@ -7,8 +7,13 @@ import kotlin.math.min
 
 @ExperimentalUnsignedTypes
 class ChessAI {
+    companion object {
+        private enum class ALGORITHMS {
+           ALPHA_BETA, ITERATIVE_DEEPENING
+        }
+    }
     //Settings
-    private val algorithm = "alphabeta"
+    private val algorithm = ALGORITHMS.ITERATIVE_DEEPENING
     private val zobristOn = true
     private var recursionDepth = 4
 
@@ -39,8 +44,11 @@ class ChessAI {
         moveCounter = 0
         zobristHash = ZobristHash(bitboard.figureMap.keys.toMutableList())
         when (algorithm) {
-            "alphabeta" -> {
+            ALGORITHMS.ALPHA_BETA -> {
                 return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
+            }
+            ALGORITHMS.ITERATIVE_DEEPENING -> {
+                return iterativeDeepening(bitboard, recursionDepth).movement
             }
         }
         return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
@@ -53,6 +61,17 @@ class ChessAI {
 
 
     class MinimaxResult(val movement: Movement, val value: Int)
+
+    fun iterativeDeepening(bitboard: Bitboard, maxDistance: Int) : MinimaxResult {
+        var distance = 1
+        val outOfTime = false
+        var bestmove = MinimaxResult(emptyMovement(), Int.MIN_VALUE)
+        while (distance < maxDistance && !outOfTime) {
+            bestmove = alphabeta(bitboard, distance,Int.MIN_VALUE, Int.MAX_VALUE)
+            distance++
+        }
+        return bestmove
+    }
 
     fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult{
         var newAlpha = alpha
