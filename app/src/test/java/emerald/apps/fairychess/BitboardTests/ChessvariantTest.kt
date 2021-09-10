@@ -6,13 +6,15 @@ import emerald.apps.fairychess.model.ChessGameUnitTest
 import emerald.apps.fairychess.model.Movement
 import emerald.apps.fairychess.model.MovementNotation
 import emerald.apps.fairychess.utility.ChessFormationParser
-import emerald.apps.fairychess.utility.ChessFormationParser.Companion.getChess960PermAsString
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.getAllChess960Permutations
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.chessPermArrayToString
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.*
 
 @kotlin.ExperimentalUnsignedTypes
 /** test basic movements of all figure types (pawn,rook,knight,bishop,king,queen) and special moves (en passante and castling)*/
@@ -28,15 +30,32 @@ class ChessvariantTest {
     }
 
     @Test
-    fun testCastlingChess960() {
-        //getChess960PermAsString()
-        //"bbnrqkrn"
-        //tested permutations: arrayOf = ("rkqbbnnr", "rkbrnbqn", "rkrbbnqn", "rnbqnbkr")
+    fun testGetAllChess960Permutations(){
+        //check size
+        var allPermutations : Set<String> = getAllChess960Permutations()
+        //check rules
+        for(permutation in allPermutations){
+            val leftRookIndex = permutation.indexOf('r')
+            val rightRookIndex = permutation.indexOf('r',leftRookIndex+1)
+            val kingIndex = permutation.indexOf('k')
+            val firstBishopIndex = permutation.indexOf('b')
+            val secondBishopIndex = permutation.indexOf('b',firstBishopIndex+1)
+            assertTrue(kingIndex>leftRookIndex)
+            assertTrue(kingIndex<rightRookIndex)
+            assertTrue(firstBishopIndex%2 != secondBishopIndex%2)
+            assertEquals(2,Collections.frequency(permutation.toList(),'r'))
+            assertEquals(2,Collections.frequency(permutation.toList(),'n'))
+            assertEquals(2,Collections.frequency(permutation.toList(),'b'))
+            assertEquals(1,Collections.frequency(permutation.toList(),'k'))
+            assertEquals(1,Collections.frequency(permutation.toList(),'q'))
+        }
+        assertEquals(960,allPermutations.size)
+    }
 
-        //for(i  in arrayOf("rkqbbnnr", "rkbrnbqn", "rkrbbnqn", "rnbqnbkr", "bbnrqkrn", "brkqnnrb", "bnqbnrkr")) {
-        for(i in 0..100000){
-            val permString = getChess960PermAsString()
-            //println(permString)
+
+    @Test
+    fun testCastlingChess960() {
+        for(permString in getAllChess960Permutations()){
             val onlyRooksAndKingPermString = permString.replace("n|q|b".toRegex(), " ")
             val chess960FormationArray =
                 parseChessFormation(chessFormationArray, onlyRooksAndKingPermString)
@@ -63,8 +82,8 @@ class ChessvariantTest {
                 bitboard.getCastlingRights("white").contains(MovementNotation.CASTLING_SHORT_WHITE)
             var longCastlingPossible =
                 bitboard.getCastlingRights("white").contains(MovementNotation.CASTLING_LONG_WHITE)
-            //TODO: assertTrue(shortCastlingPossible)
-            //TODO: assertTrue(longCastlingPossible)
+            assertTrue(shortCastlingPossible)
+            assertTrue(longCastlingPossible)
             var expectedMoves = kingMove
             if (shortCastlingPossible) expectedMoves =
                 expectedMoves or generate64BPositionFromCoordinate(

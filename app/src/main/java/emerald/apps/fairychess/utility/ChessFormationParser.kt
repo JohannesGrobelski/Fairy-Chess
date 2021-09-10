@@ -2,7 +2,6 @@ package emerald.apps.fairychess.utility
 
 import android.content.Context
 import android.util.Log
-import android.util.Range
 import java.io.IOException
 import java.io.InputStream
 import java.lang.Math.*
@@ -82,9 +81,57 @@ class ChessFormationParser {
             return homeRank.toTypedArray()
         }
 
-        fun getChess960PermAsString() : String{
+        fun getAllChess960Permutations() : Set<String> {
+            val allPermutations = mutableSetOf<String>()
+            for(kingIndex in 1..6){
+                val outputString = java.lang.StringBuilder("        ")
+                outputString[kingIndex] = 'k'
+                for(leftRookIndex in 0 until kingIndex) {
+                    outputString[leftRookIndex] = 'r'
+                    for (rightRookIndex in (kingIndex + 1)..7) {
+                        outputString[rightRookIndex] = 'r'
+                        for(firstBishopIndex in 0..7){
+                            if(outputString[firstBishopIndex] == ' '){
+                                outputString[firstBishopIndex] = 'b'
+                                for(secondBishopIndex in 0..7){
+                                    if(outputString[secondBishopIndex] == ' ' && (secondBishopIndex%2 != firstBishopIndex%2)){
+                                        outputString[secondBishopIndex] = 'b'
+                                        for(firstKnightIndex in 0..7){
+                                            if(outputString[firstKnightIndex] == ' '){
+                                                outputString[firstKnightIndex] = 'n'
+                                                for(secondKnightIndex in 0..7){
+                                                    if(outputString[secondKnightIndex] == ' '){
+                                                        outputString[secondKnightIndex] = 'n'
+                                                        for(queenIndex in 0..7){
+                                                            if(outputString[queenIndex] == ' '){
+                                                                outputString[queenIndex] = 'q'
+                                                                allPermutations.add(outputString.toString())
+                                                                outputString[queenIndex] = ' '
+                                                            }
+                                                        }
+                                                        outputString[secondKnightIndex] = ' '
+                                                    }
+                                                }
+                                                outputString[firstKnightIndex] = ' '
+                                            }
+                                        }
+                                        outputString[secondBishopIndex] = ' '
+                                    }
+                                }
+                                outputString[firstBishopIndex] = ' '
+                            }
+                        }
+                        outputString[rightRookIndex] = ' '
+                    }
+                    outputString[leftRookIndex] = ' '
+                }
+            }
+            return allPermutations
+        }
+
+
+        fun chessPermArrayToString(permutationArray : Array<String>) : String{
             var permutationString = java.lang.StringBuilder("")
-            val permutationArray = getChess960Permutation()
             for(i in permutationArray.indices){
                 if(permutationArray[i] == "knight")permutationString.append("n")
                 else permutationString.append(permutationArray[i][0])

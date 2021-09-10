@@ -18,7 +18,7 @@ import emerald.apps.fairychess.model.MultiplayerDB
 import emerald.apps.fairychess.model.MultiplayerDB.Companion.matchmakingWinningChanceOffset
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.utility.ChessFormationParser.Companion.CHESS960
-import emerald.apps.fairychess.utility.ChessFormationParser.Companion.getChess960PermAsString
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.chessPermArrayToString
 import emerald.apps.fairychess.utility.ChessFormationParser.Companion.getChess960Permutation
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
@@ -207,7 +207,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             var gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi)
             if(gameParameters.name == CHESS960){
                 gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi,
-                    getChess960PermAsString())
+                    chessPermArrayToString(getChess960Permutation()))
             }
             start_gameWithParameters(gameData,gameParameters)
         }
@@ -286,7 +286,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             gameParameters.time = spinner_timemode.selectedItem.toString()
             if(gameParameters.name == CHESS960){
                 multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO,
-                    getChess960PermAsString())
+                    chessPermArrayToString(getChess960Permutation()))
             } else {
                 multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
             }
@@ -452,7 +452,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                     ) { _, _ -> kotlin.run{
                         if(gameParameters.name == CHESS960){
                             multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO,
-                            getChess960PermAsString())
+                            chessPermArrayToString(getChess960Permutation()))
                         } else {
                             multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
                         }
@@ -468,7 +468,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                 ) { _, _ -> kotlin.run{
                     if(gameParameters.name == CHESS960){
                         multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO,
-                            getChess960PermAsString())
+                            chessPermArrayToString(getChess960Permutation()))
                     } else {
                         multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
                     }
