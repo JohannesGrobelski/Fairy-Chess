@@ -50,6 +50,8 @@ class Bitboard(
     var enpassanteSquare : Coordinate? = null
 
     //castlingdata
+    var leftRookRank : Int = 0
+    var rightRookRank : Int = 0
     lateinit var selection_king_castlingmove_sw : Movement
     lateinit var selection_king_castlingmove_lw : Movement
     lateinit var selection_king_castlingmove_sb : Movement
@@ -72,8 +74,6 @@ class Bitboard(
     init {
         if(chessFormationArray != null){
             var kingRank = -1
-            var leftRookRank = -1
-            var rightRookRank = -1
             //pass a string representing the chess formation here and update chessFormationArray
             if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
                 for (rank in 0..7) {
@@ -497,12 +497,13 @@ class Bitboard(
             if(whiteKingNotMoved) {
                 //SHORT castling
                 //2. check if rook has not moved
-                bbRook = generate64BPositionFromCoordinate(Coordinate(7, 0))
+                bbRook = generate64BPositionFromCoordinate(Coordinate(rightRookRank, 0))
                 if (bbMovedCaptured and bbRook == 0uL) {
                     //3. no pieces between rook and king
                     bbMoveRoom = bbCastlingRoomShortWhite and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                    if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                    if (bbMoveRoom and bbComposite.inv() == bbMoveRoom
+                    || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(rightRookRank,0)).inv() == 0uL)) {
                         //4. check if king and space between rook and king are not under attack
                         if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
                         if (bbCastlingRoomShortWhite and bbEnemyMoves.inv() == bbCastlingRoomShortWhite) {
@@ -512,12 +513,13 @@ class Bitboard(
                 }
                 //LONG castling
                 //2. check if rook has not moved
-                bbRook = generate64BPositionFromCoordinate(Coordinate(0, 0))
+                bbRook = generate64BPositionFromCoordinate(Coordinate(leftRookRank, 0))
                 if (bbMovedCaptured and bbRook == 0uL) {
                     //3. no pieces between rook and king
                     bbMoveRoom = bbCastlingRoomLongWhite and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                    if (bbMoveRoom and bbComposite.inv() == bbMoveRoom) {
+                    if (bbMoveRoom and bbComposite.inv() == bbMoveRoom
+                    || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(leftRookRank,0)).inv() == 0uL)) {
                         //4. check if king and space between rook and king are not under attack
                         if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
                         if (bbCastlingRoomLongWhite and bbEnemyMoves.inv() == bbCastlingRoomLongWhite) {
@@ -533,12 +535,13 @@ class Bitboard(
             if(blackKingNotMoved) {
                 //SHORT castling
                 //2. check if rook has not moved
-                bbRook = generate64BPositionFromCoordinate(Coordinate(7,7))
+                bbRook = generate64BPositionFromCoordinate(Coordinate(rightRookRank,7))
                 if(bbMovedCaptured and bbRook == 0uL){
                     //3. no pieces between rook and king
                     bbMoveRoom = bbCastlingRoomShortBlack and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                    if(bbMoveRoom and bbComposite.inv().toULong() == bbMoveRoom){
+                    if(bbMoveRoom and bbComposite.inv().toULong() == bbMoveRoom
+                    || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(rightRookRank,0)).inv() == 0uL)) {
                         //4. check if king and space between rook and king are not under attack
                         if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
                         if(bbCastlingRoomShortBlack and bbEnemyMoves.inv() == bbCastlingRoomShortBlack){
@@ -548,12 +551,13 @@ class Bitboard(
                 }
                 //LONG castling
                 //2. check if rook has not moved
-                bbRook = generate64BPositionFromCoordinate(Coordinate(0,7))
+                bbRook = generate64BPositionFromCoordinate(Coordinate(leftRookRank,7))
                 if(bbMovedCaptured and bbRook == 0uL){
                     //3. no pieces between rook and king
                     bbMoveRoom = bbCastlingRoomLongBlack and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
-                    if(bbMoveRoom and bbComposite.inv() == bbMoveRoom){
+                    if(bbMoveRoom and bbComposite.inv() == bbMoveRoom
+                    || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(leftRookRank,0)).inv() == 0uL)) {
                         //4. check if king and space between rook and king are not under attack
                         if(bbEnemyMoves == 0uL)bbEnemyMoves = moveMapToComposite(getAllPossibleMoves(colors[1-ownColorPos],false))
                         if(bbCastlingRoomLongBlack and bbEnemyMoves.inv() == bbCastlingRoomLongBlack){

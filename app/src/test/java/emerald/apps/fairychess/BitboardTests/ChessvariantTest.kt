@@ -1,14 +1,13 @@
 package emerald.apps.fairychess.BitboardTests
 
-import android.content.Context
 import emerald.apps.fairychess.model.Bitboard
 import emerald.apps.fairychess.model.ChessGameUnitTest
 import emerald.apps.fairychess.model.Movement
 import emerald.apps.fairychess.utility.ChessFormationParser
+import emerald.apps.fairychess.utility.ChessFormationParser.Companion.getChess960PermAsString
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert
 import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -27,40 +26,49 @@ class ChessvariantTest {
 
     @Test
     fun testCastlingChess960() {
-        val permString = "rkqbbnnr"
+        val permString = "rkbrnbqn" //getChess960PermAsString(), "rkqbbnnr"
         val onlyRooksAndKingPermString = permString.replace("n|q|b".toRegex()," ")
         val chess960FormationArray = parseChessFormation(chessFormationArray,onlyRooksAndKingPermString)
         val bitboard = Bitboard(chess960FormationArray,figureMap,isChess960 = true)
 
+        val kingRank = permString.indexOf('k')
+        val rookRankLeft = permString.indexOf('r')
+        val rookRankRight = permString.indexOf('r',permString.indexOf('r')+1)
+        var kingMove = bitboard.getTargetMovements("king","white",Bitboard.Companion.Coordinate(kingRank,0),false)
         //white castling moves
         var copyBitboard = bitboard.clone()
         var moves = bitboard.getTargetMovements("king","white",
-            Bitboard.Companion.Coordinate(1,0),true)
-        assertEquals(133uL,moves)
+            Bitboard.Companion.Coordinate(kingRank,0),true)
+        assertEquals(Bitboard.generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(rookRankLeft,0))
+                or Bitboard.generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(rookRankRight,0))
+                or kingMove,moves)
         //long white castling
-        assertEquals("",bitboard.checkMoveAndMove("white",Movement(1,0,0,0)))
+        assertEquals("",bitboard.checkMoveAndMove("white",Movement(kingRank,0,rookRankLeft,0)))
         assertEquals(4uL,bitboard.bbFigures["king"]!![0])
         assertEquals(136uL,bitboard.bbFigures["rook"]!![0])
         bitboard.set(copyBitboard)
         //short white castling
-        assertEquals("",bitboard.checkMoveAndMove("white",Movement(1,0,7,0)))
+        assertEquals("",bitboard.checkMoveAndMove("white",Movement(kingRank,0,rookRankRight,0)))
         assertEquals(64uL,bitboard.bbFigures["king"]!![0])
         assertEquals(33uL,bitboard.bbFigures["rook"]!![0])
         bitboard.set(copyBitboard)
 
         //black castling moves
         bitboard.moveColor = "black"
+        kingMove = bitboard.getTargetMovements("king","black",Bitboard.Companion.Coordinate(kingRank,7),false)
+
         copyBitboard = bitboard.clone()
         moves = bitboard.getTargetMovements("king","black",
-            Bitboard.Companion.Coordinate(1,7),true)
-        assertEquals(9583660007044415488uL,moves)
-        //long black castling
-        assertEquals("",bitboard.checkMoveAndMove("black",Movement(1,7,0,7)))
+            Bitboard.Companion.Coordinate(kingRank,7),true)
+        assertEquals(Bitboard.generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(rookRankLeft,7))
+                or Bitboard.generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(rookRankRight,7))
+                or kingMove,moves)        //long black castling
+        assertEquals("",bitboard.checkMoveAndMove("black",Movement(kingRank,7,rookRankLeft,7)))
         assertEquals(288230376151711744uL,bitboard.bbFigures["king"]!![1])
         assertEquals(9799832789158199296uL,bitboard.bbFigures["rook"]!![1])
         //short black castling
         bitboard.set(copyBitboard)
-        assertEquals("",bitboard.checkMoveAndMove("black",Movement(1,7,7,7)))
+        assertEquals("",bitboard.checkMoveAndMove("black",Movement(kingRank,7,rookRankRight,7)))
         assertEquals(4611686018427387904uL,bitboard.bbFigures["king"]!![1])
         assertEquals(2377900603251621888uL,bitboard.bbFigures["rook"]!![1])
     }
