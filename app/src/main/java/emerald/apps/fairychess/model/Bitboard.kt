@@ -50,8 +50,8 @@ class Bitboard(
     var enpassanteSquare : Coordinate? = null
 
     //castlingdata
-    var leftRookRank : Int = 0
-    var rightRookRank : Int = 0
+    var leftRookRank : Int = -1
+    var rightRookRank : Int = -1
     lateinit var selection_king_castlingmove_sw : Movement
     lateinit var selection_king_castlingmove_lw : Movement
     lateinit var selection_king_castlingmove_sb : Movement
@@ -84,7 +84,7 @@ class Bitboard(
                         if(file == 0 && name == "rook" && leftRookRank != -1)rightRookRank = rank
                         if(file == 0 && name == "rook" && rightRookRank == -1)leftRookRank = rank
                         if(file <= 4 && name.isNotEmpty())color = "white"
-                        if (file > 4 && name.isNotEmpty())color = "black"
+                        if(file > 4 && name.isNotEmpty())color = "black"
                         if(figureMap.containsKey(name)){
                             if(!bbFigures.containsKey(name)){
                                 bbFigures[name] = arrayOf(0uL, 0uL)
@@ -198,48 +198,50 @@ class Bitboard(
         if(checkIfEnpassanteMove(name, pos, transformedMovement)) {
             doEnpassanteMove(name, color, pos, transformedMovement)
         } else { //other moves
-            var bbFigureColor = bbFigures[name]!![pos]
-            val bbSource = generate64BPositionFromCoordinate(transformedMovement.getSourceCoordinate())
-            val bbTarget = generate64BPositionFromCoordinate(transformedMovement.getTargetCoordinate())
+            if(!transformedMovement.getSourceCoordinate().equals(transformedMovement.getTargetCoordinate())){
+                var bbFigureColor = bbFigures[name]!![pos]
+                val bbSource = generate64BPositionFromCoordinate(transformedMovement.getSourceCoordinate())
+                val bbTarget = generate64BPositionFromCoordinate(transformedMovement.getTargetCoordinate())
 
-            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            val targetName = getPieceName(transformedMovement.getTargetCoordinate())
-            if(targetName.isNotEmpty()){
-                var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
-                bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
-                bbFigures[targetName]?.set(1-pos,bbFigureOppositeColor)
+                //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+                val targetName = getPieceName(transformedMovement.getTargetCoordinate())
+                if(targetName.isNotEmpty()){
+                    var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
+                    bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
+                    bbFigures[targetName]?.set(1-pos,bbFigureOppositeColor)
+                }
+
+                //calculate change vector with set bits on old and new position
+                val bbPath = bbSource or bbTarget
+
+                if(transformedMovement is PromotionMovement){
+                    val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
+                    bbFigures[pawnName]!![pos] = bbPawns
+                    val bbPromotion = bbFigures[transformedMovement.promotion]!![pos] or bbTarget
+                    bbFigures[transformedMovement.promotion]!![pos] = bbPromotion
+                } else {
+                    //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
+                    //and thus move the piece
+                    bbFigureColor = bbFigureColor xor bbPath
+                    bbFigures[name]?.set(pos,bbFigureColor)
+                }
+
+                //write move into bbComposite (important: cannot xor with bbChange because figure can stand on target square)
+                //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position
+                bbComposite = bbComposite or bbTarget
+                //no figure can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+                bbComposite = bbComposite and bbSource.inv()
+
+                //write move into bbColorComposite for move color like above
+                bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
+                //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
+                bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
+
+                bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
+                addEntryToHistory();
+                movedCapturedHistory.add(bbMovedCaptured)
+                //add current position (as map bbFigures) to history
             }
-
-            //calculate change vector with set bits on old and new position
-            val bbPath = bbSource or bbTarget
-
-            if(transformedMovement is PromotionMovement){
-                val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
-                bbFigures[pawnName]!![pos] = bbPawns
-                val bbPromotion = bbFigures[transformedMovement.promotion]!![pos] or bbTarget
-                bbFigures[transformedMovement.promotion]!![pos] = bbPromotion
-            } else {
-                //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
-                //and thus move the piece
-                bbFigureColor = bbFigureColor xor bbPath
-                bbFigures[name]?.set(pos,bbFigureColor)
-            }
-
-            //write move into bbComposite (important: cannot xor with bbChange because figure can stand on target square)
-            //one figure must stand at (sourceRank,sourceFile) therefore set bit to 1 on this position
-            bbComposite = bbComposite or bbTarget
-            //no figure can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            bbComposite = bbComposite and bbSource.inv()
-
-            //write move into bbColorComposite for move color like above
-            bbColorComposite[pos] = bbColorComposite[pos] xor bbPath
-            //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            bbColorComposite[1-pos] = bbColorComposite[1-pos] and bbTarget.inv()
-
-            bbMovedCaptured = bbMovedCaptured or bbSource or bbTarget
-            addEntryToHistory();
-            movedCapturedHistory.add(bbMovedCaptured)
-            //add current position (as map bbFigures) to history
             if(transformedMovement.movementNotation in arrayOf(CASTLING_LONG_BLACK, CASTLING_SHORT_WHITE,
                     CASTLING_SHORT_BLACK, CASTLING_LONG_WHITE)){
                 makeCastlingMove(color,transformedMovement)
@@ -500,7 +502,9 @@ class Bitboard(
                 bbRook = generate64BPositionFromCoordinate(Coordinate(rightRookRank, 0))
                 if (bbMovedCaptured and bbRook == 0uL) {
                     //3. no pieces between rook and king
-                    bbMoveRoom = bbCastlingRoomShortWhite and bbRook.inv()
+                    var bbExtendedCastlingRoom = bbCastlingRoomShortWhite
+                    if(isChess960)bbExtendedCastlingRoom = bbExtendedCastlingRoom or generate64BPositionFromCoordinate(Coordinate(5,0))
+                    bbMoveRoom = bbExtendedCastlingRoom and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
                     if (bbMoveRoom and bbComposite.inv() == bbMoveRoom
                     || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(rightRookRank,0)).inv() == 0uL)) {
@@ -516,7 +520,9 @@ class Bitboard(
                 bbRook = generate64BPositionFromCoordinate(Coordinate(leftRookRank, 0))
                 if (bbMovedCaptured and bbRook == 0uL) {
                     //3. no pieces between rook and king
-                    bbMoveRoom = bbCastlingRoomLongWhite and bbRook.inv()
+                    var bbExtendedCastlingRoom = bbCastlingRoomLongWhite
+                    if(isChess960)bbExtendedCastlingRoom = bbExtendedCastlingRoom or generate64BPositionFromCoordinate(Coordinate(3,0))
+                    bbMoveRoom = bbExtendedCastlingRoom and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
                     if (bbMoveRoom and bbComposite.inv() == bbMoveRoom
                     || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(leftRookRank,0)).inv() == 0uL)) {
@@ -538,7 +544,9 @@ class Bitboard(
                 bbRook = generate64BPositionFromCoordinate(Coordinate(rightRookRank,7))
                 if(bbMovedCaptured and bbRook == 0uL){
                     //3. no pieces between rook and king
-                    bbMoveRoom = bbCastlingRoomShortBlack and bbRook.inv()
+                    var bbExtendedCastlingRoom = bbCastlingRoomShortBlack
+                    if(isChess960)bbExtendedCastlingRoom = bbExtendedCastlingRoom or generate64BPositionFromCoordinate(Coordinate(5,7))
+                    bbMoveRoom = bbExtendedCastlingRoom and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
                     if(bbMoveRoom and bbComposite.inv().toULong() == bbMoveRoom
                     || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(rightRookRank,0)).inv() == 0uL)) {
@@ -554,7 +562,9 @@ class Bitboard(
                 bbRook = generate64BPositionFromCoordinate(Coordinate(leftRookRank,7))
                 if(bbMovedCaptured and bbRook == 0uL){
                     //3. no pieces between rook and king
-                    bbMoveRoom = bbCastlingRoomLongBlack and bbRook.inv()
+                    var bbExtendedCastlingRoom = bbCastlingRoomLongBlack
+                    if(isChess960)bbExtendedCastlingRoom = bbExtendedCastlingRoom or generate64BPositionFromCoordinate(Coordinate(3,7))
+                    bbMoveRoom = bbExtendedCastlingRoom and bbRook.inv()
                     bbMoveRoom = bbMoveRoom and bbFigures["king"]!![ownColorPos].inv()
                     if(bbMoveRoom and bbComposite.inv() == bbMoveRoom
                     || (isChess960 && bbMoveRoom and generate64BPositionFromCoordinate(Coordinate(leftRookRank,0)).inv() == 0uL)) {
