@@ -32,8 +32,8 @@ class Chessgame() {
         )
 
         figureMap = FigureParser.parseFigureMapFromFile(chessActivity)
-
-        bitboard = Bitboard(chessFormationArray, figureMap)
+        val isChess960 = gameData.chess960Formation.isNotEmpty()
+        bitboard = Bitboard(chessFormationArray, figureMap,isChess960)
 
         this.gameData = gameData
         this.gameParameters = gameParameters

@@ -30,7 +30,7 @@ class ParserTest {
     }
 
     @Test
-    fun testChess960(){
+    fun testGetChess960Permutation(){
        //test
        for(i in 0..1000000){
            val cArray = ChessFormationParser.getChess960Permutation()
@@ -57,18 +57,6 @@ class ParserTest {
              }
            }
        }
-
-       val c960 = ChessFormationParser.generateChess960Position(
-           arrayOf(arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"),
-               arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
-               arrayOf("bishop", "pawn", "", "", "", "", "pawn", "bishop"),
-               arrayOf("queen", "pawn", "", "", "", "", "pawn", "queen"),
-               arrayOf("king", "pawn", "", "", "", "", "pawn", "king"),
-               arrayOf("bishop", "pawn", "", "", "", "", "pawn", "bishop"),
-               arrayOf("knight", "pawn", "", "", "", "", "pawn", "knight"),
-               arrayOf("rook", "pawn", "", "", "", "", "pawn", "rook"))
-       )
-       println(c960.toString())
     }
 
     @Test

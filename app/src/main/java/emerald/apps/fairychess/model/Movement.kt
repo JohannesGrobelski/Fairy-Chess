@@ -165,8 +165,19 @@ class MovementNotation(val grouping: String, val conditions: List<String>, val m
         } else super.equals(other)
     }
 
+
+
     override fun toString(): String {
         return grouping+conditions.toString()+movetype+distances+direction
+    }
+
+    override fun hashCode(): Int {
+        var result = grouping.hashCode()
+        result = 31 * result + conditions.hashCode()
+        result = 31 * result + movetype.hashCode()
+        result = 31 * result + distances.hashCode()
+        result = 31 * result + direction.hashCode()
+        return result
     }
 
     companion object {

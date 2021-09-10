@@ -76,6 +76,7 @@ class ChessFormationParser {
                     "b" -> homeRank.add("bishop")
                     "q" -> homeRank.add("queen")
                     "k" -> homeRank.add("king")
+                    " " -> homeRank.add("")
                 }
             }
             return homeRank.toTypedArray()

@@ -19,7 +19,8 @@ import kotlin.math.sign
 
 class Bitboard(
     private val chessFormationArray: Array<Array<String>>?,
-    val figureMap: Map<String, FigureParser.Figure>
+    val figureMap: Map<String, FigureParser.Figure>,
+    val isChess960 : Boolean = false
 ) {
 
 
@@ -48,15 +49,40 @@ class Bitboard(
     //ai helper fields
     var enpassanteSquare : Coordinate? = null
 
+    //castlingdata
+    lateinit var selection_king_castlingmove_sw : Movement
+    lateinit var selection_king_castlingmove_lw : Movement
+    lateinit var selection_king_castlingmove_sb : Movement
+    lateinit var selection_king_castlingmove_lb : Movement
+    lateinit var actual_king_castlingmove_sw : Movement
+    lateinit var actual_king_castlingmove_lw : Movement
+    lateinit var actual_king_castlingmove_sb : Movement
+    lateinit var actual_king_castlingmove_lb : Movement
+    lateinit var actual_rook_castlingmove_sw : Movement
+    lateinit var actual_rook_castlingmove_lw : Movement
+    lateinit var actual_rook_castlingmove_sb : Movement
+    lateinit var actual_rook_castlingmove_lb : Movement
+    var bbCastlingRoomShortWhite = 0uL
+    var bbCastlingRoomLongWhite = 0uL
+    var bbCastlingRoomShortBlack = 0uL
+    var bbCastlingRoomLongBlack = 0uL
+    var bbKingOriginalPosition = arrayOf(0uL,0uL)
+
     constructor(figureMap: Map<String, FigureParser.Figure>) : this(null,figureMap)
     init {
         if(chessFormationArray != null){
+            var kingRank = -1
+            var leftRookRank = -1
+            var rightRookRank = -1
             //pass a string representing the chess formation here and update chessFormationArray
             if (chessFormationArray.size == 8 && chessFormationArray[0].size == 8) {
                 for (rank in 0..7) {
                     for (file in 0..7) {
                         var color = ""
                         val name = chessFormationArray[rank][file]
+                        if(file == 0 && name == "king")kingRank = rank
+                        if(file == 0 && name == "rook" && leftRookRank != -1)rightRookRank = rank
+                        if(file == 0 && name == "rook" && rightRookRank == -1)leftRookRank = rank
                         if(file <= 4 && name.isNotEmpty())color = "white"
                         if (file > 4 && name.isNotEmpty())color = "black"
                         if(figureMap.containsKey(name)){
@@ -68,6 +94,8 @@ class Bitboard(
                     }
                 }
             }
+            calculateCastlingData(kingRank,leftRookRank,rightRookRank)
+
             val figureList = mutableListOf<Coordinate>()
             for(figureName in bbFigures.keys){
                 if(figureName.toLowerCase().contains("pawn"))pawnName = figureName
@@ -166,16 +194,16 @@ class Bitboard(
     fun move(color : String, movement: Movement) : String {
         val pos = getPosition(color)
         val name = getPieceName(movement.getSourceCoordinate())
-
-        if(checkIfEnpassanteMove(name, pos, movement)) {
-            doEnpassanteMove(name, color, pos, movement)
+        val transformedMovement = transformKingCastlingMove(movement)
+        if(checkIfEnpassanteMove(name, pos, transformedMovement)) {
+            doEnpassanteMove(name, color, pos, transformedMovement)
         } else { //other moves
             var bbFigureColor = bbFigures[name]!![pos]
-            val bbSource = generate64BPositionFromCoordinate(movement.getSourceCoordinate())
-            val bbTarget = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+            val bbSource = generate64BPositionFromCoordinate(transformedMovement.getSourceCoordinate())
+            val bbTarget = generate64BPositionFromCoordinate(transformedMovement.getTargetCoordinate())
 
             //no figure of opposite of color can stand at (targetRank,targetFile) therefore set bit to 0 on this position
-            val targetName = getPieceName(movement.getTargetCoordinate())
+            val targetName = getPieceName(transformedMovement.getTargetCoordinate())
             if(targetName.isNotEmpty()){
                 var bbFigureOppositeColor = bbFigures[targetName]!![1-pos]
                 bbFigureOppositeColor = bbFigureOppositeColor and bbTarget.inv()
@@ -185,11 +213,11 @@ class Bitboard(
             //calculate change vector with set bits on old and new position
             val bbPath = bbSource or bbTarget
 
-            if(movement is PromotionMovement){
+            if(transformedMovement is PromotionMovement){
                 val bbPawns = bbFigures[name]!![pos] and bbSource.inv()
                 bbFigures[pawnName]!![pos] = bbPawns
-                val bbPromotion = bbFigures[movement.promotion]!![pos] or bbTarget
-                bbFigures[movement.promotion]!![pos] = bbPromotion
+                val bbPromotion = bbFigures[transformedMovement.promotion]!![pos] or bbTarget
+                bbFigures[transformedMovement.promotion]!![pos] = bbPromotion
             } else {
                 //xor targetBB with changeBB to change bit of old position from 1 to 0 and bit from new position from 0 to 1
                 //and thus move the piece
@@ -212,13 +240,13 @@ class Bitboard(
             addEntryToHistory();
             movedCapturedHistory.add(bbMovedCaptured)
             //add current position (as map bbFigures) to history
-            if(movement.movementNotation in arrayOf(CASTLING_LONG_BLACK, CASTLING_SHORT_WHITE,
+            if(transformedMovement.movementNotation in arrayOf(CASTLING_LONG_BLACK, CASTLING_SHORT_WHITE,
                     CASTLING_SHORT_BLACK, CASTLING_LONG_WHITE)){
-                makeCastlingMove(color,movement)
+                makeCastlingMove(color,transformedMovement)
                 switchMoveColor()
             }
         }
-        setEnpassanteSquare(name, movement)//important: execute AFTER checkIfEnpassanteMove(...)
+        setEnpassanteSquare(name, transformedMovement)//important: execute AFTER checkIfEnpassanteMove(...)
         checkForPromotion()
         switchMoveColor()
         return ""
@@ -289,19 +317,54 @@ class Bitboard(
         boardStateHistory.addAll(bitboard.boardStateHistory)
     }
 
-    private fun makeCastlingMove(color: String, movement : Movement){
-        if(color ==  "white"){
-            if(movement.targetRank == 2){ //LONG white castling move
-                move(color, Movement(0,0,3,0))
-            } else { //SHORT white castling move
-                move(color,Movement(7,0,5,0))
-            }
+    private fun calculateCastlingData(kingRank : Int,leftRookRank : Int, rightRookRank : Int){
+        bbCastlingRoomShortWhite = horizontalLineToBitboard(Movement(kingRank,0,6,0))
+        bbCastlingRoomLongWhite = horizontalLineToBitboard(Movement(kingRank,0,2,0))
+        bbCastlingRoomShortBlack = horizontalLineToBitboard(Movement(kingRank,7,6,7))
+        bbCastlingRoomLongBlack = horizontalLineToBitboard(Movement(kingRank,7,2,7))
+        bbKingOriginalPosition = arrayOf(generate64BPositionFromCoordinate(Coordinate(kingRank,0)),
+            generate64BPositionFromCoordinate(Coordinate(kingRank,7)))
+        actual_king_castlingmove_sw = Movement(CASTLING_SHORT_WHITE,kingRank,0,6,0)
+        actual_king_castlingmove_lw = Movement(CASTLING_LONG_WHITE,kingRank,0,2,0)
+        actual_king_castlingmove_sb = Movement(CASTLING_SHORT_BLACK,kingRank,7,6,7)
+        actual_king_castlingmove_lb = Movement(CASTLING_LONG_BLACK,kingRank,7,2,7)
+        actual_rook_castlingmove_sw = Movement(rightRookRank,0,5,0)
+        actual_rook_castlingmove_lw = Movement(leftRookRank,0,3,0)
+        actual_rook_castlingmove_sb = Movement(rightRookRank,7,5,7)
+        actual_rook_castlingmove_lb = Movement(leftRookRank,7,3,7)
+        if(isChess960){
+            selection_king_castlingmove_sw = Movement(kingRank,0,rightRookRank,0)
+            selection_king_castlingmove_lw = Movement(kingRank,0,leftRookRank,0)
+            selection_king_castlingmove_sb = Movement(kingRank,7,rightRookRank,7)
+            selection_king_castlingmove_lb = Movement(kingRank,7,leftRookRank,7)
         } else {
-            if(movement.targetRank == 2){ //LONG black castling move
-                move(color,Movement(0,7,3,7))
-            } else { //SHORT black castling move
-                move(color,Movement(7,7,5,7))
-            }
+            selection_king_castlingmove_sw = actual_king_castlingmove_sw
+            selection_king_castlingmove_lw = actual_king_castlingmove_lw
+            selection_king_castlingmove_sb = actual_king_castlingmove_sb
+            selection_king_castlingmove_lb = actual_king_castlingmove_lb
+        }
+    }
+
+    /** transforms the movement to make user selection (king moves to position of rook) to
+     *  the actual castling movement of the  king */
+    private fun transformKingCastlingMove(movement : Movement) : Movement{
+        if(!isChess960)return movement
+        return when(movement){
+            selection_king_castlingmove_sb -> actual_king_castlingmove_sb
+            selection_king_castlingmove_lb -> actual_king_castlingmove_lb
+            selection_king_castlingmove_sw -> actual_king_castlingmove_sw
+            selection_king_castlingmove_lw -> actual_king_castlingmove_lw
+            else -> movement
+        }
+    }
+
+    /** moves the rook */
+    private fun makeCastlingMove(color: String, movement : Movement){
+        when(movement) {
+            actual_king_castlingmove_sw -> move(color, actual_rook_castlingmove_sw)
+            actual_king_castlingmove_lw -> move(color, actual_rook_castlingmove_lw)
+            actual_king_castlingmove_sb -> move(color, actual_rook_castlingmove_sb)
+            actual_king_castlingmove_lb -> move(color, actual_rook_castlingmove_lb)
         }
     }
 
@@ -511,20 +574,16 @@ class Bitboard(
         for(castlingRight in castlingRightsList){
             when(castlingRight){
                 CASTLING_SHORT_WHITE -> {
-                    addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
-                        CASTLING_SHORT_WHITE,coordinate,6,0),bbTargetsMap)
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING, selection_king_castlingmove_sw,bbTargetsMap)
                 }
                 CASTLING_LONG_WHITE -> {
-                    addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
-                        CASTLING_LONG_WHITE,coordinate,2,0),bbTargetsMap)
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING, selection_king_castlingmove_lw,bbTargetsMap)
                 }
                 CASTLING_SHORT_BLACK -> {
-                    addCoordinateToMovementBitboard(color, MovementNotation.KING,Movement(
-                        CASTLING_SHORT_BLACK,coordinate,6,7),bbTargetsMap)
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING, selection_king_castlingmove_sb,bbTargetsMap)
                 }
                 CASTLING_LONG_BLACK -> {
-                    addCoordinateToMovementBitboard(color, MovementNotation.KING, Movement(
-                        CASTLING_LONG_BLACK,coordinate,2,7),bbTargetsMap)
+                    addCoordinateToMovementBitboard(color, MovementNotation.KING, selection_king_castlingmove_lb, bbTargetsMap)
                 }
             }
         }
@@ -988,8 +1047,8 @@ class Bitboard(
         movement : Movement,
         bbMovementMap: MutableMap<MovementNotation, ULong>
         ) {
-            val targetBB =  generate64BPositionFromCoordinate(movement.getTargetCoordinate())
-            if(bbMovementMap.keys.contains(movementNotation)){
+            val targetBB = generate64BPositionFromCoordinate(movement.getTargetCoordinate())
+            if(bbMovementMap.containsKey(movementNotation)){
                 bbMovementMap[movementNotation] = bbMovementMap[movementNotation]!! or targetBB
             } else {
                 bbMovementMap[movementNotation] = targetBB
@@ -1147,6 +1206,7 @@ class Bitboard(
             CASTLING_LONG_WHITE,
             CASTLING_LONG_BLACK,
         )
+
         val enpassanteSquares = arrayOf(
             Coordinate(0,2), Coordinate(1,2), Coordinate(2,2), Coordinate(3,2),
             Coordinate(4,2), Coordinate(5,2), Coordinate(6,2), Coordinate(7,2),
@@ -1226,12 +1286,6 @@ class Bitboard(
 
         }
 
-        val bbCastlingRoomShortWhite = horizontalLineToBitboard(Movement(4,0,6,0))
-        val bbCastlingRoomLongWhite = horizontalLineToBitboard(Movement(4,0,2,0))
-        val bbCastlingRoomShortBlack = horizontalLineToBitboard(Movement(4,7,6,7))
-        val bbCastlingRoomLongBlack = horizontalLineToBitboard(Movement(4,7,2,7))
-        val bbKingOriginalPosition = arrayOf(generate64BPositionFromCoordinate(Coordinate(4,0)),
-                                     generate64BPositionFromCoordinate(Coordinate(4,7)))
 
 
         /** generates bitboard that contains all squares from sourceSquare to targetSquare (including them) */
@@ -1275,7 +1329,7 @@ class Bitboard(
         fun generate64BPositionFromCoordinate(coordinate: Coordinate) : ULong {
             var pos : ULong = 1uL shl coordinate.file*8 // pos = 2 ^ (file*8)
             pos = pos shl coordinate.rank       // pos = pos * 2 ^ rank
-            return pos         // pos = 2 ^ (file*8) * 2 ^ rank
+            return pos.toULong()         // pos = 2 ^ (file*8) * 2 ^ rank
         }
 
         fun add64BPositionFromCoordinates(_64B: ULong, coordinate: Coordinate) : ULong {

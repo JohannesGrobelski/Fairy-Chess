@@ -122,19 +122,13 @@ class BasicMoveTest {
     }
 
     @Test
-    fun testMovegenerationGrashopper(){
-        chessFormationArray = parseChessFormation("grasshopper_chess")
-        val bitboard = Bitboard(chessFormationArray,figureMap)
-        var moves = bitboard.getTargetMovements("grasshopper","black",Bitboard.Companion.Coordinate(3,6),true)
-        assertEquals(180388626432uL,moves)
-
-        assertEquals("",bitboard.move("white",Movement(4,1,4,3)))
-        assertEquals("",bitboard.move("black",Movement(5,6,5,4)))
-        assertEquals("",bitboard.move("white",Movement(4,3,4,6)))
-        moves = bitboard.getTargetMovements("grasshopper","black",Bitboard.Companion.Coordinate(0,6),true)
-        assertEquals(21474836480uL,moves)
-        assertEquals("",bitboard.move("black",Movement(4,6,4,6)))
+    fun testGenerate64BPositionFromCoordinate(){
+        assertEquals(1uL, generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(0,0)))
+        assertEquals(128uL, generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(7,0)))
+        assertEquals(72057594037927936uL, generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(0,7)))
+        assertEquals(9223372036854775808uL, generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(7,7)))
     }
+
 
     @Test
     fun testMovegenerationKings(){
@@ -429,10 +423,11 @@ class BasicMoveTest {
 
     @Test
     fun testhorizontalLineToBitboard(){
-        assertEquals(112uL,Bitboard.bbCastlingRoomShortWhite)
-        assertEquals(28uL,Bitboard.bbCastlingRoomLongWhite)
-        assertEquals(8070450532247928832uL,Bitboard.bbCastlingRoomShortBlack)
-        assertEquals(2017612633061982208uL,Bitboard.bbCastlingRoomLongBlack)
+        val bitboard = Bitboard(chessFormationArray, figureMap)
+        assertEquals(112uL,bitboard.bbCastlingRoomShortWhite)
+        assertEquals(28uL,bitboard.bbCastlingRoomLongWhite)
+        assertEquals(8070450532247928832uL,bitboard.bbCastlingRoomShortBlack)
+        assertEquals(2017612633061982208uL,bitboard.bbCastlingRoomLongBlack)
     }
 
     companion object {
