@@ -221,7 +221,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                             println("cnt_movements: "+chessAI.moveCounter)
                             println("transpositionTableHits: "+chessAI.transpositionTableHits)
                             println("transpositionTableFails: "+chessAI.transpositionTableFails)
-                            println("transpositionTableSize: "+chessAI.transpositionTable.size)
+                            println("transpositionTableSize: "+chessAI.transpositionTables.size)
                             chessgame.movePlayer(aiMovement, chessAI.color)
                             withContext(Dispatchers.Main){
                                 displayFigures()

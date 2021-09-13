@@ -3,7 +3,7 @@ package emerald.apps.fairychess.model
 import emerald.apps.fairychess.model.Evaluator.Companion.scoreBlack
 import emerald.apps.fairychess.model.Evaluator.Companion.scoreWhite
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
-import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -29,7 +29,8 @@ class ChessAI {
 
     //helper-fields
     lateinit var zobristHash : ZobristHash
-    val transpositionTable = Hashtable<String, Int>() //map from zobristHash(Bitboard) -> value(Bitboard)
+    //one transpositionTable for each distance, a map from zobristHash(Bitboard) -> value(Bitboard)
+    val transpositionTables : HashMap<Int, MutableMap<ULong,Int>> = hashMapOf()
 
     constructor(color: String) {
         this.color = color
@@ -74,10 +75,10 @@ class ChessAI {
         return bestmove
     }
 
-    fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int, endtimeMS : Long) : MinimaxResult{
+    fun alphabeta(bitboard: Bitboard, distance: Int, alpha:Int, beta:Int, endtimeMS : Long) : MinimaxResult{
         var newAlpha = alpha
         var newBeta = beta
-        if(level <= 0){
+        if(distance <= 0){
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
             val equalMoves = mutableListOf<Movement>()
@@ -89,7 +90,7 @@ class ChessAI {
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move); ++moveCounter
-                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta, endtimeMS)
+                        val valuePosition = getValueOfPosition(bitboard, distance, newAlpha, newBeta, endtimeMS)
                         if(valuePosition > bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
@@ -104,7 +105,7 @@ class ChessAI {
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move); ++moveCounter
-                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta, endtimeMS)
+                        val valuePosition = getValueOfPosition(bitboard, distance, newAlpha, newBeta, endtimeMS)
                         if(valuePosition < bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
@@ -122,23 +123,23 @@ class ChessAI {
         }
     }
 
-    fun getValueOfPosition(bitboard: Bitboard, level: Int, _alpha: Int, _beta: Int, endtimeMS : Long) : Int{
-        val valuePosition: Int
+    fun getValueOfPosition(bitboard: Bitboard, distance: Int, _alpha: Int, _beta: Int, endtimeMS : Long) : Int{
+        var valuePosition: Int
         val hash = zobristHash.generateHash(bitboard)
-        val key = getTranspositionKey(hash,level)
-        if(transpositionTable.keys.contains(key)){
-            ++transpositionTableHits
-            valuePosition = transpositionTable[key]!!
-        } else {
-            ++transpositionTableFails
-            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta, endtimeMS).value
-            transpositionTable[key] = valuePosition
+        if(!transpositionTables.containsKey(distance))transpositionTables[distance] = mutableMapOf()
+        //search in levels above and equals in transpositionTable saved for value
+        for(searchLevel in distance..maxDistance){
+            if(!transpositionTables.containsKey(searchLevel))break
+            if(transpositionTables[searchLevel]!!.keys.contains(hash)){
+                ++transpositionTableHits
+                return transpositionTables[searchLevel]!![hash]!!
+            }
         }
+        //transposition not found -> calculate value via alpha-beta
+        ++transpositionTableFails
+        valuePosition =  alphabeta(bitboard, distance - 1, _alpha, _beta, endtimeMS).value
+        transpositionTables[distance]!![hash] = valuePosition
         return valuePosition
-    }
-
-    fun getTranspositionKey(zobristHash: ULong, level: Int) : String {
-        return zobristHash.toString()+"_"+level.toString()
     }
 
     /** chooses a move from equal moves (point-wise) with the help of different heuristics */

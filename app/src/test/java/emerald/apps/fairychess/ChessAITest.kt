@@ -1,6 +1,8 @@
 package emerald.apps.fairychess
 
 import emerald.apps.fairychess.model.*
+import emerald.apps.fairychess.model.Evaluator.Companion.scoreBlack
+import emerald.apps.fairychess.model.Evaluator.Companion.scoreWhite
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
@@ -43,7 +45,7 @@ class ChessAITest {
             println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
             println("transpositionTableFails: "+chessAIBlack.transpositionTableFails)
-            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTables.size)
         }
     }
 
@@ -153,10 +155,10 @@ class ChessAITest {
             println("calcTime: $calcTime ms")
             println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
-            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTables.size)
         }
         bitboard.move("black",aiMove)
-        assertEquals(bitboard.pointsBlack() - 1,bitboard.pointsWhite())
+        assertEquals(scoreBlack(bitboard) - 1,scoreWhite(bitboard))
 
         println(bitboard.toString())
 
@@ -180,7 +182,7 @@ class ChessAITest {
             println("calcTime: $calcTime ms")
             println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
-            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTables.size)
             println(bitboard.toString())
         }
         assertTrue(aiMove.equalCoordinates(Movement(0,7,0,4)))
@@ -210,7 +212,7 @@ class ChessAITest {
             println("calcTime: $calcTime ms")
             println("cnt_movements: "+chessAIBlack.moveCounter)
             println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
-            println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
+            println("transpositionTableSize: "+chessAIBlack.transpositionTables.size)
             println(bitboard.toString())
         }
         assertTrue(aiMove.equalCoordinates(Movement(1,1,0,0)))
