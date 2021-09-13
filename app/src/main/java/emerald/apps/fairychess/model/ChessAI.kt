@@ -1,5 +1,7 @@
 package emerald.apps.fairychess.model
 
+import emerald.apps.fairychess.model.Evaluator.Companion.scoreBlack
+import emerald.apps.fairychess.model.Evaluator.Companion.scoreWhite
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import java.util.*
 import kotlin.math.max
@@ -145,6 +147,6 @@ class ChessAI {
     }
 
     fun getPointDifBW(bitboard: Bitboard) : Int{
-        return bitboard.pointsBlack() - bitboard.pointsWhite()
+        return scoreBlack(bitboard) - scoreWhite(bitboard)
     }
 }

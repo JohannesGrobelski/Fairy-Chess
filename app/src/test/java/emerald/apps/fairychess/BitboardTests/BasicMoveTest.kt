@@ -5,6 +5,8 @@ import emerald.apps.fairychess.model.Bitboard.Companion.add64BPositionFromCoordi
 import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromCoordinate
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
+import emerald.apps.fairychess.model.Evaluator.Companion.scoreBlack
+import emerald.apps.fairychess.model.Evaluator.Companion.scoreWhite
 import emerald.apps.fairychess.model.Movement
 import emerald.apps.fairychess.model.MovementNotation
 import emerald.apps.fairychess.utility.FigureParser
@@ -86,8 +88,8 @@ class BasicMoveTest {
         equal = equal && (65535uL==bitboard.bbColorComposite[0])
         equal = equal && (18446462598732840960uL==bitboard.bbColorComposite[1])
         equal = equal && (0uL==bitboard.bbMovedCaptured)
-        equal = equal && (1039==bitboard.pointsBlack())
-        equal = equal && (1039==bitboard.pointsWhite())
+        equal = equal && (1039==scoreBlack(bitboard))
+        equal = equal && (1039==scoreWhite(bitboard))
         return equal
     }
 
@@ -233,8 +235,8 @@ class BasicMoveTest {
         assertEquals("",bitboard.checkMoveAndMove("white", Movement(4,3,3,4)))
         //capture white pawn with queen
         assertEquals("",bitboard.checkMoveAndMove("black", Movement(3,7,3,4)))
-        assertEquals(1038,bitboard.pointsWhite())
-        assertEquals(1038,bitboard.pointsBlack())
+        assertEquals(1038,scoreWhite(bitboard))
+        assertEquals(1038,scoreBlack(bitboard))
         assertEquals(61184uL,bitboard.bbFigures["pawn"]!![0])
         assertEquals(69524319247532032uL,bitboard.bbFigures["pawn"]!![1])
         assertEquals(8uL,bitboard.bbFigures["queen"]!![0])

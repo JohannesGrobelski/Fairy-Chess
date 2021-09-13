@@ -1182,30 +1182,9 @@ class Bitboard(
         }
     }
 
-    /** calculate all points of black player */
-    fun pointsBlack(): Int {
-        var points = 0
-        for(name in bbFigures.keys){
-            points += figureMap?.get(name)?.value?.times(countSetBits(bbFigures[name]?.get(1)!!)) ?: 0
-        }
-        return points
-    }
 
-    /** calculate all points of white player */
-    fun pointsWhite(): Int {
-        var points = 0
-        for(name in bbFigures.keys){
-            points += figureMap?.get(name)?.value?.times(countSetBits(bbFigures[name]?.get(0)!!)) ?: 0
-        }
-        return points
-    }
 
-    /** recursive function to count set bits */
-    private fun countSetBits(n: ULong): Int {
-        // base case
-        return if (n == 0uL) 0
-            else 1 + countSetBits(n and n - 1uL)
-    }
+
 
     /** switchMoveColor from white to black and vice versa */
     fun switchMoveColor(){
