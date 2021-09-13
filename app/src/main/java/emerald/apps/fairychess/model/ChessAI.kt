@@ -14,7 +14,7 @@ class ChessAI {
     }
     //Settings
     private val algorithm = ALGORITHMS.ITERATIVE_DEEPENING
-    private var maxDistance = 4
+    private var maxDistance = 100
     private var searchtimeMS = 1000
 
     //DEBUG
@@ -63,14 +63,16 @@ class ChessAI {
         var distance = 1
         var outOfTime = false
         var bestmove = MinimaxResult(emptyMovement(), Int.MIN_VALUE)
+        val endTimeMS = System.currentTimeMillis() + searchtimeMS
         while (distance < maxDistance && !outOfTime) {
-            bestmove = alphabeta(bitboard, distance, Int.MIN_VALUE, Int.MAX_VALUE)
+            bestmove = alphabeta(bitboard, distance, Int.MIN_VALUE, Int.MAX_VALUE, endTimeMS)
             distance++
+            outOfTime = System.currentTimeMillis() >= endTimeMS
         }
         return bestmove
     }
 
-    fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int) : MinimaxResult{
+    fun alphabeta(bitboard: Bitboard, level: Int, alpha:Int, beta:Int, endtimeMS : Long) : MinimaxResult{
         var newAlpha = alpha
         var newBeta = beta
         if(level <= 0){
@@ -85,7 +87,7 @@ class ChessAI {
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move); ++moveCounter
-                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta)
+                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta, endtimeMS)
                         if(valuePosition > bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
@@ -100,7 +102,7 @@ class ChessAI {
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move); ++moveCounter
-                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta)
+                        val valuePosition = getValueOfPosition(bitboard, level, newAlpha, newBeta, endtimeMS)
                         if(valuePosition < bestValue){
                             equalMoves.clear()
                             bestValue = valuePosition
@@ -118,7 +120,7 @@ class ChessAI {
         }
     }
 
-    fun getValueOfPosition(bitboard: Bitboard, level: Int, _alpha: Int, _beta: Int) : Int{
+    fun getValueOfPosition(bitboard: Bitboard, level: Int, _alpha: Int, _beta: Int, endtimeMS : Long) : Int{
         val valuePosition: Int
         val hash = zobristHash.generateHash(bitboard)
         val key = getTranspositionKey(hash,level)
@@ -127,7 +129,7 @@ class ChessAI {
             valuePosition = transpositionTable[key]!!
         } else {
             ++transpositionTableFails
-            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value
+            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta, endtimeMS).value
             transpositionTable[key] = valuePosition
         }
         return valuePosition

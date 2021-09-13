@@ -186,7 +186,7 @@ class ChessAITest {
         assertTrue(aiMove.equalCoordinates(Movement(0,7,0,4)))
 
 
-        //
+        //ai does capture rook with pawn
         bitboard = Bitboard(chessFormationArray, figureMap)
         val moves = arrayOf(
             Movement(4,1,4,3),
