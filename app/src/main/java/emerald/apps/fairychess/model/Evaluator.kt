@@ -3,12 +3,55 @@ package emerald.apps.fairychess.model
 /** evaluates transpositions in bitboard*/
 class Evaluator {
 
+    @ExperimentalUnsignedTypes
     companion object {
 
+        /** chooses a move from equal moves (point-wise) with the help of different heuristics */
+        fun heuristic(bitboard: Bitboard, equalMoves: List<Movement>, value: Double): ChessAI.MinimaxResult {
+            /*val copyBitboard = bitboard.clone()
+            val bestMove = ChessAI.MinimaxResult(equalMoves[0],value)
+            for(move in equalMoves){
+                assert(bitboard.move(bitboard.moveColor,move) == "")
+
+                bitboard.set(copyBitboard)
+            }*/
+            return ChessAI.MinimaxResult(equalMoves[0],value)
+        }
+
         /** evaluate position in bitboard */
-        fun evaluate(bitboard: Bitboard, level : Int) : Int {
-            var pointScore = scoreBlack(bitboard) - scoreWhite(bitboard)
+        fun evaluate(bitboard: Bitboard) : Double {
+            var pointScore = (scoreBlack(bitboard) - scoreWhite(bitboard)).toDouble()
+
+            //important: value of positional terms shoud always be < 1 (value of pawn, the cheapest piece)
+            pointScore += evaluatePawnStructure(bitboard) * 0.5
+
             return pointScore
+        }
+
+        fun evaluatePawnStructure(bitboard: Bitboard) : Double {
+            val doubledPawnsDif = 0
+            return 0.0
+        }
+
+        fun getDoubledPawnDif(bitboard: Bitboard) : Int {
+            val whitePawns = bitboard.bbFigures["pawn"]!![0]
+            val blackPawns = bitboard.bbFigures["pawn"]!![1]
+            var doubledPawnsWhite = 0
+            var doubledPawnsBlack = 0
+            for(color in 0..1){
+                for(rank in 1..6){
+                    var lastPawnFileWhite = 0
+                    var lastPawnFileBlack = 0
+                    for(file in 0..7){
+
+                    }
+                }
+            }
+
+        }
+
+        fun evaluateMobility(bitboard: Bitboard) : Double {
+            return 0.0
         }
 
         /** calculate all points of black player */

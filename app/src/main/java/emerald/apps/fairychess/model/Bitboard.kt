@@ -17,6 +17,9 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sign
 
+/**
+ *
+ */
 class Bitboard(
     private val chessFormationArray: Array<Array<String>>?,
     val figureMap: Map<String, FigureParser.Figure>,

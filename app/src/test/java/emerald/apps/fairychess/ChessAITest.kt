@@ -72,7 +72,7 @@ class ChessAITest {
         val hashOriginal = zobristHash.generateHash(bitBoardNormal)
         val transpoTable = mutableMapOf<ULong,ChessAI.MinimaxResult>()
         transpoTable[hashOriginal] = ChessAI.MinimaxResult(
-            Movement.emptyMovement(),0)
+            Movement.emptyMovement(),0.0)
 
         val permutations = getPermutations(movePairs, listOf())
         for(permutation in permutations){

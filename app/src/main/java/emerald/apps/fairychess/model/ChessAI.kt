@@ -1,9 +1,8 @@
 package emerald.apps.fairychess.model
 
-import emerald.apps.fairychess.model.Evaluator.Companion.scoreBlack
-import emerald.apps.fairychess.model.Evaluator.Companion.scoreWhite
+import emerald.apps.fairychess.model.Evaluator.Companion.evaluate
+import emerald.apps.fairychess.model.Evaluator.Companion.heuristic
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
-import kotlin.collections.HashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -16,7 +15,7 @@ class ChessAI {
     }
     //Settings
     private val algorithm = ALGORITHMS.ITERATIVE_DEEPENING
-    private var maxDistance = 100
+    private var maxDistance = 4
     private var searchtimeMS = 1000
 
     //DEBUG
@@ -30,7 +29,7 @@ class ChessAI {
     //helper-fields
     lateinit var zobristHash : ZobristHash
     //one transpositionTable for each distance, a map from zobristHash(Bitboard) -> value(Bitboard)
-    val transpositionTables : HashMap<Int, MutableMap<ULong,Int>> = hashMapOf()
+    val transpositionTables : HashMap<Int, MutableMap<ULong,Double>> = hashMapOf()
 
     constructor(color: String) {
         this.color = color
@@ -60,33 +59,33 @@ class ChessAI {
     }
 
 
-    class MinimaxResult(val movement: Movement, val value: Int)
+    class MinimaxResult(val movement: Movement, val value: Double)
 
     fun iterativeDeepening(bitboard: Bitboard) : MinimaxResult {
         var distance = 1
         var outOfTime = false
-        var bestmove = MinimaxResult(emptyMovement(), Int.MIN_VALUE)
+        var bestmove = MinimaxResult(emptyMovement(), -Double.MAX_VALUE)
         val endTimeMS = System.currentTimeMillis() + searchtimeMS
         while (distance < maxDistance && !outOfTime) {
-            bestmove = alphabeta(bitboard, distance, Int.MIN_VALUE, Int.MAX_VALUE, endTimeMS)
+            bestmove = alphabeta(bitboard, distance, -Double.MAX_VALUE, Double.MAX_VALUE, endTimeMS)
             distance++
             outOfTime = System.currentTimeMillis() >= endTimeMS
         }
         return bestmove
     }
 
-    fun alphabeta(bitboard: Bitboard, distance: Int, alpha:Int, beta:Int, endtimeMS : Long) : MinimaxResult{
-        var newAlpha = alpha
-        var newBeta = beta
+    fun alphabeta(bitboard: Bitboard, distance: Int, alpha:Double, beta:Double, endtimeMS : Long) : MinimaxResult{
+        var newAlpha : Double = alpha
+        var newBeta : Double = beta
         if(distance <= 0){
-            return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
+            return MinimaxResult(emptyMovement(),evaluate(bitboard))
         } else {
             val equalMoves = mutableListOf<Movement>()
-            var bestValue : Int
+            var bestValue : Double
             val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
             if(allMovesList.isNotEmpty()){
                 if(bitboard.moveColor == "black"){
-                    bestValue = Int.MIN_VALUE //find best move (max(getPointDifBW) for black)
+                    bestValue = -Double.MAX_VALUE //find best move (max(getPointDifBW) for black)
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move); ++moveCounter
@@ -101,7 +100,7 @@ class ChessAI {
                         newAlpha = max(newAlpha,valuePosition)
                     }
                 } else {
-                    bestValue = Int.MAX_VALUE //find best move (min(getPointDifBW) for white)
+                    bestValue = Double.MAX_VALUE //find best move (min(getPointDifBW) for white)
                     for(move in allMovesList){
                         val copyBitboard = bitboard.clone()
                         bitboard.move(bitboard.moveColor,move); ++moveCounter
@@ -116,15 +115,14 @@ class ChessAI {
                         newBeta = min(newBeta,valuePosition)
                     }
                 }
-                return heuristic(equalMoves,bestValue)
+                return heuristic(bitboard,equalMoves,bestValue)
             } else {
-                return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
+                return MinimaxResult(emptyMovement(), evaluate(bitboard))
             }
         }
     }
 
-    fun getValueOfPosition(bitboard: Bitboard, distance: Int, _alpha: Int, _beta: Int, endtimeMS : Long) : Int{
-        var valuePosition: Int
+    fun getValueOfPosition(bitboard: Bitboard, distance: Int, _alpha: Double, _beta: Double, endtimeMS : Long) : Double {
         val hash = zobristHash.generateHash(bitboard)
         if(!transpositionTables.containsKey(distance))transpositionTables[distance] = mutableMapOf()
         //search in levels above and equals in transpositionTable saved for value
@@ -137,17 +135,9 @@ class ChessAI {
         }
         //transposition not found -> calculate value via alpha-beta
         ++transpositionTableFails
-        valuePosition =  alphabeta(bitboard, distance - 1, _alpha, _beta, endtimeMS).value
+        val valuePosition: Double = alphabeta(bitboard, distance - 1, _alpha, _beta, endtimeMS).value
         transpositionTables[distance]!![hash] = valuePosition
         return valuePosition
     }
 
-    /** chooses a move from equal moves (point-wise) with the help of different heuristics */
-    fun heuristic(equalMoves: List<Movement>, value: Int): MinimaxResult {
-        return MinimaxResult(equalMoves[0],value)
-    }
-
-    fun getPointDifBW(bitboard: Bitboard) : Int{
-        return scoreBlack(bitboard) - scoreWhite(bitboard)
-    }
 }
