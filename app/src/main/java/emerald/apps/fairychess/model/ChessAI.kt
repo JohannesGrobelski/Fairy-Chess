@@ -14,8 +14,8 @@ class ChessAI {
     }
     //Settings
     private val algorithm = ALGORITHMS.ITERATIVE_DEEPENING
-    private val zobristOn = true
-    private var recursionDepth = 4
+    private var maxDistance = 4
+    private var searchtimeMS = 1000
 
     //DEBUG
     var moveCounter = 0
@@ -27,31 +27,28 @@ class ChessAI {
 
     //helper-fields
     lateinit var zobristHash : ZobristHash
+    val transpositionTable = Hashtable<String, Int>() //map from zobristHash(Bitboard) -> value(Bitboard)
 
     constructor(color: String) {
         this.color = color
     }
 
-    constructor(color: String, recursionDepth : Int) {
+    constructor(color: String, maxDistance : Int) {
         this.color = color
-        this.recursionDepth = recursionDepth
+        this.maxDistance = maxDistance
     }
 
     //Fields for move ordering
-    val transpositionTable = Hashtable<ULong, Int>() //map from zobristHash(Bitboard) -> value(Bitboard)
 
     fun calcMove(bitboard: Bitboard) : Movement{
         moveCounter = 0
         zobristHash = ZobristHash(bitboard.figureMap.keys.toMutableList())
         when (algorithm) {
-            ALGORITHMS.ALPHA_BETA -> {
-                return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
-            }
             ALGORITHMS.ITERATIVE_DEEPENING -> {
-                return iterativeDeepening(bitboard, recursionDepth).movement
+                return iterativeDeepening(bitboard).movement
             }
         }
-        return Movement(sourceRank = 0,sourceFile = 0,targetRank = 0,targetFile = 0)
+        return Movement(sourceRank = -1,sourceFile = -1,targetRank = -1,targetFile = -1)
     }
 
     fun getPromotion() : String {
@@ -62,12 +59,12 @@ class ChessAI {
 
     class MinimaxResult(val movement: Movement, val value: Int)
 
-    fun iterativeDeepening(bitboard: Bitboard, maxDistance: Int) : MinimaxResult {
+    fun iterativeDeepening(bitboard: Bitboard) : MinimaxResult {
         var distance = 1
-        val outOfTime = false
+        var outOfTime = false
         var bestmove = MinimaxResult(emptyMovement(), Int.MIN_VALUE)
         while (distance < maxDistance && !outOfTime) {
-            bestmove = alphabeta(bitboard, distance,Int.MIN_VALUE, Int.MAX_VALUE)
+            bestmove = alphabeta(bitboard, distance, Int.MIN_VALUE, Int.MAX_VALUE)
             distance++
         }
         return bestmove
@@ -80,9 +77,9 @@ class ChessAI {
             return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
         } else {
             val equalMoves = mutableListOf<Movement>()
+            var bestValue : Int
             val allMovesList = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
             if(allMovesList.isNotEmpty()){
-                var bestValue : Int
                 if(bitboard.moveColor == "black"){
                     bestValue = Int.MIN_VALUE //find best move (max(getPointDifBW) for black)
                     for(move in allMovesList){
@@ -114,7 +111,7 @@ class ChessAI {
                         newBeta = min(newBeta,valuePosition)
                     }
                 }
-                return MinimaxResult(heuristic(equalMoves),bestValue)
+                return heuristic(equalMoves,bestValue)
             } else {
                 return MinimaxResult(emptyMovement(),getPointDifBW(bitboard))
             }
@@ -123,24 +120,26 @@ class ChessAI {
 
     fun getValueOfPosition(bitboard: Bitboard, level: Int, _alpha: Int, _beta: Int) : Int{
         val valuePosition: Int
-        if(!zobristOn)valuePosition = alphabeta(bitboard, level - 1, _alpha, _beta).value
-        else {
-            val hash = zobristHash.generateHash(bitboard)
-            if(transpositionTable.keys.contains(hash)){
-                ++transpositionTableHits
-                valuePosition = transpositionTable[hash]!!
-            } else {
-                ++transpositionTableFails
-                valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value
-                transpositionTable[hash] = valuePosition
-            }
+        val hash = zobristHash.generateHash(bitboard)
+        val key = getTranspositionKey(hash,level)
+        if(transpositionTable.keys.contains(key)){
+            ++transpositionTableHits
+            valuePosition = transpositionTable[key]!!
+        } else {
+            ++transpositionTableFails
+            valuePosition =  alphabeta(bitboard, level - 1, _alpha, _beta).value
+            transpositionTable[key] = valuePosition
         }
         return valuePosition
     }
 
+    fun getTranspositionKey(zobristHash: ULong, level: Int) : String {
+        return zobristHash.toString()+"_"+level.toString()
+    }
+
     /** chooses a move from equal moves (point-wise) with the help of different heuristics */
-    fun heuristic(equalMoves: List<Movement>): Movement {
-        return equalMoves[0]
+    fun heuristic(equalMoves: List<Movement>, value: Int): MinimaxResult {
+        return MinimaxResult(equalMoves[0],value)
     }
 
     fun getPointDifBW(bitboard: Bitboard) : Int{

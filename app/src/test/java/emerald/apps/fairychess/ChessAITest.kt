@@ -47,7 +47,6 @@ class ChessAITest {
         }
     }
 
-
     @Test
     fun testZobristHash(){
         var bitBoardNormal = Bitboard(chessFormationArray, figureMap)

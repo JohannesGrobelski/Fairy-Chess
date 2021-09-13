@@ -51,7 +51,7 @@ open class Movement(val movementNotation : MovementNotation = MovementNotation("
 
     companion object{
         fun emptyMovement() : Movement {
-            return Movement(sourceFile = 0,sourceRank = 0,targetFile = 0,targetRank = 0)
+            return Movement(sourceFile = -1,sourceRank = -1,targetFile = -1,targetRank = -1)
         }
 
         fun fromMovementToString(movement: Movement) : String {
