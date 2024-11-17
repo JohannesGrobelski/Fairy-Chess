@@ -19,7 +19,6 @@ import emerald.apps.fairychess.model.MultiplayerDB.Companion.matchmakingWinningC
 import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 
 
@@ -258,22 +257,22 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         )
 
         //create dialog
-        val spinner_gameName : Spinner = searchDialogView.findViewById(R.id.spinner_gameName)
+        val spinner_gameName : Spinner = searchDialogView.findViewById(R.id.spinner_createGame_gameName)
         spinner_gameName.adapter = ArrayAdapter(
             mainActivity,
             android.R.layout.simple_list_item_1,
             gameModes
         )
-        val spinner_timemode : Spinner = searchDialogView.findViewById(R.id.spinner_timemode)
+        val spinner_timemode : Spinner = searchDialogView.findViewById(R.id.spinner_createGame_timemode)
         spinner_timemode.adapter = ArrayAdapter(
             mainActivity,
             android.R.layout.simple_list_item_1,
             timeModes
         )
-        val btn_search_game = searchDialogView.findViewById<Button>(R.id.btn_search_game)
+        val btn_create_game = searchDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
         val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
 
-        btn_search_game.setOnClickListener{
+        btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
@@ -497,7 +496,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     /** call back method after getting player stats */
     override fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats) {
         this.playerStats = playerStats
-        mainActivity.tv_playerstats.text = userName
+        mainActivity.findViewById<TextView>(R.id.tv_playerstats).text = userName
     }
 
     override fun processShortLink(shortLink: Uri?, flowchartLink: Uri?) {

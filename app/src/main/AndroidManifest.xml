@@ -10,7 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".view.ChessActivity"></activity>
-        <activity android:name=".view.MainActivity">
+        <activity
+            android:exported="true"
+            android:name=".view.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

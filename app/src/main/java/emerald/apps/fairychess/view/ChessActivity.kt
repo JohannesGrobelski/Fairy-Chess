@@ -8,33 +8,46 @@ import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.viewbinding.ViewBinding
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.ChessActivityListener
 import emerald.apps.fairychess.controller.MainActivityListener
-import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
+import emerald.apps.fairychess.databinding.ActivityChessBlackPerspectiveBinding
+import emerald.apps.fairychess.databinding.ActivityChessWhitePerspectiveBinding
 
 
 class ChessActivity : AppCompatActivity() {
     private lateinit var chessActivityListener: ChessActivityListener
     private lateinit var playerColor : String
 
+    // Safe accessor that casts to the correct type based on player color
+    private lateinit var whiteBinding : ActivityChessWhitePerspectiveBinding
+    private lateinit var blackBinding : ActivityChessBlackPerspectiveBinding
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         //get parameters from intent
         playerColor = this.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
         val timeMode = this.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!
+
+        // Initialize the correct binding type
         if(playerColor == "white"){
-            setContentView(R.layout.activity_chess_white_perspective)
-            tv_PlayerTimeW.text = timeMode
-            tv_OpponentTimeW.text = timeMode
+            whiteBinding = ActivityChessWhitePerspectiveBinding.inflate(layoutInflater)
+            setContentView(whiteBinding.root)
+            whiteBinding.tvPlayerTimeW.text = timeMode
+            whiteBinding.tvOpponentTimeW.text = timeMode
         } else {
-            setContentView(R.layout.activity_chess_black_perspective)
-            tv_PlayerTimeB.text = timeMode
-            tv_OpponentTimeB.text = timeMode
+            blackBinding = ActivityChessBlackPerspectiveBinding.inflate(layoutInflater)
+            setContentView(blackBinding.root)
+            blackBinding.tvPlayerTimeB.text = timeMode
+            blackBinding.tvOpponentTimeB.text = timeMode
         }
         chessActivityListener = ChessActivityListener(this)
     }
+
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -51,20 +64,20 @@ class ChessActivity : AppCompatActivity() {
     fun highlightActivePlayer(activePlayerColor: String){
         if(playerColor == "white"){
             val playerActive = playerColor == activePlayerColor
-            tv_playernameW.setTextColor(getTextFieldColor(playerActive))
-            tv_PlayerELOW.setTextColor(getTextFieldColor(playerActive))
-            tv_PlayerTimeW.setTextColor(getTextFieldColor(playerActive))
-            tv_opponentnameW.setTextColor(getTextFieldColor(!playerActive))
-            tv_OpponentTimeW.setTextColor(getTextFieldColor(!playerActive))
-            tv_OpponentELOW.setTextColor(getTextFieldColor(!playerActive))
+            whiteBinding.tvPlayernameW.setTextColor(getTextFieldColor(playerActive))
+            whiteBinding.tvPlayerELOW.setTextColor(getTextFieldColor(playerActive))
+            whiteBinding.tvPlayerTimeW.setTextColor(getTextFieldColor(playerActive))
+            whiteBinding.tvOpponentnameW.setTextColor(getTextFieldColor(!playerActive))
+            whiteBinding.tvOpponentTimeW.setTextColor(getTextFieldColor(!playerActive))
+            whiteBinding.tvOpponentELOW.setTextColor(getTextFieldColor(!playerActive))
         } else {
             val playerActive = playerColor == activePlayerColor
-            tv_playernameB.setTextColor(getTextFieldColor(playerActive))
-            tv_PlayerELOB.setTextColor(getTextFieldColor(playerActive))
-            tv_PlayerTimeB.setTextColor(getTextFieldColor(playerActive))
-            tv_opponentnameB.setTextColor(getTextFieldColor(!playerActive))
-            tv_OpponentTimeB.setTextColor(getTextFieldColor(!playerActive))
-            tv_OpponentELOB.setTextColor(getTextFieldColor(!playerActive))
+            blackBinding.tvPlayernameB.setTextColor(getTextFieldColor(playerActive))
+            blackBinding.tvPlayerELOB.setTextColor(getTextFieldColor(playerActive))
+            blackBinding.tvPlayerTimeB.setTextColor(getTextFieldColor(playerActive))
+            blackBinding.tvOpponentnameB.setTextColor(getTextFieldColor(!playerActive))
+            blackBinding.tvOpponentTimeB.setTextColor(getTextFieldColor(!playerActive))
+            blackBinding.tvOpponentELOB.setTextColor(getTextFieldColor(!playerActive))
         }
     }
 
@@ -93,16 +106,16 @@ class ChessActivity : AppCompatActivity() {
         val layerDrawable = LayerDrawable(layerList.toTypedArray())
         if(color == playerColor){
             if(playerColor == "white"){
-                iv_captPiecesPlayerLine1W.setImageDrawable(layerDrawable)
+                whiteBinding.ivCaptPiecesPlayerLine1W.setImageDrawable(layerDrawable)
             }else if(playerColor == "black"){
-                iv_captPiecesPlayerLine1.setImageDrawable(layerDrawable)
+                blackBinding.ivCaptPiecesPlayerLine1.setImageDrawable(layerDrawable)
             }
         }
         else {
             if(playerColor == "white"){
-                iv_captPiecesOpponentLine1W.setImageDrawable(layerDrawable)
+                whiteBinding.ivCaptPiecesOpponentLine1W.setImageDrawable(layerDrawable)
             }else if(playerColor == "black"){
-                iv_captPiecesOpponentLine1.setImageDrawable(layerDrawable)
+                blackBinding.ivCaptPiecesOpponentLine1.setImageDrawable(layerDrawable)
             }
         }
     }

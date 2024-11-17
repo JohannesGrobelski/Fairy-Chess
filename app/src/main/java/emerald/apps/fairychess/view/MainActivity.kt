@@ -1,28 +1,29 @@
 package emerald.apps.fairychess.view
 
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.alertdialog_create_game.*
+import emerald.apps.fairychess.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     lateinit var mainActivityListener : MainActivityListener
 
-
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         mainActivityListener = MainActivityListener(this)
-        btn_createGame.setOnClickListener(mainActivityListener)
-        btn_searchGame.setOnClickListener(mainActivityListener)
-        btn_quickmatch.setOnClickListener(mainActivityListener)
-        btn_ai.setOnClickListener(mainActivityListener)
+        binding.btnCreateGame.setOnClickListener(mainActivityListener)
+        binding.btnSearchGame.setOnClickListener(mainActivityListener)
+        binding.btnQuickmatch.setOnClickListener(mainActivityListener)
+        binding.btnAi.setOnClickListener(mainActivityListener)
     }
 
     override fun onResume() {

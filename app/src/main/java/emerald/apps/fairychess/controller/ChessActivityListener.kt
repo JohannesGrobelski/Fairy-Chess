@@ -8,116 +8,85 @@ import android.view.View
 import android.widget.*
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
+import emerald.apps.fairychess.databinding.ActivityChessBlackPerspectiveBinding
+import emerald.apps.fairychess.databinding.ActivityChessWhitePerspectiveBinding
 import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.model.TimerUtils.Companion.transformLongToTimeString
 import emerald.apps.fairychess.view.ChessActivity
-import kotlinx.android.synthetic.main.activity_chess_black_perspective.*
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.*
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.A8
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.B8
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.C8
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.D8
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.E8
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.F8
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.G8
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H1
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H2
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H3
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H4
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H5
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H6
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H7
-import kotlinx.android.synthetic.main.activity_chess_white_perspective.H8
 import kotlinx.coroutines.*
+
 
 /** controller that propagates inputs from view to model and changes from model to view */
 class ChessActivityListener() : MultiplayerDBGameInterface
     , ChessTimerPlayer.ChessTimerPlayerInterface
     , ChessTimerOpponent.ChessTimerOpponentInterface {
 
-    private lateinit var chessActivity : ChessActivity
+    private lateinit var chessActivity: ChessActivity
     private lateinit var chessgame: Chessgame
     private lateinit var multiplayerDB: MultiplayerDB
     private lateinit var chessAI: ChessAI
 
+    // View references
+    private lateinit var tvPlayerName: TextView
+    private lateinit var tvOpponentName: TextView
+    private lateinit var tvPlayerELO: TextView
+    private lateinit var tvOpponentELO: TextView
+    private lateinit var tvPlayerTime: TextView
+    private lateinit var tvOpponentTime: TextView
+
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
 
-    class PlayerSelectedSquare(var rank:Int, var file:Int)
-    val playerSelectedSquare = PlayerSelectedSquare(-1,-1)
+    class PlayerSelectedSquare(var rank: Int, var file: Int)
+    val playerSelectedSquare = PlayerSelectedSquare(-1, -1)
 
-    //Views
-    var elterLayout: LinearLayout? = null
-    /* chess board layout consists of 64 imageviews represent which the chessboard model:
-       At the core of the chessboard model is the pieces-array: representing 64 pieces with
-       (rank,file)-coordinates
-       (7,0) ... (7,7)      (A,8) ... (H,8)
-       ...        ...    =   ...        ...
-       (0,0) ... (0,7)      (A,1) ... (G,1)
-     */
-    private lateinit var imageViews: Array<Array<ImageView>> //imageViews[file][rank]
-    private var playerTimer : ChessTimerPlayer? = null
-    private var opponentTimer : ChessTimerOpponent? = null
-    private lateinit var playerStats : MultiplayerDB.PlayerStats
-    private lateinit var opponentStats : MultiplayerDB.PlayerStats
+    private lateinit var imageViews: Array<Array<ImageView>>
+    private var playerTimer: ChessTimerPlayer? = null
+    private var opponentTimer: ChessTimerOpponent? = null
+    private lateinit var playerStats: MultiplayerDB.PlayerStats
+    private lateinit var opponentStats: MultiplayerDB.PlayerStats
     private var playerStatsUpdated = false
 
-    private var calcMoveJob : Job? = null
+    private var calcMoveJob: Job? = null
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-        //get game parameters from intent
+
+        getIntentData()
+        initializeViews()
+        setupGame()
+    }
+
+    private fun initializeViews() {
+        // Initialize views based on player color
+        if (gameParameters.playerColor == "white") {
+            tvPlayerName = chessActivity.findViewById(R.id.tv_playernameW)
+            tvOpponentName = chessActivity.findViewById(R.id.tv_opponentnameW)
+            tvPlayerELO = chessActivity.findViewById(R.id.tv_PlayerELOW)
+            tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOW)
+            tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeW)
+            tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeW)
+        } else {
+            tvPlayerName = chessActivity.findViewById(R.id.tv_playernameB)
+            tvOpponentName = chessActivity.findViewById(R.id.tv_opponentnameB)
+            tvPlayerELO = chessActivity.findViewById(R.id.tv_PlayerELOB)
+            tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOB)
+            tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeB)
+            tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeB)
+        }
+    }
+
+    private fun getIntentData(){
         playerStats = chessActivity.intent.getParcelableExtra(MainActivityListener.gamePlayerStatsExtra)!!
         opponentStats = chessActivity.intent.getParcelableExtra(MainActivityListener.gameOpponentStatsExtra)!!
+
+        gameParameters = MainActivityListener.GameParameters(
+            chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!,
+            chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+        )
+
         gameData = MultiplayerDB.GameData(
             chessActivity.intent.getStringExtra(MainActivityListener.gameIdExtra)!!,
             chessActivity.intent.getStringExtra(MainActivityListener.gamePlayerNameExtra)!!,
@@ -125,34 +94,20 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             playerStats.ELO,
             opponentStats.ELO
         )
-        gameParameters = MainActivityListener.GameParameters(
-            chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!,
-            chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!,
-            chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!,
-            chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
-        )
+    }
+
+    private fun setupGame() {
+        // Update UI with game data
+        tvPlayerName.text = gameData.playerID
+        tvOpponentName.text = gameData.opponentID
+        tvPlayerELO.text = playerStats.ELO.toString()
+        tvOpponentELO.text = opponentStats.ELO.toString()
+
         //create ches game with parameters
         chessgame = Chessgame(chessActivity, gameData, gameParameters)
 
-        //write information from intent into views and create/start timers
-        if(gameParameters.playerColor=="white"){
-            chessActivity.tv_playernameW.text = gameData.playerID
-            chessActivity.tv_opponentnameW.text = gameData.opponentID
-            chessActivity.tv_PlayerELOW.text = playerStats.ELO.toString()
-            chessActivity.tv_OpponentELOW.text = opponentStats.ELO.toString()
-        }
-        if(gameParameters.playerColor=="black"){
-            chessActivity.tv_playernameB.text = gameData.playerID
-            chessActivity.tv_opponentnameB.text = gameData.opponentID
-            chessActivity.tv_PlayerELOB.text = playerStats.ELO.toString()
-            chessActivity.tv_OpponentELOB.text = opponentStats.ELO.toString()
-        }
-        playerTimer = ChessTimerPlayer.getPlTimerFromTimeMode(this, gameParameters.time)
-        opponentTimer = ChessTimerOpponent.getOpTimerFromTimeMode(this, gameParameters.time)
-        playerTimer?.create()
-        opponentTimer?.create()
-
-        //init chessboard-views
+        // Initialize timers and board
+        initializeTimers()
         create2DArrayImageViews()
         displayFigures()
 
@@ -182,10 +137,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1
                 && clickedFile != -1 && clickedRank != -1){
                 val movement = Movement(
-                        sourceRank = playerSelectedSquare.rank,
-                        sourceFile = playerSelectedSquare.file,
-                        targetRank = clickedRank,
-                        targetFile = clickedFile
+                    sourceRank = playerSelectedSquare.rank,
+                    sourceFile = playerSelectedSquare.file,
+                    targetRank = clickedRank,
+                    targetFile = clickedFile
                 )
                 var moveResult = ""
                 moveResult = chessgame.movePlayer(movement, chessgame.getBitboard().moveColor)
@@ -244,7 +199,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     /** handle pawn promotion*/
     private fun pawnPromotion(pawnPromotionCandidate: Bitboard.Companion.Coordinate) {
         val pieceColor = chessgame.getBitboard().getPieceColor(pawnPromotionCandidate.rank,pawnPromotionCandidate.file)
-            //handle pawn promotion of ai (exchange pawn with queen)
+        //handle pawn promotion of ai (exchange pawn with queen)
         if(pieceColor != gameParameters.playerColor && gameParameters.playMode=="ai"){ //always promote to queen
             chessgame.getBitboard().promotePawn(pawnPromotionCandidate,chessAI.getPromotion())
             displayFigures()
@@ -319,6 +274,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         switchClocks(chessgame.getBitboard().moveColor)
     }
 
+    private fun initializeTimers() {
+        playerTimer = ChessTimerPlayer.getPlTimerFromTimeMode(this, gameParameters.time)
+        opponentTimer = ChessTimerOpponent.getOpTimerFromTimeMode(this, gameParameters.time)
+        playerTimer?.create()
+        opponentTimer?.create()
+    }
+
     /** switch clock from the player finishing the move to the other player */
     private fun switchClocks(activePlayerColor: String){
         if(gameParameters.playerColor == activePlayerColor){
@@ -357,42 +319,22 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** create 2D array of chesssquare-imageViews */
     private fun create2DArrayImageViews() {
-        elterLayout = chessActivity.findViewById(R.id.elterLayout)
-        imageViews = arrayOf(
-            arrayOf(
-                chessActivity.A1, chessActivity.A2, chessActivity.A3, chessActivity.A4,
-                chessActivity.A5, chessActivity.A6, chessActivity.A7, chessActivity.A8
-            ),
-            arrayOf(
-                chessActivity.B1, chessActivity.B2, chessActivity.B3, chessActivity.B4,
-                chessActivity.B5, chessActivity.B6, chessActivity.B7, chessActivity.B8
-            ),
-            arrayOf(
-                chessActivity.C1, chessActivity.C2, chessActivity.C3, chessActivity.C4,
-                chessActivity.C5, chessActivity.C6, chessActivity.C7, chessActivity.C8
-            ),
-            arrayOf(
-                chessActivity.D1, chessActivity.D2, chessActivity.D3, chessActivity.D4,
-                chessActivity.D5, chessActivity.D6, chessActivity.D7, chessActivity.D8
-            ),
-            arrayOf(
-                chessActivity.E1, chessActivity.E2, chessActivity.E3, chessActivity.E4,
-                chessActivity.E5, chessActivity.E6, chessActivity.E7, chessActivity.E8
-            ),
-            arrayOf(
-                chessActivity.F1, chessActivity.F2, chessActivity.F3, chessActivity.F4,
-                chessActivity.F5, chessActivity.F6, chessActivity.F7, chessActivity.F8
-            ),
-            arrayOf(
-                chessActivity.G1, chessActivity.G2, chessActivity.G3, chessActivity.G4,
-                chessActivity.G5, chessActivity.G6, chessActivity.G7, chessActivity.G8
-            ),
-            arrayOf(
-                chessActivity.H1, chessActivity.H2, chessActivity.H3, chessActivity.H4,
-                chessActivity.H5, chessActivity.H6, chessActivity.H7, chessActivity.H8
-            ),
-        )
+        val squares = Array(8) { rank ->
+            Array(8) { file ->
+                val resId = chessActivity.resources.getIdentifier(
+                    "${('A' + rank).toChar()}${file + 1}",
+                    "id",
+                    chessActivity.packageName
+                )
+                chessActivity.findViewById<ImageView>(resId)
+            }
+        }
+        imageViews = squares
     }
+
+
+
+
 
     /** get Drawable from figure name*/
     fun getDrawableFromName(type: String, color: String): Int {
@@ -551,18 +493,13 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     override fun onFinishGame(gameId: String, cause: String) {
         Toast.makeText(chessActivity, cause, Toast.LENGTH_LONG).show()
         val data = Intent()
-            data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
+        data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
         chessActivity.setResult(RESULT_OK, data)
         chessActivity.finish()
     }
 
     override fun onTickOpponentTimer(millisUntilFinished: Long) {
-        if(gameParameters.playerColor=="white"){
-            chessActivity.tv_OpponentTimeW.text = transformLongToTimeString(millisUntilFinished)
-        }
-        if(gameParameters.playerColor=="black"){
-            chessActivity.tv_OpponentTimeB.text = transformLongToTimeString(millisUntilFinished)
-        }
+            tvOpponentName.text = transformLongToTimeString(millisUntilFinished)
     }
 
     override fun onFinishOpponentTimer() {
@@ -571,12 +508,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     override fun onTickPlayerTimer(millisUntilFinished: Long) {
-        if(gameParameters.playerColor=="white"){
-            chessActivity.tv_PlayerTimeW.text = transformLongToTimeString(millisUntilFinished)
-        }
-        if(gameParameters.playerColor=="black"){
-            chessActivity.tv_PlayerTimeB.text = transformLongToTimeString(millisUntilFinished)
-        }
+        tvPlayerTime.text = transformLongToTimeString(millisUntilFinished)
     }
 
     override fun onFinishPlayerTimer() {
