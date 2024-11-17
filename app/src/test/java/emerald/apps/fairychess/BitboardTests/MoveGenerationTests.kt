@@ -3,12 +3,13 @@ package emerald.apps.fairychess.BitboardTests
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import emerald.apps.fairychess.model.*
-import emerald.apps.fairychess.model.Bitboard.Companion.generateCoordinatesFrom64BPosition
-import emerald.apps.fairychess.model.Bitboard.Companion.getPosition
+import emerald.apps.fairychess.model.bitboard.Bitboard.Companion.generateCoordinatesFrom64BPosition
+import emerald.apps.fairychess.model.bitboard.Bitboard.Companion.getPosition
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LONG_BLACK
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LONG_WHITE
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SHORT_BLACK
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SHORT_WHITE
+import emerald.apps.fairychess.model.bitboard.Bitboard
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.*
 import org.junit.Test

@@ -1,6 +1,7 @@
 package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.controller.MainActivityListener
+import emerald.apps.fairychess.model.bitboard.Bitboard
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
@@ -53,7 +54,8 @@ class Chessgame() {
 
     fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<Movement> {
         println(bitboard.toString())
-        return bitboard.getTargetMovementsAsMovementList(bitboard.moveColor,Bitboard.Companion.Coordinate(sourceRank, sourceFile))
+        return bitboard.getTargetMovementsAsMovementList(bitboard.moveColor,
+            Bitboard.Companion.Coordinate(sourceRank, sourceFile))
     }
 
     fun getPieceName(coordinate: Bitboard.Companion.Coordinate) : String{

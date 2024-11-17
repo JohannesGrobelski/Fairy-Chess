@@ -1,7 +1,8 @@
 package emerald.apps.fairychess.model
 
-import emerald.apps.fairychess.model.Bitboard.Companion.castlingMoves
-import emerald.apps.fairychess.model.Bitboard.Companion.enpassanteSquares
+import emerald.apps.fairychess.model.bitboard.Bitboard
+import emerald.apps.fairychess.model.bitboard.Bitboard.Companion.castlingMoves
+import emerald.apps.fairychess.model.bitboard.Bitboard.Companion.enpassanteSquares
 import kotlin.random.Random
 import kotlin.random.nextULong
 

@@ -1,6 +1,8 @@
 package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
+import emerald.apps.fairychess.model.bitboard.Bitboard
+import emerald.apps.fairychess.model.bitboard.BitboardUtils
 import java.util.*
 
 
@@ -17,9 +19,10 @@ class MinimaxResult(val movement: Movement, val value: Int)
  * An AI implementation for playing chess using the alpha-beta search algorithm.
  *
  * Key optimizations:
- * 1. Alpha-Beta pruning to reduce the number of nodes searched
- * 2. Transposition Table to cache and reuse previously evaluated positions
- * 3. Zobrist Hashing for efficient position identification
+ * - Performance-Optimized Bitboard as representation of the chessboard
+ * - Alpha-Beta pruning to reduce the number of nodes searched
+ * - Transposition Table to cache and reuse previously evaluated positions
+ * - Zobrist Hashing for efficient position identification
  *
  * Potential future optimizations:
  * - Move ordering (MVV/LVA, killer moves, history heuristic)
@@ -49,6 +52,7 @@ class ChessAI {
             "queen" to 900,
             "rook" to 500,
             "bishop" to 300,
+            "knight" to 300,
             "knight" to 300,
             "pawn" to 100,
             "king" to 10000
@@ -136,10 +140,10 @@ class ChessAI {
      * Non-capturing moves are tried last
      */
     private fun getMoveScore(move: Movement, bitboard: Bitboard): Int {
-        val targetPiece = bitboard.getPieceName(move.getTargetCoordinate())
-        if (targetPiece.isEmpty()) return 0
+        val targetPiece = BitboardUtils.getPieceName(bitboard, move.getTargetCoordinate())
+        if (targetPiece!!.isEmpty()) return 0
 
-        val attackingPiece = bitboard.getPieceName(move.getSourceCoordinate())
+        val attackingPiece = BitboardUtils.getPieceName(bitboard, move.getSourceCoordinate())
         val targetValue = PIECE_VALUES[targetPiece] ?: 0
         val attackerValue = PIECE_VALUES[attackingPiece] ?: 0
 
@@ -224,18 +228,21 @@ class ChessAI {
      * or calculating it recursively
      */
     private fun evaluateMove(
-        bitboard: Bitboard,
+        chessBoard: ChessBoard,
         move: Movement,
         level: Int,
         alpha: Int,
         beta: Int
     ): Int {
-        val copyBitboard = bitboard.clone()
-        bitboard.move(bitboard.moveColor, move)
+        // Create a new instance of the Bitboard to avoid modifying the original
+        val copyBitboard = Bitboard(chessBoard.bitboard.figureMap)
 
-        val value = getPositionValue(bitboard, move, level, alpha, beta)
+        // Apply the move to the copied bitboard
+        copyBitboard.move(chessBoard.moveColor, move)
 
-        bitboard.set(copyBitboard)
+        // Evaluate the resulting position
+        val value = getPositionValue(copyBitboard, move, level, alpha, beta)
+
         return value
     }
 
@@ -264,7 +271,7 @@ class ChessAI {
 
     private fun getPointDifBW(bitboard: Bitboard) : Int{
         ++movementCounter
-        return bitboard.pointsBlack() - bitboard.pointsWhite()
+        return BitboardUtils.pointsBlack(bitboard) - BitboardUtils.pointsWhite(bitboard)
     }
 
     /**

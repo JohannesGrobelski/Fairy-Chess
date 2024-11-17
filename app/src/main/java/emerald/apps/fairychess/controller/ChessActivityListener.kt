@@ -8,10 +8,9 @@ import android.view.View
 import android.widget.*
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
-import emerald.apps.fairychess.databinding.ActivityChessBlackPerspectiveBinding
-import emerald.apps.fairychess.databinding.ActivityChessWhitePerspectiveBinding
 import emerald.apps.fairychess.model.*
 import emerald.apps.fairychess.model.TimerUtils.Companion.transformLongToTimeString
+import emerald.apps.fairychess.model.bitboard.Bitboard
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.coroutines.*
 

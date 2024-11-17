@@ -1,6 +1,7 @@
 package emerald.apps.fairychess
 
 import emerald.apps.fairychess.model.*
+import emerald.apps.fairychess.model.bitboard.Bitboard
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.assertEquals
 import org.junit.Assert

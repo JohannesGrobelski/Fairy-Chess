@@ -1,20 +1,17 @@
 package emerald.apps.fairychess.BitboardTests
 
-import emerald.apps.fairychess.model.Bitboard
-import emerald.apps.fairychess.model.Bitboard.Companion.add64BPositionFromCoordinates
-import emerald.apps.fairychess.model.Bitboard.Companion.generate64BPositionFromCoordinate
+import emerald.apps.fairychess.model.bitboard.Bitboard
+import emerald.apps.fairychess.model.bitboard.Bitboard.Companion.add64BPositionFromCoordinates
+import emerald.apps.fairychess.model.bitboard.Bitboard.Companion.generate64BPositionFromCoordinate
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseChessFormation
 import emerald.apps.fairychess.model.ChessGameUnitTest.Companion.parseFigureMapFromFile
 import emerald.apps.fairychess.model.Movement
 import emerald.apps.fairychess.model.MovementNotation
-import emerald.apps.fairychess.model.PromotionMovement
 import emerald.apps.fairychess.utility.FigureParser
 import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.lang.Math.random
 import kotlin.math.pow
-import kotlin.system.measureTimeMillis
 
 
 @kotlin.ExperimentalUnsignedTypes
@@ -286,7 +283,8 @@ class BasicMoveTest {
     fun testMovegenerationPawns(){
         var bitboard = Bitboard(chessFormationArray,figureMap)
 
-        val moves = bitboard.getTargetMovementsAsMovementList("white",Bitboard.Companion.Coordinate(0,1))
+        val moves = bitboard.getTargetMovementsAsMovementList("white",
+            Bitboard.Companion.Coordinate(0,1))
         assertEquals(2,moves.size)
 
         //white pawn can capture 2 black pawns
@@ -363,12 +361,14 @@ class BasicMoveTest {
         assertEquals(2.0.pow(1*8 + 1).toULong(), generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(1,1)))
         assertEquals(2.0.pow(4*8 + 5).toULong(), generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(5,4)))
 
-        assertEquals(Bitboard.Companion.Coordinate(0,0),
+        assertEquals(
+            Bitboard.Companion.Coordinate(0,0),
             Bitboard.generateCoordinatesFrom64BPosition(
                 generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(0,0))
             )[0])
 
-        assertEquals(Bitboard.Companion.Coordinate(1,0),
+        assertEquals(
+            Bitboard.Companion.Coordinate(1,0),
             Bitboard.generateCoordinatesFrom64BPosition(
                 generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(1,0))
             )[0])
@@ -378,11 +378,13 @@ class BasicMoveTest {
                 assertEquals(2.0.pow(line*8 + rank).toULong(),
                     generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(rank,line))
                 )
-                assertEquals(Bitboard.Companion.Coordinate(rank,line).file,
+                assertEquals(
+                    Bitboard.Companion.Coordinate(rank,line).file,
                     Bitboard.generateCoordinatesFrom64BPosition(
                         generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(rank,line))
                     )[0].file)
-                assertEquals(Bitboard.Companion.Coordinate(rank,line).rank,
+                assertEquals(
+                    Bitboard.Companion.Coordinate(rank,line).rank,
                     Bitboard.generateCoordinatesFrom64BPosition(
                         generate64BPositionFromCoordinate(Bitboard.Companion.Coordinate(rank,line))
                     )[0].rank)
@@ -391,9 +393,9 @@ class BasicMoveTest {
 
         //test bitboards with multiple figures
         var bb = 0uL
-        bb = add64BPositionFromCoordinates(bb,Bitboard.Companion.Coordinate(0,0))
-        bb = add64BPositionFromCoordinates(bb,Bitboard.Companion.Coordinate(4,5))
-        bb = add64BPositionFromCoordinates(bb,Bitboard.Companion.Coordinate(2,3))
+        bb = add64BPositionFromCoordinates(bb, Bitboard.Companion.Coordinate(0,0))
+        bb = add64BPositionFromCoordinates(bb, Bitboard.Companion.Coordinate(4,5))
+        bb = add64BPositionFromCoordinates(bb, Bitboard.Companion.Coordinate(2,3))
 
         val coordinateList = Bitboard.generateCoordinatesFrom64BPosition(bb)
         assertEquals(listOf(
@@ -405,10 +407,10 @@ class BasicMoveTest {
 
     @Test
     fun testhorizontalLineToBitboard(){
-        assertEquals(112uL,Bitboard.bbCastlingRoomShortWhite)
-        assertEquals(28uL,Bitboard.bbCastlingRoomLongWhite)
-        assertEquals(8070450532247928832uL,Bitboard.bbCastlingRoomShortBlack)
-        assertEquals(2017612633061982208uL,Bitboard.bbCastlingRoomLongBlack)
+        assertEquals(112uL, Bitboard.bbCastlingRoomShortWhite)
+        assertEquals(28uL, Bitboard.bbCastlingRoomLongWhite)
+        assertEquals(8070450532247928832uL, Bitboard.bbCastlingRoomShortBlack)
+        assertEquals(2017612633061982208uL, Bitboard.bbCastlingRoomLongBlack)
     }
 
     companion object {

@@ -13,6 +13,7 @@ import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
 import com.google.firebase.dynamiclinks.ktx.component1
 import com.google.firebase.dynamiclinks.ktx.component2
+import emerald.apps.fairychess.model.bitboard.Bitboard
 
 /** MultiplayerDB adds/changes FirebaseFirestore-Database like
  *
