@@ -40,7 +40,7 @@ class ChessAITest {
         }
         Assert.assertEquals("",bitboard.checkMoveAndMove("black",move))
         println("calcTime: $calcTime ms")
-        println("cnt_movements: "+chessAIBlack.cnt_movements)
+        println("cnt_movements: "+chessAIBlack.movementCounter)
         println("transpositionTableHits: "+chessAIBlack.transpositionTableHits)
         println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
     }
@@ -257,6 +257,6 @@ class ChessAITest {
         assert(chessBoardNormal.checkMoveAndMove("black", stubChessAI.calcMove(chessBoardNormal)!!).isEmpty())
 
         if(DEBUG)println(chessBoardNormal.toString())
-        if(DEBUG)println(stubChessAI.cnt_movements.toString()+" moves")
+        if(DEBUG)println(stubChessAI.movementCounter.toString()+" moves")
     }
 }
