@@ -2,8 +2,6 @@ package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import java.util.*
-import kotlin.math.max
-import kotlin.math.min
 
 
 /**
@@ -30,6 +28,9 @@ class MinimaxResult(val movement: Movement, val value: Int)
  * - Null move pruning
  */
 class ChessAI {
+    //for Profiling
+    var executionTimeMs = 0L
+
     //Settings
     private val recursionDepth = 4 //Maximum depth for the alpha-beta search
 
@@ -90,8 +91,13 @@ class ChessAI {
      */
     fun calcMove(bitboard: Bitboard) : Movement{
         movementCounter = 0
+        val startTime = System.currentTimeMillis()
+
         zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
-        return alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
+        val result =  alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
+        executionTimeMs = System.currentTimeMillis() - startTime
+
+        return result
     }
 
     /**
@@ -259,6 +265,13 @@ class ChessAI {
     private fun getPointDifBW(bitboard: Bitboard) : Int{
         ++movementCounter
         return bitboard.pointsBlack() - bitboard.pointsWhite()
+    }
+
+    /**
+     * Gets formatted move information and statistics
+     */
+    fun getMoveInfo(move: Movement): String {
+        return "AI: ${move.asString(color)}, Time: ${executionTimeMs}ms, Positions: $movementCounter"
     }
 
 }

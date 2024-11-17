@@ -167,9 +167,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                         try{
                             val aiMovement = chessAI.calcMove(chessgame.getBitboard().clone())
                             chessgame.movePlayer(aiMovement, chessAI.color)
-                            withContext(Dispatchers.Main){
+                            withContext(Dispatchers.Main) {
                                 displayFigures()
-                                Toast.makeText(chessActivity,"AI: "+aiMovement.asString("black"),Toast.LENGTH_LONG)
+                                // Show statistics
+                                Toast.makeText(
+                                    chessActivity,
+                                    chessAI.getMoveInfo(aiMovement),
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)
