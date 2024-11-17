@@ -30,10 +30,8 @@ class MinimaxResult(val movement: Movement, val value: Int)
  * - Null move pruning
  */
 class ChessAI {
-
-
     //Settings
-    private val recursionDepth = 2 //Maximum depth for the alpha-beta search
+    private val recursionDepth = 4 //Maximum depth for the alpha-beta search
 
     //Fields
     var movementCounter = 0 //Counter variable for number of positions evaluated
@@ -41,6 +39,21 @@ class ChessAI {
 
     var color: String  //Color this AI plays as ("white" or "black")
     lateinit var zobristHash : ZobristHash //Zobrist hash generator for position identification
+
+    /**
+     * Static piece values for move ordering
+     */
+    private companion object {
+        private val PIECE_VALUES = mapOf(
+            "queen" to 900,
+            "rook" to 500,
+            "bishop" to 300,
+            "knight" to 300,
+            "pawn" to 100,
+            "king" to 10000
+        )
+    }
+
 
     /**
      * Cache of previously evaluated positions.
@@ -109,6 +122,36 @@ class ChessAI {
     }
 
     /**
+     * Orders moves based on MVV-LVA (Most Valuable Victim - Least Valuable Attacker)
+     * Higher value indicates a better move to try first
+     *
+     * Prioritizes capturing high value pieces with lower value pieces
+     * (For example, taking a queen with a pawn scores higher than taking a pawn with a queen)
+     * Non-capturing moves are tried last
+     */
+    private fun getMoveScore(move: Movement, bitboard: Bitboard): Int {
+        val targetPiece = bitboard.getPieceName(move.getTargetCoordinate())
+        if (targetPiece.isEmpty()) return 0
+
+        val attackingPiece = bitboard.getPieceName(move.getSourceCoordinate())
+        val targetValue = PIECE_VALUES[targetPiece] ?: 0
+        val attackerValue = PIECE_VALUES[attackingPiece] ?: 0
+
+        // MVV-LVA formula: victim value * 10 - attacker value
+        // This prioritizes capturing high value pieces with lower value pieces
+        return targetValue * 10 - attackerValue
+    }
+
+    /**
+     * Orders moves before searching
+     */
+    private fun orderMoves(moves: List<Movement>, bitboard: Bitboard): List<Movement> {
+        return moves.sortedByDescending { move ->
+            getMoveScore(move, bitboard)
+        }
+    }
+
+    /**
      * Finds the best move for black (maximizing player)
      */
     private fun findBestMoveForBlack(
@@ -122,7 +165,9 @@ class ChessAI {
         var bestMove = emptyMovement()
         var alphaCurrent = alpha
 
-        for (move in moves) {
+        val orderedMoves = orderMoves(moves, bitboard)
+
+        for (move in orderedMoves) {
             val value = evaluateMove(bitboard, move, level, alphaCurrent, beta)
 
             if (value > bestValue) {
@@ -151,7 +196,9 @@ class ChessAI {
         var bestMove = emptyMovement()
         var betaCurrent = beta
 
-        for (move in moves) {
+        val orderedMoves = orderMoves(moves, bitboard)
+
+        for (move in orderedMoves) {
             val value = evaluateMove(bitboard, move, level, alpha, betaCurrent)
 
             if (value < bestValue) {
@@ -207,50 +254,6 @@ class ChessAI {
         val value = alphabeta(bitboard, level - 1, alpha, beta).value
         transpositionTable[hash] = MinimaxResult(move, value)
         return value
-    }
-
-    /**
-     * Assigns scores to moves for better move ordering:
-     * - Capturing a higher value piece with a lower value piece scores higher
-     * - Queen captures score highest
-     * - Pawn captures score lowest
-     *
-     * @param moves List of possible moves
-     * @param bitboard Current board position
-     * @return Sorted list of moves, best moves first
-     */
-    private fun orderMoves(moves: List<Movement>, bitboard: Bitboard): List<Movement> {
-        // Create pairs of move and score for sorting
-        val scoredMoves = moves.map { move ->
-            val targetPiece = bitboard.getPieceName(move.getTargetCoordinate())
-            val attackingPiece = bitboard.getPieceName(move.getSourceCoordinate())
-
-            // Calculate move score
-            val score = when {
-                // Capturing moves
-                targetPiece.isNotEmpty() -> {
-                    getPieceValue(targetPiece) - (getPieceValue(attackingPiece) / 10)
-                }
-                // Non-capturing moves score 0
-                else -> 0
-            }
-
-            move to score
-        }
-
-        // Return moves sorted by score descending
-        return scoredMoves.sortedByDescending { it.second }.map { it.first }
-    }
-
-    /**
-     * Returns the relative value of each piece type for move ordering
-     */
-    private fun getPieceValue(piece: String): Int = when (piece) {
-        "queen" -> 900
-        "rook" -> 500
-        "bishop", "knight" -> 300
-        "pawn" -> 100
-        else -> 0
     }
 
     private fun getPointDifBW(bitboard: Bitboard) : Int{
