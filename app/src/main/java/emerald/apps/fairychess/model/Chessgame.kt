@@ -44,7 +44,7 @@ class Chessgame() {
     fun movePlayer(movement: Movement?, color: String): String {
         return if(movement != null){
             val returnValue = chessboard.checkMoveAndMove(color, movement)
-            gameFinished = chessboard.gameFinished
+            gameFinished = chessboard.checkForWinner() != ""
             returnValue
         } else {
             "no move made"
@@ -82,7 +82,7 @@ class Chessgame() {
 
     fun makeMove(movement: Movement){
         chessboard.checkMoveAndMove(chessboard.getMovecolor(), movement)
-        gameFinished = chessboard.gameFinished
+        gameFinished = chessboard.checkForWinner() != ""
     }
 
     val colors = arrayOf("white","black")
@@ -92,6 +92,10 @@ class Chessgame() {
             if(color == colors[0]) colors[1]
             else colors[0]
         }
+    }
+
+    fun checkForWinner() : String {
+        return chessboard.checkForWinner()
     }
 }
 

@@ -9,7 +9,6 @@ class Chessboard(
     val figureMap: Map<String, FigureParser.Figure>
 ) {
     private var bitboard: Bitboard
-    var gameFinished = false
     var gameWinner = ""
     var playerWithDrawOpportunity = ""
 
@@ -68,6 +67,11 @@ class Chessboard(
 
     fun cloneBitboard() : Bitboard{
         return bitboard.clone()
+    }
+
+    fun checkForWinner() : String {
+        gameWinner =  bitboard.checkForWinner()
+        return gameWinner
     }
 
 }

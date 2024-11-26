@@ -165,7 +165,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 )
                 var moveResult = ""
                 moveResult = chessgame.movePlayer(movement, chessgame.getChessboard().getMovecolor())
-                if(chessgame.gameFinished){
+                if(chessgame.checkForWinner() != ""){
                     if(chessgame.getChessboard().gameWinner == gameParameters.playerColor){
                         finishGame(chessgame.getChessboard().gameWinner + " won", true)
                     } else {
