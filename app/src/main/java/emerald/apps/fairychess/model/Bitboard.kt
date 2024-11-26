@@ -18,9 +18,8 @@ import kotlin.math.sign
 
 class Bitboard(
     private val chessFormationArray: Array<Array<String>>?,
-    val figureMap: Map<String, FigureParser.Figure>
+    val figureMap: Map<String, FigureParser.Figure>,
 ) {
-
     private val colors = arrayOf("white","black")
 
     //map from name of figure to 2D-Array
@@ -940,16 +939,15 @@ class Bitboard(
         return str.toString()
     }
 
-
-
     private fun checkForPromotion() {
+        val promotableFigure = if(bbFigures.keys.contains("pawn")) "pawn" else "berolina"
         for (rank in 0..7) {
             val firstFile = 2.0.pow((0 * 8 + rank).toDouble()).toULong()
             val lastFile = 2.0.pow((7 * 8 + rank).toDouble()).toULong()
-            if((bbFigures["pawn"]?.get(0)!! and lastFile) == lastFile){
+            if((bbFigures[promotableFigure]?.get(0)!! and lastFile) == lastFile){
                 promotionCoordinate = Coordinate(rank,7)
             }
-            if((bbFigures["pawn"]?.get(1)!! and firstFile) == firstFile){
+            if((bbFigures[promotableFigure]?.get(1)!! and firstFile) == firstFile){
                 promotionCoordinate = Coordinate(rank,0)
             }
         }
