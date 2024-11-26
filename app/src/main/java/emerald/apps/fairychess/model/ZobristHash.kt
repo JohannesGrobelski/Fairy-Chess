@@ -75,9 +75,6 @@ class ZobristHash(figureNameList : List<String>) {
         for(castlingCoordinate in bitboard.getCastlingRights(bitboard.moveColor)){
             hashKey = hashKey xor castlingRightMap[castlingCoordinate]!!
         }
-        for(enpassanteSquare in bitboard.getEnpassanteSquares()){
-            hashKey = hashKey xor enpassanteSquareMap[enpassanteSquare]!!
-        }
         return hashKey
     }
 

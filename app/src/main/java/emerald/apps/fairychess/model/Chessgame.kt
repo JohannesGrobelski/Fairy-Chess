@@ -7,7 +7,7 @@ import emerald.apps.fairychess.view.ChessActivity
 
 class Chessgame() {
 
-    private lateinit var bitboard: Bitboard
+    private lateinit var chessboard: Chessboard
 
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
@@ -31,7 +31,7 @@ class Chessgame() {
         )
         figureMap = FigureParser.parseFigureMapFromFile(chessActivity)
 
-        bitboard = Bitboard(chessFormationArray, figureMap)
+        chessboard = Chessboard(chessFormationArray, figureMap)
 
         this.gameData = gameData
         this.gameParameters = gameParameters
@@ -43,8 +43,8 @@ class Chessgame() {
     /** execute movement and check if color allows movement */
     fun movePlayer(movement: Movement?, color: String): String {
         return if(movement != null){
-            val returnValue = bitboard.checkMoveAndMove(color, movement)
-            gameFinished = bitboard.gameFinished
+            val returnValue = chessboard.checkMoveAndMove(color, movement)
+            gameFinished = chessboard.gameFinished
             returnValue
         } else {
             "no move made"
@@ -52,24 +52,25 @@ class Chessgame() {
     }
 
     fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<Movement> {
-        println(bitboard.toString())
-        return bitboard.getTargetMovementsAsMovementList(bitboard.moveColor,Bitboard.Companion.Coordinate(sourceRank, sourceFile))
+        println(chessboard.toString())
+        return chessboard.getTargetMovementsAsMovementList(Bitboard.Companion.Coordinate(sourceRank, sourceFile))
     }
 
     fun getPieceName(coordinate: Bitboard.Companion.Coordinate) : String{
-        return bitboard.getPieceName(coordinate)
+        return chessboard.getPieceName(coordinate)
     }
 
     fun getPieceColor(rank: Int, file: Int) : String{
-        return bitboard.getPieceColor(rank,file)
+        return chessboard.getPieceColor(rank,file)
     }
 
-    fun getBitboard() : Bitboard {
-        return bitboard
+
+    fun getChessboard() : Chessboard {
+        return chessboard
     }
 
-    fun setChessboard(chessboard: Bitboard) {
-        this.bitboard = chessboard
+    fun setChessboard(chessboard: Chessboard) {
+        this.chessboard = chessboard
     }
 
     fun makeMove(moveString: String) {
@@ -80,8 +81,8 @@ class Chessgame() {
     }
 
     fun makeMove(movement: Movement){
-        bitboard.checkMoveAndMove(bitboard.moveColor, movement)
-        gameFinished = bitboard.gameFinished
+        chessboard.checkMoveAndMove(chessboard.getMovecolor(), movement)
+        gameFinished = chessboard.gameFinished
     }
 
     val colors = arrayOf("white","black")
