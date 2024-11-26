@@ -41,7 +41,7 @@ class ChessAITest {
         Assert.assertEquals("",bitboard.checkMoveAndMove("black",move))
         println("calcTime: $calcTime ms")
         println("cnt_movements: "+chessAIBlack.evaluatedPositions)
-        println("transpositionTableHits: "+chessAIBlack.valueTableHits)
+        println("transpositionTableHits: "+chessAIBlack.valueCacheHits)
         println("transpositionTableSize: "+chessAIBlack.transpositionTable.size)
     }
 

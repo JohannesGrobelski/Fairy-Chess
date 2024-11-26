@@ -1,8 +1,14 @@
-import emerald.apps.fairychess.model.Bitboard
+package emerald.apps.fairychess.model.Caching
 
-class ValueHash {
+import emerald.apps.fairychess.model.Bitboard
+import emerald.apps.fairychess.model.Movement
+
+class MovementCache {
+    var movementCacheHits = 0
+
+
     data class BoardState(
-        val bbFigures: Map<String, Array<ULong>>,  // Using Map instead of MutableMap for data class
+        val bbFigures: Map<String, Array<ULong>>,
         val bbMovedCaptured: ULong,
         val bbComposite: ULong,
         val bbColorComposite: Array<ULong>,
@@ -39,31 +45,38 @@ class ValueHash {
         }
     }
 
-    private val cache = mutableMapOf<BoardState, Int>()  // Or whatever your result type is
+    private val moveCache = mutableMapOf<BoardState, Movement>()
 
-    fun getFromCache(bitboard: Bitboard): Int? {
+    fun getMove(bitboard: Bitboard): Movement? {
         val state = BoardState(
-            bbFigures = bitboard.bbFigures.toMap(),  // Create immutable copy
+            bbFigures = bitboard.bbFigures.toMap(),
             bbMovedCaptured = bitboard.bbMovedCaptured,
             bbComposite = bitboard.bbComposite,
             bbColorComposite = bitboard.bbColorComposite.clone(),
             moveColor = bitboard.moveColor
         )
-        return cache[state]
+        if(moveCache[state] != null){
+            ++movementCacheHits
+        }
+        return moveCache[state]
     }
 
-    fun putInCache(bitboard: Bitboard, result: Int) {
+    fun putMove(bitboard: Bitboard, move: Movement) {
         val state = BoardState(
-            bbFigures = bitboard.bbFigures.toMap(),  // Create immutable copy
+            bbFigures = bitboard.bbFigures.toMap(),
             bbMovedCaptured = bitboard.bbMovedCaptured,
             bbComposite = bitboard.bbComposite,
             bbColorComposite = bitboard.bbColorComposite.clone(),
             moveColor = bitboard.moveColor
         )
-        cache[state] = result
+        moveCache[state] = move
+    }
+
+    fun clear() {
+        moveCache.clear()
     }
 
     fun getKeysize() : Int {
-        return cache.keys.size
+        return moveCache.keys.size
     }
 }

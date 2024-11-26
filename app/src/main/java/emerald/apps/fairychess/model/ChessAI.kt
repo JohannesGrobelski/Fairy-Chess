@@ -1,12 +1,12 @@
 package emerald.apps.fairychess.model
 
-import MovementHash
-import ValueHash
+import emerald.apps.fairychess.model.Caching.MovementCache
+import emerald.apps.fairychess.model.Caching.PossibleMovementsCache
+import emerald.apps.fairychess.model.Caching.ValueCache
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import java.util.*
 
 
 /**
@@ -41,14 +41,12 @@ class ChessAI {
     private val recursionDepth = 4 //Maximum depth for the alpha-beta search
 
     //Profiling Fields
-    var evaluatedPositions = 0 //Counter variable for number of positions evaluated
-    var valueTableHits = 0 //Counter for successful transposition table lookups
-    var movementTableHits = 0 //Counter for successful transposition table lookups
+    var evaluatedPositions = 0
 
     var color: String  //Color this AI plays as ("white" or "black")
-    var valueHash : ValueHash = ValueHash() //Zobrist hash generator for position identification
-    var movementHash : MovementHash = MovementHash() //Zobrist hash generator for position identification
-
+    var valueCache : ValueCache = ValueCache() //Zobrist hash generator for position identification
+    var movementCache : MovementCache = MovementCache() //Zobrist hash generator for position identification
+    var possibleMovementCache : PossibleMovementsCache = PossibleMovementsCache()
     /**
      * Static piece values for move ordering
      */
@@ -114,7 +112,7 @@ class ChessAI {
             return MinimaxResult(emptyMovement(), getPointDifBW(bitboard))
         }
 
-        val moves = bitboard.getAllPossibleMovesAsList(bitboard.moveColor)
+        val moves = bitboard.getAllPossibleMovesAsList(bitboard.moveColor, possibleMovementCache)
         if (moves.isEmpty()) {
             return MinimaxResult(emptyMovement(), getPointDifBW(bitboard))
         }
@@ -164,8 +162,7 @@ class ChessAI {
         beta: Int
     ): MinimaxResult = coroutineScope {
         // Check cache first
-        movementHash.getMove(bitboard)?.let {
-            ++movementTableHits
+        movementCache.getMove(bitboard)?.let {
             MinimaxResult(it, evaluateMove(bitboard, it, level, alpha, beta))
         }
 
@@ -215,7 +212,7 @@ class ChessAI {
                 alphaCurrent = maxOf(alphaCurrent, value)
             }
         }
-        movementHash.putMove(bitboard, bestMove)
+        movementCache.putMove(bitboard, bestMove)
         MinimaxResult(bestMove, bestValue)
     }
 
@@ -230,8 +227,7 @@ class ChessAI {
         beta: Int
     ): MinimaxResult = coroutineScope {
         // Check cache first
-        movementHash.getMove(bitboard)?.let {
-            ++movementTableHits
+        movementCache.getMove(bitboard)?.let {
             MinimaxResult(it, evaluateMove(bitboard, it, level, alpha, beta))
         }
 
@@ -318,15 +314,14 @@ class ChessAI {
     ): Int {
         //TODO: hash doubles the time without any hits - for now disable it
 
-        val hashValue = valueHash.getFromCache(bitboard)
+        val hashValue = valueCache.getFromCache(bitboard)
 
         if (hashValue != null) {
-            ++valueTableHits
             return hashValue
         }
 
         val value = alphabeta(bitboard, level - 1, alpha, beta).value
-        valueHash.putInCache(bitboard, value)
+        valueCache.putInCache(bitboard, value)
         return value
     }
 
@@ -339,7 +334,9 @@ class ChessAI {
      * Gets formatted move information and statistics
      */
     fun getMoveInfo(move: Movement): String {
-        return "moveInfo:\n- ${move.asString2(color)}\n• Time: ${executionTimeMs}ms\n• evaluated Positions: $evaluatedPositions"
+        return "moveInfo:" +
+                "\n• search depth: ${recursionDepth} half movements" +
+                "\n• ${move.asString2(color)}\n• Time: ${executionTimeMs}ms\n• evaluated Positions: $evaluatedPositions"
     }
 
     /**
@@ -347,8 +344,9 @@ class ChessAI {
      */
     fun getHashInfo(move: Movement): String {
         return "Hash Info:"+
-                "\n• valueTableHits: $valueTableHits\n• valueTableSize: ${valueHash.getKeysize()}" +
-                "\n• movementTableHits: ${movementTableHits}\n• movementTableSize: ${movementHash.getKeysize()}"
+                "\n• valueCacheHits: ${valueCache.valueCacheHits}\n• valueTableSize: ${valueCache.getKeysize()}" +
+                "\n• movementCacheHits: ${movementCache.movementCacheHits}\n• movementTableSize: ${movementCache.getKeysize()}" +
+                "\n• possibleMovementCacheHits: ${possibleMovementCache.getCacheHits()}\n• movementTableSize: ${possibleMovementCache.getKeysize()}"
     }
 
 }

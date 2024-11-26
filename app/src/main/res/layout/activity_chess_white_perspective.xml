@@ -13,7 +13,7 @@
     <LinearLayout
         android:id="@+id/LLstatusOpponent"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="50dp"
         android:background="#2E2E2E"
         android:orientation="vertical">
 
@@ -54,6 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:visibility="gone"
             tools:srcCompat="@drawable/black_grasshopper" />
 
         <ImageView
@@ -61,6 +62,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:visibility="gone"
             tools:srcCompat="@drawable/black_grasshopper" />
 
     </LinearLayout>
@@ -673,7 +675,7 @@
     <LinearLayout
         android:id="@+id/LLstatusPlayer"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="250dp"
         android:background="#2E2E2E"
         android:orientation="vertical">
 

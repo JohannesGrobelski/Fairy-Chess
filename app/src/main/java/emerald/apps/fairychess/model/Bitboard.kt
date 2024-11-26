@@ -2,6 +2,7 @@
 
 package emerald.apps.fairychess.model
 
+import emerald.apps.fairychess.model.Caching.PossibleMovementsCache
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LONG_BLACK
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_LONG_WHITE
 import emerald.apps.fairychess.model.MovementNotation.Companion.CASTLING_SHORT_BLACK
@@ -34,6 +35,7 @@ class Bitboard(
     var moveColor = "white"
     var promotionCoordinate : Coordinate? = null
     var nextMoveEnpassanteTarget : ULong = 0uL //this variable represents a target for a potential enpassante next move, setEnpassanteTarget sets it
+
 
     constructor(figureMap: Map<String, FigureParser.Figure>) : this(null,figureMap)
 
@@ -255,6 +257,7 @@ class Bitboard(
         for(rank in 0..7){
             for(file in 0..7){
                 val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))
+
                 if((bbColorComposite[pos] and bbFigure) == bbFigure){
                     val name = getPieceName(pos, bbFigure)
                     if(name.isEmpty())continue //empty field
@@ -272,18 +275,28 @@ class Bitboard(
         return allPossibleMoves.toMap()
     }
 
-    fun getAllPossibleMovesAsList(color : String) : List<Movement> {
-        val allPosibleMoves = mutableListOf<Movement>()
+    fun getAllPossibleMovesAsList(color : String, possibleMovementsCache: PossibleMovementsCache) : List<Movement> {
+        val allPosibbleMoves = mutableListOf<Movement>()
         val pos = ("black" == color).toInt()
         for(rank in 0..7) {
             for (file in 0..7) {
                 val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))
-                if((bbColorComposite[pos] and bbFigure) == bbFigure){
-                    allPosibleMoves.addAll(getTargetMovementsAsMovementList(color,Coordinate(rank,file)))
+
+                val possibleMovements = possibleMovementsCache.getPossibleMovements(bbFigure, bbColorComposite, color == "white")
+                if(possibleMovements != null){
+                    allPosibbleMoves.addAll(possibleMovements)
+                } else {
+                    if((bbColorComposite[pos] and bbFigure) == bbFigure){
+                        val movements = getTargetMovementsAsMovementList(color,Coordinate(rank,file))
+                        allPosibbleMoves.addAll(movements)
+                        possibleMovementsCache.putPossibleMovements(bbFigure, bbColorComposite, color == "white", movements)
+                    }
                 }
+
+
             }
         }
-        return allPosibleMoves
+        return allPosibbleMoves
     }
 
     fun getPieceName(pos: Int, bbFigure:ULong) : String{
