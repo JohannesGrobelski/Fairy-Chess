@@ -709,11 +709,19 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/calcstatsW"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="calcStats" />
+
         <ImageView
             android:id="@+id/iv_captPiecesPlayerLine1W"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:visibility="gone"
             tools:srcCompat="@drawable/black_grasshopper" />
 
         <ImageView
@@ -721,6 +729,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:visibility="gone"
             tools:srcCompat="@drawable/black_grasshopper" />
 
     </LinearLayout>

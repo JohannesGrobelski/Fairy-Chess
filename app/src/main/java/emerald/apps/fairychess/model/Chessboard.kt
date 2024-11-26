@@ -37,19 +37,6 @@ class Chessboard(
         return bitboard.getPieceName(coordinate)
     }
 
-    /** calculate the winner (if one exists yet)*/
-    private fun checkForWinner() {
-        if(bitboard.bbFigures["king"]?.get(0) == 0uL){
-            gameWinner = "white"
-            gameFinished = true
-        }
-        if(bitboard.bbFigures["king"]?.get(0) == 0uL){
-            gameWinner = "black"
-            gameFinished = true
-        }
-    }
-
-
     fun bitboardToString(bitboard: ULong) : String{
         val str = StringBuilder("")
         var cnt = 0

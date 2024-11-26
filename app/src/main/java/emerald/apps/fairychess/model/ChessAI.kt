@@ -30,12 +30,13 @@ class MinimaxResult(val movement: Movement, val value: Int)
 class ChessAI {
     //for Profiling
     var executionTimeMs = 0L
+    var summedCloningTime = 0L
 
     //Settings
     private val recursionDepth = 4 //Maximum depth for the alpha-beta search
 
-    //Fields
-    var movementCounter = 0 //Counter variable for number of positions evaluated
+    //Profiling Fields
+    var evaluatedPositions = 0 //Counter variable for number of positions evaluated
     var transpositionTableHits = 0 //Counter for successful transposition table lookups
 
     var color: String  //Color this AI plays as ("white" or "black")
@@ -90,7 +91,7 @@ class ChessAI {
      * @return The best move found within the search depth
      */
     fun calcMove(bitboard: Bitboard) : Movement{
-        movementCounter = 0
+        evaluatedPositions = 0
         val startTime = System.currentTimeMillis()
 
         zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
@@ -250,20 +251,24 @@ class ChessAI {
         alpha: Int,
         beta: Int
     ): Int {
+
+        /*
+        //TODO: hash doubles the time without any hits - for now disable it
         val hash = zobristHash.generateHash(bitboard)
 
         if (transpositionTable.contains(hash)) {
             transpositionTableHits++
             return transpositionTable[hash]!!.value
         }
+         */
 
         val value = alphabeta(bitboard, level - 1, alpha, beta).value
-        transpositionTable[hash] = MinimaxResult(move, value)
+        //transpositionTable[hash] = MinimaxResult(move, value)
         return value
     }
 
     private fun getPointDifBW(bitboard: Bitboard) : Int{
-        ++movementCounter
+        ++evaluatedPositions
         return bitboard.pointsBlack() - bitboard.pointsWhite()
     }
 
@@ -271,7 +276,7 @@ class ChessAI {
      * Gets formatted move information and statistics
      */
     fun getMoveInfo(move: Movement): String {
-        return "AI: ${move.asString(color)}, Time: ${executionTimeMs}ms, Positions: $movementCounter"
+        return "moveInfo:\n- ${move.asString2(color)}\n- Time: ${executionTimeMs}ms\n- evaluated Positions: $evaluatedPositions\n- transpositionTableHits: $transpositionTableHits"
     }
 
 }

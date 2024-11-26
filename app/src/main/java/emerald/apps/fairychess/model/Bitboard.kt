@@ -241,9 +241,9 @@ class Bitboard(
     }
 
     private fun setEnpassanteTarget(color : String, pieceName : String, movement: Movement){
-        if(pieceName == "pawn" && movement.getRankDif() == 2){
+        if(pieceName == "pawn" && movement.getFileDif() == 2){
             nextMoveEnpassanteTarget = generate64BPositionFromCoordinate(
-                Coordinate(if(color == "white") 1 else 7, movement.getSourceCoordinate().file))
+                Coordinate(movement.getSourceCoordinate().rank, if(color == "white") 1 else 7))
         } else {
             nextMoveEnpassanteTarget = 0uL;
         }
@@ -1182,8 +1182,16 @@ class Bitboard(
         }
     }
 
-
-
+    /** calculate the winner (if one exists yet)*/
+    fun checkForWinner() : String{
+        if(bbFigures["king"]?.get(0) == 0uL){
+            return "white"
+        }
+        if(bbFigures["king"]?.get(0) == 0uL){
+            return "black"
+        }
+        return ""
+    }
 
     fun getPieceColor(rank: Int, file: Int) : String{
         return when (val bbFigure = generate64BPositionFromCoordinate(Coordinate(rank,file))) {

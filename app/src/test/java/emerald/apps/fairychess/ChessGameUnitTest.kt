@@ -16,10 +16,6 @@ import java.io.InputStream
  */
 @RunWith(AndroidJUnit4::class)
 class ChessGameUnitTest {
-
-
-
-
     @Test
     fun simpleCheckmate() {
         val chessFormationArray = parseChessFormation("normal_chess")
@@ -38,7 +34,8 @@ class ChessGameUnitTest {
     companion object {
         fun parseFigureMapFromFile() : Map<String, FigureParser.Figure> {
             try {
-                val absPath = "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\figures.json"
+                val projectRoot = File("").absolutePath
+                val absPath = projectRoot + "/src/main/res/raw/figures.json"
                 val initialFile = File(absPath)
                 val inputStream: InputStream = FileInputStream(initialFile)
                 return FigureParser.parseFigureMapFromJSONString(
@@ -54,8 +51,8 @@ class ChessGameUnitTest {
 
         fun parseChessFormation(mode:String) : Array<Array<String>> {
             try {
-                val absPath =
-                    "C:\\Users\\johan\\OneDrive\\Documents\\GitHub\\Fairy-Chess\\app\\src\\main\\res\\raw\\$mode.chessformation"
+                val projectRoot = File("").absolutePath
+                val absPath = projectRoot + "/src/main/res/raw/$mode.chessformation"
                 val initialFile = File(absPath)
                 val inputStream: InputStream = FileInputStream(initialFile)
                 return ChessFormationParser.rotate2DArray(

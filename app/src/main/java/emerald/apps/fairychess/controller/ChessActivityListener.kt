@@ -48,6 +48,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private lateinit var tvOpponentELO: TextView
     private lateinit var tvPlayerTime: TextView
     private lateinit var tvOpponentTime: TextView
+    private lateinit var tvCalcStats : TextView
 
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
@@ -81,6 +82,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOW)
             tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeW)
             tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeW)
+            tvCalcStats = chessActivity.findViewById(R.id.calcstatsW)
         } else {
             tvPlayerName = chessActivity.findViewById(R.id.tv_playernameB)
             tvOpponentName = chessActivity.findViewById(R.id.tv_opponentnameB)
@@ -88,6 +90,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOB)
             tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeB)
             tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeB)
+            tvCalcStats = chessActivity.findViewById(R.id.calcstatsB)
         }
     }
 
@@ -185,11 +188,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                             withContext(Dispatchers.Main) {
                                 displayFigures()
                                 // Show statistics
-                                Toast.makeText(
-                                    chessActivity,
-                                    chessAI.getMoveInfo(aiMovement),
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                tvCalcStats.text = chessAI.getMoveInfo(aiMovement)
                             }
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)

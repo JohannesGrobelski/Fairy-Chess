@@ -27,6 +27,11 @@ open class Movement(val movementNotation : MovementNotation = MovementNotation("
     fun getRankDif() : Int{
         return abs(targetRank - sourceRank)
     }
+
+    fun getFileDif() : Int{
+        return abs(targetFile - sourceFile)
+    }
+
     fun getSignRank() : Int {
         return sign(targetRank.toDouble() - sourceRank.toDouble()).toInt()
     }
