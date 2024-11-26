@@ -1,6 +1,11 @@
 package emerald.apps.fairychess.model
 
+import MovementHash
+import ValueHash
 import emerald.apps.fairychess.model.Movement.Companion.emptyMovement
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import java.util.*
 
 
@@ -37,10 +42,12 @@ class ChessAI {
 
     //Profiling Fields
     var evaluatedPositions = 0 //Counter variable for number of positions evaluated
-    var transpositionTableHits = 0 //Counter for successful transposition table lookups
+    var valueTableHits = 0 //Counter for successful transposition table lookups
+    var movementTableHits = 0 //Counter for successful transposition table lookups
 
     var color: String  //Color this AI plays as ("white" or "black")
-    lateinit var zobristHash : ZobristHash //Zobrist hash generator for position identification
+    var valueHash : ValueHash = ValueHash() //Zobrist hash generator for position identification
+    var movementHash : MovementHash = MovementHash() //Zobrist hash generator for position identification
 
     /**
      * Static piece values for move ordering
@@ -55,14 +62,6 @@ class ChessAI {
             "king" to 10000
         )
     }
-
-
-    /**
-     * Cache of previously evaluated positions.
-     * Key: Zobrist hash of position
-     * Value: Best move and evaluation for that position
-     */
-    val transpositionTable = Hashtable<ULong, MinimaxResult>()
 
     /**
      * Creates a new ChessAI instance.
@@ -90,11 +89,10 @@ class ChessAI {
      * @param bitboard The current chess position
      * @return The best move found within the search depth
      */
-    fun calcMove(bitboard: Bitboard) : Movement{
+    suspend fun calcMove(bitboard: Bitboard) : Movement{
         evaluatedPositions = 0
         val startTime = System.currentTimeMillis()
 
-        zobristHash = ZobristHash(bitboard.figureMap.keys.toList())
         val result =  alphabeta(bitboard, recursionDepth, Int.MIN_VALUE, Int.MAX_VALUE).movement
         executionTimeMs = System.currentTimeMillis() - startTime
 
@@ -110,7 +108,7 @@ class ChessAI {
      * @param beta Best score that minimizing player can guarantee
      * @return The best move and its evaluation
      */
-    fun alphabeta(bitboard: Bitboard, level: Int, alpha: Int, beta: Int): MinimaxResult {
+    suspend fun alphabeta(bitboard: Bitboard, level: Int, alpha: Int, beta: Int): MinimaxResult {
         // Base case
         if (level <= 0) {
             return MinimaxResult(emptyMovement(), getPointDifBW(bitboard))
@@ -158,73 +156,140 @@ class ChessAI {
         }
     }
 
-    /**
-     * Finds the best move for black (maximizing player)
-     */
-    private fun findBestMoveForBlack(
+    private suspend fun findBestMoveForBlack(
         bitboard: Bitboard,
         moves: List<Movement>,
         level: Int,
         alpha: Int,
         beta: Int
-    ): MinimaxResult {
+    ): MinimaxResult = coroutineScope {
+        // Check cache first
+        movementHash.getMove(bitboard)?.let {
+            ++movementTableHits
+            MinimaxResult(it, evaluateMove(bitboard, it, level, alpha, beta))
+        }
+
         var bestValue = Int.MIN_VALUE
         var bestMove = emptyMovement()
         var alphaCurrent = alpha
 
         val orderedMoves = orderMoves(moves, bitboard)
 
-        for (move in orderedMoves) {
-            val value = evaluateMove(bitboard, move, level, alphaCurrent, beta)
-
-            if (value > bestValue) {
-                bestValue = value
-                bestMove = move
+        if (level == recursionDepth) {
+            // Parallel evaluation for level 4
+            val results = orderedMoves.map { move ->
+                async(Dispatchers.Default) {
+                    // Create a copy of bitboard for each thread
+                    val bitboardCopy = bitboard.clone()
+                    val value = evaluateMove(bitboardCopy, move, level, alphaCurrent, beta)
+                    Pair(move, value)
+                }
             }
 
-            if (value >= beta) break  // Beta cutoff
-            alphaCurrent = maxOf(alphaCurrent, value)
-        }
+            // Await all results and find the best one
+            for (deferred in results) {
+                val (move, value) = deferred.await()
 
-        return MinimaxResult(bestMove, bestValue)
+                if (value > bestValue) {
+                    bestValue = value
+                    bestMove = move
+                }
+
+                if (value >= beta) {
+                    results.forEach { it.cancel() }
+                    break
+                }
+                alphaCurrent = maxOf(alphaCurrent, value)
+            }
+        } else {
+            // Original sequential logic
+            for (move in orderedMoves) {
+                val value = evaluateMove(bitboard, move, level, alphaCurrent, beta)
+
+                if (value > bestValue) {
+                    bestValue = value
+                    bestMove = move
+                }
+
+                if (value >= beta) break
+                alphaCurrent = maxOf(alphaCurrent, value)
+            }
+        }
+        movementHash.putMove(bitboard, bestMove)
+        MinimaxResult(bestMove, bestValue)
     }
 
     /**
      * Finds the best move for white (minimizing player)
      */
-    private fun findBestMoveForWhite(
+    private suspend fun findBestMoveForWhite(
         bitboard: Bitboard,
         moves: List<Movement>,
         level: Int,
         alpha: Int,
         beta: Int
-    ): MinimaxResult {
+    ): MinimaxResult = coroutineScope {
+        // Check cache first
+        movementHash.getMove(bitboard)?.let {
+            ++movementTableHits
+            MinimaxResult(it, evaluateMove(bitboard, it, level, alpha, beta))
+        }
+
         var bestValue = Int.MAX_VALUE
         var bestMove = emptyMovement()
         var betaCurrent = beta
 
         val orderedMoves = orderMoves(moves, bitboard)
 
-        for (move in orderedMoves) {
-            val value = evaluateMove(bitboard, move, level, alpha, betaCurrent)
-
-            if (value < bestValue) {
-                bestValue = value
-                bestMove = move
+        if (level == recursionDepth) {
+            // Parallel evaluation for level 4
+            val results = orderedMoves.map { move ->
+                async(Dispatchers.Default) {
+                    // Create a copy of bitboard for each thread
+                    val bitboardCopy = bitboard.clone()
+                    val value = evaluateMove(bitboardCopy, move, level, alpha, betaCurrent)
+                    Pair(move, value)
+                }
             }
 
-            if (value <= alpha) break  // Alpha cutoff
-            betaCurrent = minOf(betaCurrent, value)
+            // Await all results and find the best one
+            for (deferred in results) {
+                val (move, value) = deferred.await()
+
+                if (value < bestValue) {
+                    bestValue = value
+                    bestMove = move
+                }
+
+                if (value <= alpha) {
+                    results.forEach { it.cancel() }
+                    break
+                }
+                betaCurrent = minOf(betaCurrent, value)
+            }
+        } else {
+            // Original sequential logic
+            for (move in orderedMoves) {
+                val value = evaluateMove(bitboard, move, level, alpha, betaCurrent)
+
+                if (value < bestValue) {
+                    bestValue = value
+                    bestMove = move
+                }
+
+                if (value <= alpha) break
+                betaCurrent = minOf(betaCurrent, value)
+            }
         }
 
-        return MinimaxResult(bestMove, bestValue)
+        MinimaxResult(bestMove, bestValue)
     }
 
     /**
      * Evaluates a single move by either looking it up in the transposition table
      * or calculating it recursively
      */
-    private fun evaluateMove(
+    private suspend fun evaluateMove(
         bitboard: Bitboard,
         move: Movement,
         level: Int,
@@ -244,26 +309,24 @@ class ChessAI {
      * Gets the value of a position either from the transposition table
      * or by calculating it
      */
-    private fun getPositionValue(
+    private suspend fun getPositionValue(
         bitboard: Bitboard,
         move: Movement,
         level: Int,
         alpha: Int,
         beta: Int
     ): Int {
-
-        /*
         //TODO: hash doubles the time without any hits - for now disable it
-        val hash = zobristHash.generateHash(bitboard)
 
-        if (transpositionTable.contains(hash)) {
-            transpositionTableHits++
-            return transpositionTable[hash]!!.value
+        val hashValue = valueHash.getFromCache(bitboard)
+
+        if (hashValue != null) {
+            ++valueTableHits
+            return hashValue
         }
-         */
 
         val value = alphabeta(bitboard, level - 1, alpha, beta).value
-        //transpositionTable[hash] = MinimaxResult(move, value)
+        valueHash.putInCache(bitboard, value)
         return value
     }
 
@@ -276,7 +339,16 @@ class ChessAI {
      * Gets formatted move information and statistics
      */
     fun getMoveInfo(move: Movement): String {
-        return "moveInfo:\n- ${move.asString2(color)}\n- Time: ${executionTimeMs}ms\n- evaluated Positions: $evaluatedPositions\n- transpositionTableHits: $transpositionTableHits"
+        return "moveInfo:\n- ${move.asString2(color)}\n• Time: ${executionTimeMs}ms\n• evaluated Positions: $evaluatedPositions"
+    }
+
+    /**
+     * Gets formatted move information and statistics
+     */
+    fun getHashInfo(move: Movement): String {
+        return "Hash Info:"+
+                "\n• valueTableHits: $valueTableHits\n• valueTableSize: ${valueHash.getKeysize()}" +
+                "\n• movementTableHits: ${movementTableHits}\n• movementTableSize: ${movementHash.getKeysize()}"
     }
 
 }

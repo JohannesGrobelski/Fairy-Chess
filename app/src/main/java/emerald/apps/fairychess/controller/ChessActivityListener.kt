@@ -48,7 +48,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     private lateinit var tvOpponentELO: TextView
     private lateinit var tvPlayerTime: TextView
     private lateinit var tvOpponentTime: TextView
-    private lateinit var tvCalcStats : TextView
+    private lateinit var tvCalcStatsInfo : TextView
+    private lateinit var tvCalcStatsHash : TextView
 
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
@@ -82,7 +83,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOW)
             tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeW)
             tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeW)
-            tvCalcStats = chessActivity.findViewById(R.id.calcstatsW)
+            tvCalcStatsInfo = chessActivity.findViewById(R.id.calcstatsInfoW)
+            tvCalcStatsHash = chessActivity.findViewById(R.id.calcstatsHashW)
         } else {
             tvPlayerName = chessActivity.findViewById(R.id.tv_playernameB)
             tvOpponentName = chessActivity.findViewById(R.id.tv_opponentnameB)
@@ -90,7 +92,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOB)
             tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeB)
             tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeB)
-            tvCalcStats = chessActivity.findViewById(R.id.calcstatsB)
+            tvCalcStatsInfo = chessActivity.findViewById(R.id.calcstatsInfoB)
+            tvCalcStatsHash = chessActivity.findViewById(R.id.calcstatsHashB)
         }
     }
 
@@ -188,7 +191,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                             withContext(Dispatchers.Main) {
                                 displayFigures()
                                 // Show statistics
-                                tvCalcStats.text = chessAI.getMoveInfo(aiMovement)
+                                tvCalcStatsInfo.text = chessAI.getMoveInfo(aiMovement)
+                                tvCalcStatsHash.text = chessAI.getHashInfo(aiMovement)
                             }
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)

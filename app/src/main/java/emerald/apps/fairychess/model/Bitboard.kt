@@ -1224,6 +1224,8 @@ class Bitboard(
         }
         return true
     }
+
+
 }
 
 fun Boolean.toInt(): Int {
