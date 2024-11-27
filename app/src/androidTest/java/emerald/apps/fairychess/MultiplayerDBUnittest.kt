@@ -6,10 +6,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
-import emerald.apps.fairychess.model.Movement
-import emerald.apps.fairychess.model.MultiplayerDB
-import emerald.apps.fairychess.model.MultiplayerDBGameInterface
-import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
+import emerald.apps.fairychess.model.board.Movement
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDBGameInterface
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDBSearchInterface
 import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Test

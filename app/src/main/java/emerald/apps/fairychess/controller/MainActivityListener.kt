@@ -13,16 +13,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import emerald.apps.fairychess.R
-import emerald.apps.fairychess.model.ChessRatingSystem
-import emerald.apps.fairychess.model.MultiplayerDB
-import emerald.apps.fairychess.model.MultiplayerDB.Companion.matchmakingWinningChanceOffset
-import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
+import emerald.apps.fairychess.model.rating.ChessRatingSystem
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB.Companion.matchmakingWinningChanceOffset
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
 import kotlinx.coroutines.*
 
 
-class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface {
+class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterface {
     private lateinit var mainActivity : MainActivity
     private lateinit var multiplayerDB: MultiplayerDB
 

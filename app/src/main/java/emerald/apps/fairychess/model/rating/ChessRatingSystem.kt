@@ -1,5 +1,6 @@
-package emerald.apps.fairychess.model
+package emerald.apps.fairychess.model.rating
 
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
 import kotlin.math.pow
 
 

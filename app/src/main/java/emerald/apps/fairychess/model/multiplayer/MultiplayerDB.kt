@@ -1,4 +1,4 @@
-package emerald.apps.fairychess.model
+package emerald.apps.fairychess.model.multiplayer
 
 import android.net.Uri
 import android.os.Parcel
@@ -13,6 +13,10 @@ import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
 import com.google.firebase.dynamiclinks.ktx.component1
 import com.google.firebase.dynamiclinks.ktx.component2
+import emerald.apps.fairychess.model.Chessgame
+import emerald.apps.fairychess.model.board.Movement
+import emerald.apps.fairychess.model.board.PromotionMovement
+import emerald.apps.fairychess.model.board.Color
 
 /** MultiplayerDB adds/changes FirebaseFirestore-Database like
  *
@@ -80,7 +84,7 @@ class MultiplayerDB {
         this.multiplayerDBSearchInterface = multiplayerDBSearchInterface
     }
 
-    constructor(multiplayerDBSearchInterface: MultiplayerDBSearchInterface,multiplayerDBGameInterface: MultiplayerDBGameInterface) {
+    constructor(multiplayerDBSearchInterface: MultiplayerDBSearchInterface, multiplayerDBGameInterface: MultiplayerDBGameInterface) {
         db = Firebase.firestore
         this.multiplayerDBSearchInterface = multiplayerDBSearchInterface
         this.multiplayerDBGameInterface = multiplayerDBGameInterface
@@ -135,7 +139,11 @@ class MultiplayerDB {
 
     fun writePlayerMovement(gameId: String, promotionMovement: PromotionMovement){
         var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        gameRef.update("moves", FieldValue.arrayUnion(Movement.fromMovementToString(promotionMovement)));
+        gameRef.update("moves", FieldValue.arrayUnion(
+            Movement.fromMovementToString(
+                promotionMovement
+            )
+        ));
     }
 
     /**
@@ -186,8 +194,8 @@ class MultiplayerDB {
      */
     fun createGame(gameName: String, timeMode: String, player1ID: String, player1ELO: Double) {
         // Create a new gameMode hashmap
-        val player1Color = Bitboard.randomColor()
-        val player2Color = Bitboard.oppositeColor(player1Color)
+        val player1Color = Color.randomColor()
+        val player2Color = Color.oppositeColor(player1Color)
         val gameHash = hashMapOf(
             GAMEFIELD_GAMENAME to gameName,
             GAMEFIELD_FINISHED to false,
@@ -205,7 +213,7 @@ class MultiplayerDB {
             .addOnSuccessListener { documentReference ->
                 run {
                     Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-                    multiplayerDBSearchInterface?.onCreateGame(gameName,documentReference.id, player1Color)
+                    multiplayerDBSearchInterface?.onCreateGame(gameName,documentReference.id, player1Color.stringValue)
                 }
             }
             .addOnFailureListener { e ->
@@ -432,8 +440,8 @@ class MultiplayerDB {
                 return arrayOfNulls(size)
             }
 
-            fun getDefault() : PlayerStats{
-                return MultiplayerDB.PlayerStats(0L,0L,0L,0.0)
+            fun getDefault() : PlayerStats {
+                return PlayerStats(0L,0L,0L,0.0)
             }
         }
     }
@@ -459,7 +467,7 @@ class MultiplayerDB {
     }
 
     /** set playerStats for player document with playerID (gamesPlayed,gamesWon,gamesLost and ELO) and on success call onSetPlayerstats*/
-    fun setPlayerStats(playerID: String,playerStats: PlayerStats, cause: String) {
+    fun setPlayerStats(playerID: String, playerStats: PlayerStats, cause: String) {
         //get doc id
         db.collection(PLAYERCOLLECTIONPATH)
             .whereEqualTo(PLAYER_ID,playerID)

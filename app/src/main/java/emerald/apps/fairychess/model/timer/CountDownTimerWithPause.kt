@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 // Adapted from Android's CountDownTimer class
-package com.cycleindex.multitimer
+package emerald.apps.fairychess.model.timer
 
 import android.annotation.SuppressLint
 import android.os.Handler

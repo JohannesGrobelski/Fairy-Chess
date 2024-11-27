@@ -1,6 +1,12 @@
 package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.controller.MainActivityListener
+import emerald.apps.fairychess.model.board.Chessboard
+import emerald.apps.fairychess.model.board.Color
+import emerald.apps.fairychess.model.board.Coordinate
+import emerald.apps.fairychess.model.board.Movement
+import emerald.apps.fairychess.model.board.PromotionMovement
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
 import emerald.apps.fairychess.utility.ChessFormationParser
 import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
@@ -41,10 +47,10 @@ class Chessgame() {
     }
 
     /** execute movement and check if color allows movement */
-    fun movePlayer(movement: Movement?, color: String): String {
+    fun movePlayer(movement: Movement?, color: Color): String {
         return if(movement != null){
             val returnValue = chessboard.checkMoveAndMove(color, movement)
-            gameFinished = chessboard.checkForWinner() != ""
+            gameFinished = chessboard.checkForWinner() != null
             returnValue
         } else {
             "no move made"
@@ -53,11 +59,11 @@ class Chessgame() {
 
     fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<Movement> {
         println(chessboard.toString())
-        return chessboard.getTargetMovementsAsMovementList(Bitboard.Companion.Coordinate(sourceRank, sourceFile))
+        return chessboard.getTargetMovementsAsMovementList(sourceRank, sourceFile)
     }
 
-    fun getPieceName(coordinate: Bitboard.Companion.Coordinate) : String{
-        return chessboard.getPieceName(coordinate)
+    fun getPieceName(sourceRank: Int, sourceFile: Int) : String{
+        return chessboard.getPieceName(sourceRank, sourceFile)
     }
 
     fun getPieceColor(rank: Int, file: Int) : String{
@@ -82,7 +88,7 @@ class Chessgame() {
 
     fun makeMove(movement: Movement){
         chessboard.checkMoveAndMove(chessboard.getMovecolor(), movement)
-        gameFinished = chessboard.checkForWinner() != ""
+        gameFinished = chessboard.checkForWinner() != null
     }
 
     val colors = arrayOf("white","black")
@@ -94,7 +100,7 @@ class Chessgame() {
         }
     }
 
-    fun checkForWinner() : String {
+    fun checkForWinner() : Color? {
         return chessboard.checkForWinner()
     }
 }

@@ -1,6 +1,5 @@
-package emerald.apps.fairychess.model
+package emerald.apps.fairychess.model.timer
 
-import com.cycleindex.multitimer.CountDownTimerWithPause
 import java.util.concurrent.TimeUnit
 
 

@@ -17,7 +17,37 @@ android {
         multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters 'x86_64', 'arm64-v8a'
+        }
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+                cppFlags "-std=c++17"
+            }
+        }
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // This ensures native libraries are packaged with the test APK
+        packagingOptions {
+            jniLibs {
+                useLegacyPackaging true
+            }
+        }
+
+
     }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+
+
     buildFeatures {
         viewBinding true
     }
@@ -37,8 +67,57 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+
 }
 
+tasks.register('copyTestLibs') {
+    doLast {
+        def debugDir = new File(project.projectDir, ".cxx/Debug")
+        println "Debug directory: ${debugDir.absolutePath}"
+
+        // Find the hash directory
+        def hashDir = debugDir.listFiles()?.find { it.isDirectory() }
+        if (hashDir) {
+            println "Found hash directory: ${hashDir.absolutePath}"
+
+            ["x86_64", "arm64-v8a"].each { arch ->
+                // Look in obj subdirectory
+                def sourceDir = new File(hashDir, "obj/${arch}")
+                def targetDir = new File(project.projectDir, "src/androidTest/jniLibs/${arch}")
+
+                println "\nChecking ${arch} directory:"
+                println "Source dir: ${sourceDir.absolutePath}"
+                if (sourceDir.exists()) {
+                    println "Files in source dir:"
+                    sourceDir.listFiles().each { file ->
+                        println " - ${file.name}"
+                    }
+
+                    targetDir.mkdirs()
+                    copy {
+                        from sourceDir
+                        into targetDir
+                        include '*.so'
+                    }
+
+                    println "Files in target dir after copy:"
+                    targetDir.listFiles()?.each { file ->
+                        println " - ${file.name}"
+                    }
+                } else {
+                    println "Source directory does not exist: ${sourceDir.absolutePath}"
+                }
+            }
+        } else {
+            println "No hash directory found in ${debugDir.absolutePath}"
+        }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn('copyTestLibs')
+}
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
