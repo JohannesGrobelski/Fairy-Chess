@@ -12,7 +12,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import emerald.apps.fairychess.R
-import emerald.apps.fairychess.model.ChessAI
 import emerald.apps.fairychess.model.rating.ChessRatingSystem
 import emerald.apps.fairychess.model.timer.ChessTimerOpponent
 import emerald.apps.fairychess.model.timer.ChessTimerPlayer
@@ -38,7 +37,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     private lateinit var chessActivity: ChessActivity
     private lateinit var chessgame: Chessgame
-    private lateinit var chessAI: ChessAI
     private lateinit var multiplayerDB: MultiplayerDB
 
     // View references
@@ -137,8 +135,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             multiplayerDB = MultiplayerDB(this, chessgame)
             multiplayerDB.listenToGameIngame(gameData.gameId)
         }
-
-        chessAI = ChessAI(if(gameParameters.playerColor == "white") "black" else "white")
     }
 
     /** select, unselect and move figure */
@@ -154,6 +150,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             //calculate clickedFile and clickedRank
             val clickedFile = nameToFile(clickedViewName)
             val clickedRank = nameToRank(clickedViewName)
+            val figure = Pair(chessgame.getPieceName(clickedFile,clickedRank), chessgame.getPieceColor(clickedFile,clickedRank))
+            //Toast.makeText(chessActivity, "Click: "+clickedRank+","+clickedFile+": "+figure.first+" "+figure.second,Toast.LENGTH_LONG).show();
             //if a file and rank was selected => move from selected square to
             if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1
                 && clickedFile != -1 && clickedRank != -1){
@@ -163,8 +161,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     targetRank = clickedRank,
                     targetFile = clickedFile
                 )
+                //check if movement is legal
+                if(!chessgame.getChessboard().checkMove(movement)){
+                    Toast.makeText(chessActivity, "No legal move!", Toast.LENGTH_SHORT).show()
+                    resetFieldColor()
+                    return
+                }
                 var moveResult = ""
-                moveResult = chessgame.movePlayer(movement, chessgame.getChessboard().getMovecolor())
+                moveResult = chessgame.movePlayerWithCheck(movement, chessgame.getChessboard().getMovecolor())
                 if(chessgame.checkForWinner() != null){
                     if(chessgame.checkForWinner()!!.stringValue == gameParameters.playerColor){
                         finishGame(chessgame.checkForWinner()!!.stringValue + " won", true)
@@ -180,18 +184,16 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     multiplayerDB.writePlayerMovement(gameData.gameId, movement)
                 }
                 if(moveResult.isNotEmpty()){
-                    Toast.makeText(chessActivity, moveResult, Toast.LENGTH_LONG).show()
+                    //Toast.makeText(chessActivity, moveResult, Toast.LENGTH_LONG).show()
                 }
                 if(gameParameters.playMode=="ai"){
                     //calculate ai move in coroutine to avoid blocking the ui thread
                     calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
                         try{
-                            val aiMovement = chessAI.calcMove(chessgame.getChessboard().getCurrentFEN())
-                            chessgame.movePlayer(aiMovement, chessgame.getChessboard().getMovecolor())
+                            val aiMovement = chessgame.getChessboard().calcMove(chessgame.getChessboard().getCurrentFEN())
+                            chessgame.movePlayerWithoutCheck(aiMovement)
                             withContext(Dispatchers.Main) {
                                 displayFigures()
-                                // Show statistics
-                                tvCalcStatsInfo.text = chessAI.getMoveInfo(aiMovement)
                             }
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)
@@ -221,7 +223,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         val pieceColor = chessgame.getChessboard().getPieceColor(pawnPromotionCandidate.rank,pawnPromotionCandidate.file)
         //handle pawn promotion of ai (exchange pawn with queen)
         if(pieceColor != gameParameters.playerColor && gameParameters.playMode=="ai"){ //always promote to queen
-            chessgame.getChessboard().promotePiece(pawnPromotionCandidate,chessAI.getPromotion())
+            chessgame.getChessboard().promotePiece(pawnPromotionCandidate,chessgame.getChessboard().getPromotion())
             displayFigures()
         }
         //handle user pawn promotion by creating and handling alert dialog
@@ -354,10 +356,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         imageViews = squares
     }
 
-
-
-
-
     /** get Drawable from figure name*/
     fun getDrawableFromName(type: String, color: String): Int {
         if (color == "white" && type == "king") {
@@ -446,8 +444,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             color,
             chessActivity.resources.getColor(R.color.colorWhite),
             0.8f
-        ) else ColorUtils.blendARGB(
-            color,
+        ) else ColorUtils.blendARGB( color,
             chessActivity.resources.getColor(R.color.colorBlack),
             0.8f
         )
@@ -533,6 +530,4 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     override fun onFinishPlayerTimer() {
         finishGame("timeout. you lost.", false)
     }
-
-
 }

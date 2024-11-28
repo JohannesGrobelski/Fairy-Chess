@@ -24,7 +24,7 @@ import kotlinx.coroutines.*
 
 class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterface {
     private lateinit var mainActivity : MainActivity
-    private lateinit var multiplayerDB: MultiplayerDB
+    //private lateinit var multiplayerDB: MultiplayerDB
 
     lateinit var userNameDialog : AlertDialog
     var joinWaitDialog : AlertDialog? = null
@@ -88,13 +88,13 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
     constructor(mainActivity: MainActivity) : this(){
         this.mainActivity = mainActivity
         loadOrCreateUserName()
-        multiplayerDB = MultiplayerDB(this)
+        //multiplayerDB = MultiplayerDB(this)
         loadPlayerStats()
     }
 
     fun loadPlayerStats(){
         playerStats = MultiplayerDB.PlayerStats.getDefault()
-        multiplayerDB.getPlayerStats(userName)
+        //multiplayerDB.getPlayerStats(userName)
     }
 
     fun loadPlayerStats(playerStats: MultiplayerDB.PlayerStats){
@@ -275,7 +275,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString()
             gameParameters.time = spinner_timemode.selectedItem.toString()
-            multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
+            //multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
         }
         searchDialog.show()
     }
@@ -302,7 +302,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             button.setOnClickListener {
                 userName = input.text.toString()
                 //check if username is unique
-                multiplayerDB.searchUsers(userName)
+                //multiplayerDB.searchUsers(userName)
                 //dont dismiss dialog ... yet
             }
         })
@@ -310,13 +310,13 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
     }
 
     fun quickMatch(){
-        multiplayerDB.searchForOpenGames(player2ID = userName)
+        //multiplayerDB.searchForOpenGames(player2ID = userName)
     }
 
     fun searchForGames(gameName: String, timeMode: String){
         gameParameters.name = gameName
         gameParameters.time = timeMode
-        multiplayerDB.searchForOpenGames(gameName, timeMode, userName)
+        //multiplayerDB.searchForOpenGames(gameName, timeMode, userName)
     }
 
     /** saves game parameters and player data into bundle and start chess activity*/
@@ -370,7 +370,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
      *  create player if playername unique, else notify user via toast*/
     override fun onPlayerNameSearchComplete(playerID: String, occurences: Int) {
         if(occurences==0){
-            multiplayerDB.createPlayer(userName)
+            //multiplayerDB.createPlayer(userName)
         } else {
             userNameDialog.setMessage("user name already taken")
             Toast.makeText(
@@ -426,14 +426,14 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
                 }
 
                 //join game
-                multiplayerDB.joinGame(
+                /*multiplayerDB.joinGame(
                     chosenGame.id,changeMap.toMap()
-                )
+                )*/
             } else {
                 AlertDialog.Builder(mainActivity)
                     .setTitle("no games found")
                     .setPositiveButton("create game"
-                    ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)}
+                    ) { _, _ -> /*multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)*/}
                     .setNegativeButton("close",null)
                     .show()
             }
@@ -441,7 +441,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             AlertDialog.Builder(mainActivity)
                 .setTitle("no games found")
                 .setPositiveButton("create game"
-                ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)}
+                ) { _, _ -> /*multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)*/}
                 .setNegativeButton("close",null)
                 .show()
         }
@@ -459,7 +459,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             Toast.LENGTH_SHORT
         ).show()
         createdGameID = gameID
-        multiplayerDB.listenToGameSearch(gameID)
+        //multiplayerDB.listenToGameSearch(gameID)
         gameParameters.playerColor = playerColor
 
         val builder = AlertDialog.Builder(mainActivity)
@@ -472,7 +472,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             run{
                 if(createdGameID.isNotEmpty()){
                     joinWaitDialog!!.dismiss()
-                    multiplayerDB.cancelGame(createdGameID)
+                    //multiplayerDB.cancelGame(createdGameID)
                     createdGameID = ""
                 }
             }
@@ -480,7 +480,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         val btn_createDynLink = joinWaitDialog!!.findViewById<Button>(R.id.btn_createDynamicLink)
         btn_createDynLink.setOnClickListener{_ ->
             run{
-               multiplayerDB.createDynamicLink(createdGameID)
+               //multiplayerDB.createDynamicLink(createdGameID)
             }
         }
     }
@@ -489,7 +489,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
      *  check if second player has joined */
     override fun onGameChanged(gameId: String) {
         if(!launchedGamesMap.containsKey(gameId)){
-            multiplayerDB.hasSecondPlayerJoined(gameId)
+            //multiplayerDB.hasSecondPlayerJoined(gameId)
         }
     }
 

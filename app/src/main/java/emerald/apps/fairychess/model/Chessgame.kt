@@ -3,7 +3,6 @@ package emerald.apps.fairychess.model
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.model.board.Chessboard
 import emerald.apps.fairychess.model.board.Color
-import emerald.apps.fairychess.model.board.Coordinate
 import emerald.apps.fairychess.model.board.Movement
 import emerald.apps.fairychess.model.board.PromotionMovement
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
@@ -37,7 +36,7 @@ class Chessgame() {
         )
         figureMap = FigureParser.parseFigureMapFromFile(chessActivity)
 
-        chessboard = Chessboard(chessFormationArray, figureMap)
+        chessboard = Chessboard("normal")
 
         this.gameData = gameData
         this.gameParameters = gameParameters
@@ -47,18 +46,24 @@ class Chessgame() {
     }
 
     /** execute movement and check if color allows movement */
-    fun movePlayer(movement: Movement?, color: Color): String {
+    fun movePlayerWithCheck(movement: Movement?, color: Color): String {
         return if(movement != null){
-            val returnValue = chessboard.checkMoveAndMove(color, movement)
-            gameFinished = chessboard.checkForWinner() != null
+            val returnValue = chessboard.checkMoveAndMove(movement)
+            //gameFinished = chessboard.checkForWinner() != null
             returnValue
         } else {
             "no move made"
         }
     }
 
+    fun movePlayerWithoutCheck(movement: Movement?) {
+        if(movement != null){
+            chessboard.move(movement)
+        }
+
+    }
+
     fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<Movement> {
-        println(chessboard.toString())
         return chessboard.getTargetMovementsAsMovementList(sourceRank, sourceFile)
     }
 
@@ -87,7 +92,7 @@ class Chessgame() {
     }
 
     fun makeMove(movement: Movement){
-        chessboard.checkMoveAndMove(chessboard.getMovecolor(), movement)
+        chessboard.checkMoveAndMove(movement)
         gameFinished = chessboard.checkForWinner() != null
     }
 

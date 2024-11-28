@@ -24,30 +24,31 @@ endif()
 
 # Add Fairy-Stockfish source files
 file(GLOB STOCKFISH_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/nnue/*.cpp  # Add NNUE source files
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/syzygy/*.cpp  # Add Syzygy tablebase source files
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/nnue/features/*.cpp  # Add NNUE feature transformer source files
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/nnue/*.cpp  # Add NNUE source files
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/syzygy/*.cpp  # Add Syzygy tablebase source files
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/nnue/features/*.cpp  # Add NNUE feature transformer source files
 )
 
 # Remove interface-specific files (for python and javascript interface)
 list(REMOVE_ITEM STOCKFISH_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/ffishjs.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/wasm.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/pyffish.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/pythoncompat.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/ffishjs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/wasm.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/pythoncompat.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/pyffish.cpp
 )
 
+# add our wrapper as library
 add_library(stockfish SHARED
-        stockfish-wrapper.cpp
+        Fairy-Stockfish/src/jffish.cpp
         ${STOCKFISH_SOURCES}
 )
 
 # Include directories
 target_include_directories(stockfish PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/fairy-stockfish/src/nnue  # Add NNUE include directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/Fairy-Stockfish/src/nnue  # Add NNUE include directory
 )
 
 # Add compiler definitions
@@ -62,9 +63,9 @@ target_compile_definitions(stockfish PRIVATE
 target_compile_options(stockfish PRIVATE ${ARCH_FLAGS})
 
 # Link required libraries
-find_library(log-lib log)
-target_link_libraries(stockfish
-        ${log-lib}
+target_link_libraries(
+        stockfish
         android
         atomic
 )
+
