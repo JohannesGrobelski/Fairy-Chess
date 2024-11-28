@@ -318,7 +318,7 @@ class Bitboard(
 
     /**
      * return a list of possible movements of the figure at (sourceRank,sourceFile)
-     * */
+     */
     fun getTargetMovements(
         name: String,
         color: String,
