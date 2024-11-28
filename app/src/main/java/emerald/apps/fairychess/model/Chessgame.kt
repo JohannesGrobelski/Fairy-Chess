@@ -6,8 +6,6 @@ import emerald.apps.fairychess.model.board.Color
 import emerald.apps.fairychess.model.board.Movement
 import emerald.apps.fairychess.model.board.PromotionMovement
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
-import emerald.apps.fairychess.utility.ChessFormationParser
-import emerald.apps.fairychess.utility.FigureParser
 import emerald.apps.fairychess.view.ChessActivity
 
 class Chessgame() {
@@ -21,22 +19,12 @@ class Chessgame() {
     var gameFinished : Boolean = false
     private lateinit var chessActivity : ChessActivity
 
-    lateinit var figureMap : Map<String, FigureParser.Figure>
-
     constructor(
         chessActivity: ChessActivity,
         gameData: MultiplayerDB.GameData,
         gameParameters: MainActivityListener.GameParameters
     ) : this() {
-        val chessFormationArray: Array<Array<String>> = ChessFormationParser.parseChessFormation(
-            chessActivity, gameParameters.name.replace(
-                " ",
-                "_"
-            )
-        )
-        figureMap = FigureParser.parseFigureMapFromFile(chessActivity)
-
-        chessboard = Chessboard("normal")
+        chessboard = Chessboard(gameParameters.name)
 
         this.gameData = gameData
         this.gameParameters = gameParameters
@@ -75,13 +63,8 @@ class Chessgame() {
         return chessboard.getPieceColor(rank,file)
     }
 
-
     fun getChessboard() : Chessboard {
         return chessboard
-    }
-
-    fun setChessboard(chessboard: Chessboard) {
-        this.chessboard = chessboard
     }
 
     fun makeMove(moveString: String) {

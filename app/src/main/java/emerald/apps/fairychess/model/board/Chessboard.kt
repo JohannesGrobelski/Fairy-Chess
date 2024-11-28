@@ -1,7 +1,7 @@
 package emerald.apps.fairychess.model.board
 
 class Chessboard(
-    variant: String
+    var variant: String
 ) {
 
 
@@ -9,7 +9,6 @@ class Chessboard(
     private var board: Array<Array<Pair<String, String>>> = Array(8) { Array(8) { Pair("", "") } } //[rank][file]
     private var promotionCoordinate: Coordinate? = null
     private lateinit var fen: String
-    private var variant : String = "chess"
 
     // Constants
     var VALUE_MATE: Int = 0
@@ -41,9 +40,9 @@ class Chessboard(
     external fun isCapture(variant: String, fen: String, moves: Array<String>, move: String, chess960: Boolean = false): Boolean
     external fun isImmediateGameEnd(variant: String, fen: String, moves: Array<String>, chess960: Boolean = false): IntArray
     external fun hasInsufficientMaterial(variant: String, fen: String, moves: Array<String>, chess960: Boolean = false): BooleanArray
-    external fun calcBestMove(variant: String, fen: String, depth: Int, movetime: Int): String
-    external fun setPosition(fen: String)
-    external fun isLegalMove(fen: String, move: String): Boolean
+    external fun calcBestMove(variant: String, fen: String, depth: Int, movetime: Int, chess960: Boolean = false): String
+    external fun setPosition(fen: String, chess960: Boolean)
+    external fun isLegalMove(variant: String, fen: String, move: String, chess960: Boolean = false): Boolean
     external fun getGameResult() : Int
     external fun getFEN(
         variant: String,
@@ -62,16 +61,16 @@ class Chessboard(
     }
 
     private fun setupInitialPosition() {
-        fen = startFen(variant)
+        fen = startFen(this.variant)
         updateBoardState()
-        setPosition(fen)
+        setPosition(fen, variant == "fischerandom")
         // Store the initial FEN
     }
 
     private fun updateBoardState() {
         // Update promotion coordinate if any
         extractPiecesFromFen(fen)
-        checkForPromotion(fen)
+        //checkForPromotion(fen)
     }
 
     fun checkMove(movement: Movement) : Boolean {
@@ -79,7 +78,7 @@ class Chessboard(
         val toSquare = fileRankToSquare(movement.targetRank, movement.targetFile)
         val moveStr = "$fromSquare$toSquare"
 
-        return isLegalMove(fen, moveStr)
+        return isLegalMove(variant, fen, moveStr)
     }
 
     fun checkMoveAndMove(movement: Movement): String {
@@ -87,9 +86,9 @@ class Chessboard(
         val toSquare = fileRankToSquare(movement.targetRank, movement.targetFile)
         val moveStr = "$fromSquare$toSquare"
 
-        return if (isLegalMove(fen, moveStr)) {
+        return if (isLegalMove(variant, fen, moveStr)) {
             movecolor = if (movecolor == Color.WHITE) Color.BLACK else Color.WHITE
-            fen = getFEN(variant, fen, arrayOf(moveStr)) // update the FEN after the move
+            fen = getFEN(this.variant, fen, arrayOf(moveStr)) // update the FEN after the move
             updateBoardState()
             ""
         } else {
@@ -103,13 +102,13 @@ class Chessboard(
         val moveStr = "$fromSquare$toSquare"
 
         movecolor = if (movecolor == Color.WHITE) Color.BLACK else Color.WHITE
-        fen = getFEN(variant, fen, arrayOf(moveStr)) // update the FEN after the move
+        fen = getFEN(this.variant, fen, arrayOf(moveStr)) // update the FEN after the move
         updateBoardState()
     }
 
     fun getTargetMovementsAsMovementList(rank: Int, file: Int): List<Movement> {
         val square = fileRankToSquare(rank, file)
-        val legalMoves = legalMoves(variant, fen, false)
+        val legalMoves = legalMoves(this.variant, fen, variant == "fischerandom")
             .filter { moveStr ->  moveStr[0] - 'a' == rank && moveStr[1] - '1' == file}
         return legalMoves
             .map { moveStr ->
@@ -135,8 +134,8 @@ class Chessboard(
         if (coordinate == promotionCoordinate) {
             val square = fileRankToSquare(coordinate.file, coordinate.rank)
             val moveStr = "${square}${square}${promotion.lowercase()[0]}"
-            if (isLegalMove(fen, moveStr)) {
-                fen = getFEN(variant, fen, arrayOf(moveStr))
+            if (isLegalMove(variant, fen, moveStr)) {
+                fen = getFEN(this.variant, fen, arrayOf(moveStr))
                 updateBoardState()
                 promotionCoordinate = null
             }
@@ -144,16 +143,24 @@ class Chessboard(
     }
 
     fun checkForWinner(): Color? {
-        /*return when (getGameResult()) {
-            1 -> Color.WHITE
-            -1 -> Color.BLACK
+        // Split the FEN string into its components
+        val parts = fen.split(" ")
+
+        // FEN has six required fields. The optional result field may follow
+        if (parts.size < 7) return null
+
+        val result = parts[6] // Get the result field
+
+        return when (result) {
+            "1-0" -> Color.WHITE
+            "0-1" -> Color.BLACK
+            "1/2-1/2" -> null
             else -> null
-        }*/
-        return null
+        }
     }
 
     fun calcMove(fenString: String): Movement {
-        val bestMove = calcBestMove(variant, fenString, 12, 30000)
+        val bestMove = calcBestMove(this.variant, fenString, 8, 30000)
         return transformStringToMovement(bestMove)
     }
 
@@ -244,6 +251,7 @@ class Chessboard(
         val color = if (char.isUpperCase()) "white" else "black"
         val pieceName = when (char.lowercase()) {
             "p" -> "pawn"
+            "g" -> "grasshopper"
             "n" -> "knight"
             "b" -> "bishop"
             "r" -> "rook"

@@ -66,7 +66,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
-
         getIntentData()
         initializeViews()
         setupGame()
@@ -147,14 +146,20 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             ) + 1
         )
         if(clickedViewName.matches("[A-Z][0-9]+".toRegex())){
-            //calculate clickedFile and clickedRank
-            val clickedFile = nameToFile(clickedViewName)
-            val clickedRank = nameToRank(clickedViewName)
-            val figure = Pair(chessgame.getPieceName(clickedFile,clickedRank), chessgame.getPieceColor(clickedFile,clickedRank))
-            //Toast.makeText(chessActivity, "Click: "+clickedRank+","+clickedFile+": "+figure.first+" "+figure.second,Toast.LENGTH_LONG).show();
-            //if a file and rank was selected => move from selected square to
-            if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1
-                && clickedFile != -1 && clickedRank != -1){
+            if(playerSelectedSquare.file == -1 && playerSelectedSquare.rank == -1){
+                //mark the clicked view
+                markFigure(clickedView)
+                displayTargetMovements()
+                return
+            } else {
+                //if a file and rank was selected => move from selected square to
+                //calculate clickedFile and clickedRank
+                val clickedFile = nameToFile(clickedViewName)
+                val clickedRank = nameToRank(clickedViewName)
+                if(playerSelectedSquare.rank == clickedRank && playerSelectedSquare.file == clickedFile){
+                    resetFieldColor()
+                    return
+                }
                 val movement = Movement(
                     sourceRank = playerSelectedSquare.rank,
                     sourceFile = playerSelectedSquare.file,
@@ -163,30 +168,29 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 )
                 //check if movement is legal
                 if(!chessgame.getChessboard().checkMove(movement)){
-                    Toast.makeText(chessActivity, "No legal move!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(chessActivity, "Illegal move!", Toast.LENGTH_SHORT).show()
                     resetFieldColor()
                     return
                 }
-                var moveResult = ""
-                moveResult = chessgame.movePlayerWithCheck(movement, chessgame.getChessboard().getMovecolor())
+                var moveResult = chessgame.movePlayerWithCheck(movement, chessgame.getChessboard().getMovecolor())
+                //check for winner or draw
+
                 if(chessgame.checkForWinner() != null){
                     if(chessgame.checkForWinner()!!.stringValue == gameParameters.playerColor){
                         finishGame(chessgame.checkForWinner()!!.stringValue + " won", true)
                     } else {
                         finishGame(chessgame.checkForWinner()!!.stringValue + " won", false)
                     }
-                } //check for winner
+                }
+                /*
                 if(chessgame.getChessboard().checkForPlayerWithDrawOpportunity() != null){//check for draw
                     offerDraw(chessgame.getChessboard().checkForPlayerWithDrawOpportunity()!!.stringValue)
                 }
                 moveResult += handlePromotion()
+                 */
                 if(gameParameters.playMode=="human" && moveResult==""){
                     multiplayerDB.writePlayerMovement(gameData.gameId, movement)
-                }
-                if(moveResult.isNotEmpty()){
-                    //Toast.makeText(chessActivity, moveResult, Toast.LENGTH_LONG).show()
-                }
-                if(gameParameters.playMode=="ai"){
+                } else if(gameParameters.playMode=="ai"){
                     //calculate ai move in coroutine to avoid blocking the ui thread
                     calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
                         try{
@@ -201,12 +205,12 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     }
                 }
                 displayFigures()
+                //reset saved position after move
+                playerSelectedSquare.rank = -1
+                playerSelectedSquare.file = -1
             }
-            //mark the clicked view
-            markFigure(clickedView)
-            if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1){
-                displayTargetMovements()
-            }
+        } else {
+            resetFieldColor()
         }
     }
 
@@ -422,6 +426,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** reset chessboard square color to "normal" after highlighting it */
     private fun resetFieldColor() {
+        playerSelectedSquare.rank = -1
+        playerSelectedSquare.file = -1
         for(rank in 0..7){
             for(file in 0..7){
                 if ((rank + file) % 2 != 0) imageViews[rank][file].setBackgroundColor(

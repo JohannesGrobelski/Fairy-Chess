@@ -159,11 +159,6 @@ class MultiplayerDB {
             .whereEqualTo(GAMEFIELD_PLAYER2ID,"")
             .whereNotEqualTo(GAMEFIELD_PLAYER1ID,player2ID)
 
-        if(gameName.isNotEmpty() && !gameName.startsWith("all"))
-            collection.whereIn(GAMEFIELD_GAMENAME, listOf("all game modes",gameName))
-        if(gameName.isNotEmpty() && !timeMode.startsWith("all"))
-            collection.whereEqualTo(GAMEFIELD_TIMEMODE, timeMode)
-
         collection
             .get()
             .addOnCompleteListener { task ->
