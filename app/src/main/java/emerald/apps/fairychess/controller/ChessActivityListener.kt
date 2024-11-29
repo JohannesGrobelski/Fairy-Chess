@@ -4,6 +4,7 @@ import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
+import android.os.Looper
 import android.view.View
 import android.widget.ImageView
 import android.widget.RadioButton
@@ -26,6 +27,7 @@ import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -171,14 +173,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 }
                 var moveResult = chessgame.movePlayerWithCheck(movement, chessgame.getChessboard().getMovecolor())
                 //check for winner or draw
-
-                if(chessgame.checkForWinner() != null){
-                    if(chessgame.checkForWinner()!!.stringValue == gameParameters.playerColor){
-                        finishGame(chessgame.checkForWinner()!!.stringValue + " won", true)
-                    } else {
-                        finishGame(chessgame.checkForWinner()!!.stringValue + " won", false)
-                    }
-                }
+                handleGameEnd()
                 /*
                 if(chessgame.getChessboard().checkForPlayerWithDrawOpportunity() != null){//check for draw
                     offerDraw(chessgame.getChessboard().checkForPlayerWithDrawOpportunity()!!.stringValue)
@@ -196,6 +191,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                             withContext(Dispatchers.Main) {
                                 displayFigures()
                             }
+                            handleGameEnd()
                         } catch (e: Exception) {
                             throw RuntimeException("To catch any exception thrown for yourTask", e)
                         }
@@ -326,7 +322,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             builder.setTitle("Do you want to draw?") // set the custom layout
             builder.setPositiveButton("yes") { _, _ ->
                 run {
-                    finishGame(gameData.playerID + " draw", null)
+                    this.finishGame(gameData.playerID + " draw", null)
                 }
             }
             builder.setNegativeButton("no",null)
@@ -448,6 +444,20 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
+    private fun handleGameEnd(){
+        val gameEndResult = chessgame.getChessboard().checkForGameEnd()
+        if(gameEndResult != ""){
+            //end timers
+            playerTimer!!.cancel()
+            opponentTimer!!.cancel()
+            if(gameEndResult.contains(gameParameters.playerColor)){
+                finishGame(gameEndResult, true)
+            } else {
+                finishGame(gameEndResult, false)
+            }
+        }
+    }
+
     /** helper functions for highlighting square */
     private fun getMixedColor(rank: Int, file: Int, color: Int): Int {
         return if ((file + rank) % 2 == 0) ColorUtils.blendARGB(
@@ -469,7 +479,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     fun onDestroy() {
-        finishGame(gameParameters.playerColor + " left the game", false)
+        //finishGame(gameParameters.playerColor + " left the game", false)
     }
 
     /** finish a chess game by writing changes to multiplayerDB*/
@@ -504,24 +514,36 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     || gameParameters.playerColor == "black" && gameState.moves.size%2==1){
                     chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
                     displayFigures()
-                    if(chessgame.checkForWinner() != null){
-                        if(chessgame.getChessboard().checkForWinner()!!.stringValue == gameParameters.playerColor){
-                            finishGame(chessgame.getChessboard().checkForWinner()!!.stringValue + " won", true)
-                        } else {
-                            finishGame(chessgame.getChessboard().checkForWinner()!!.stringValue + " won", false)
-                        }
-                    }
+                    handleGameEnd()
                 }
             }
         }
     }
 
     override fun onFinishGame(gameId: String, cause: String) {
-        Toast.makeText(chessActivity, cause, Toast.LENGTH_LONG).show()
-        val data = Intent()
-        data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
-        chessActivity.setResult(RESULT_OK, data)
-        chessActivity.finish()
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                // Show a simple Toast
+                Toast.makeText(chessActivity, cause, Toast.LENGTH_LONG).show()
+
+                // Wait 10 seconds
+                delay(5000)
+
+                // Finish activity
+                if (!chessActivity.isFinishing) {
+                    val data = Intent()
+                    data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
+                    chessActivity.setResult(RESULT_OK, data)
+                    chessActivity.finish()
+                }
+            } catch (e: Exception) {
+                // Handle any exceptions
+                val data = Intent()
+                data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
+                chessActivity.setResult(RESULT_OK, data)
+                chessActivity.finish()
+            }
+        }
     }
 
     override fun onTickOpponentTimer(millisUntilFinished: Long) {

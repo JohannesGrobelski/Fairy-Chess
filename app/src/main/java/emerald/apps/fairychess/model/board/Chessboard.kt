@@ -1,5 +1,7 @@
 package emerald.apps.fairychess.model.board
 
+import android.util.Log
+
 class Chessboard(
     var variant: String,
     var difficulty: Int
@@ -44,7 +46,7 @@ class Chessboard(
     external fun calcBestMove(variant: String, fen: String, depth: Int, movetime: Int, chess960: Boolean = false): String
     external fun setPosition(fen: String, chess960: Boolean)
     external fun isLegalMove(variant: String, fen: String, move: String, chess960: Boolean = false): Boolean
-    external fun getGameResult() : Int
+    external fun getGameResult(variant: String, fen: String, move: Array<String>, chess960: Boolean = false) : String
     external fun getFEN(
         variant: String,
         fen: String,
@@ -143,21 +145,10 @@ class Chessboard(
         }
     }
 
-    fun checkForWinner(): Color? {
-        // Split the FEN string into its components
-        val parts = fen.split(" ")
-
-        // FEN has six required fields. The optional result field may follow
-        if (parts.size < 7) return null
-
-        val result = parts[6] // Get the result field
-
-        return when (result) {
-            "1-0" -> Color.WHITE
-            "0-1" -> Color.BLACK
-            "1/2-1/2" -> null
-            else -> null
-        }
+    fun checkForGameEnd(): String {
+        val result = getGameResult(variant, fen, arrayOf(), (variant == "fischerchess"))
+        Log.i("Gameend?",result)
+        return result
     }
 
     fun calcMove(fenString: String): Movement {
