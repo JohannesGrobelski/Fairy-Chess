@@ -169,7 +169,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 )
                 //check if movement is legal
                 if(!chessgame.getChessboard().checkMove(movement)){
-                    Toast.makeText(chessActivity, "Illegal move!", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(chessActivity, "Illegal move!", Toast.LENGTH_SHORT).show()
                     resetFieldColor()
                     return
                 }
@@ -206,6 +206,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     }
                 }
                 displayFigures()
+                resetFieldColor()
                 //reset saved position after move
                 playerSelectedSquare.rank = -1
                 playerSelectedSquare.file = -1
