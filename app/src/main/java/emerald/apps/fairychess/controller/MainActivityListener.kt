@@ -13,18 +13,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import emerald.apps.fairychess.R
-import emerald.apps.fairychess.model.ChessRatingSystem
-import emerald.apps.fairychess.model.MultiplayerDB
-import emerald.apps.fairychess.model.MultiplayerDB.Companion.matchmakingWinningChanceOffset
-import emerald.apps.fairychess.model.MultiplayerDBSearchInterface
+import emerald.apps.fairychess.model.rating.ChessRatingSystem
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB.Companion.matchmakingWinningChanceOffset
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
 import kotlinx.coroutines.*
+import java.util.*
 
 
-class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface {
+class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterface {
     private lateinit var mainActivity : MainActivity
-    private lateinit var multiplayerDB: MultiplayerDB
+    //private lateinit var multiplayerDB: MultiplayerDB
 
     lateinit var userNameDialog : AlertDialog
     var joinWaitDialog : AlertDialog? = null
@@ -44,9 +45,10 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         var name: String,
         var playMode: String,
         var time: String,
-        var playerColor: String
+        var playerColor: String,
+        var difficulty: Int
     )
-    private var gameParameters = GameParameters("", "", "", "")
+    private var gameParameters = GameParameters("", "", "", "", 0)
     private var createdGameID = ""
 
     companion object {
@@ -61,6 +63,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         const val gameModeExtra = "gameMode"
         const val gameNameExtra = "name"
         const val gameTimeExtra = "gameTime"
+        const val gameDifficultyExtra = "gameDifficultyExtra"
         const val playerColorExtra = "playerColor"
 
         var clipboardCopyJob : Job? = null
@@ -88,13 +91,13 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     constructor(mainActivity: MainActivity) : this(){
         this.mainActivity = mainActivity
         loadOrCreateUserName()
-        multiplayerDB = MultiplayerDB(this)
+        //multiplayerDB = MultiplayerDB(this)
         loadPlayerStats()
     }
 
     fun loadPlayerStats(){
         playerStats = MultiplayerDB.PlayerStats.getDefault()
-        multiplayerDB.getPlayerStats(userName)
+        //multiplayerDB.getPlayerStats(userName)
     }
 
     fun loadPlayerStats(playerStats: MultiplayerDB.PlayerStats){
@@ -159,6 +162,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     /** alert dialog to search for online games  */
     fun displayAlertDialogAIMatch(){
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
+        val gamemode_descriptions = mainActivity.resources.getStringArray(R.array.gamemode_descriptions)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
         val difficultyModes = mainActivity.resources.getStringArray(R.array.difficultyModes)
 
@@ -178,6 +182,28 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             android.R.layout.simple_list_item_1,
             gameModes
         )
+
+        // Update TextView description when a game mode is selected
+        val tv_gameMode_description : TextView = createDialogView.findViewById(R.id.tv_gameMode_description)
+        spinner_gameName.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                for(desc in gamemode_descriptions){
+                    if(desc.split(":")[0].lowercase(Locale.ROOT) == spinner_gameName.selectedItem.toString().toLowerCase() ){
+                        tv_gameMode_description.text = desc
+                    }
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                tv_gameMode_description.text = "Select a game mode to see its description"
+            }
+        }
+
         val spinner_timemode : Spinner = createDialogView.findViewById(R.id.spinner_createGame_timemode)
         spinner_timemode.adapter = ArrayAdapter(
             mainActivity,
@@ -194,10 +220,11 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         val createDialog = AlertDialog.Builder(mainActivity).setView(createDialogView).create()
 
         btn_create_game.setOnClickListener{
-            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             gameParameters.playerColor = "white"
-            val diffAi = spinner_diff.selectedItem.toString().toDouble()
+            val diffAi = spinner_diff.selectedItem.toString().split(" ")[1].toDouble()
+            gameParameters.difficulty = spinner_diff.selectedItem.toString().split(" ")[1].toInt();
             this.opponentStats = MultiplayerDB.PlayerStats(0L,0L,0L,diffAi)
             val gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi)
             start_gameWithParameters(gameData,gameParameters)
@@ -236,7 +263,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
 
         btn_search_game.setOnClickListener{
-            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             searchForGames(gameParameters.name,gameParameters.time)
         }
@@ -247,6 +274,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     fun displayAlertDialogCreateGames(){
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
+        val difficultyModes = mainActivity.resources.getStringArray(R.array.difficultyModes)
         val inflater = LayoutInflater.from(mainActivity)
 
         //inflate the layout (depending on mode)
@@ -269,13 +297,20 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             android.R.layout.simple_list_item_1,
             timeModes
         )
+        val spinner_difficultymode : Spinner = searchDialogView.findViewById(R.id.spinner_createGame_difficulty)
+        spinner_timemode.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            difficultyModes
+        )
         val btn_create_game = searchDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
         val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
 
         btn_create_game.setOnClickListener{
-            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
-            multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
+            gameParameters.difficulty = spinner_difficultymode.selectedItem.toString().split(" ")[1].toInt()
+            //multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
         }
         searchDialog.show()
     }
@@ -302,7 +337,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             button.setOnClickListener {
                 userName = input.text.toString()
                 //check if username is unique
-                multiplayerDB.searchUsers(userName)
+                //multiplayerDB.searchUsers(userName)
                 //dont dismiss dialog ... yet
             }
         })
@@ -310,13 +345,13 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
     }
 
     fun quickMatch(){
-        multiplayerDB.searchForOpenGames(player2ID = userName)
+        //multiplayerDB.searchForOpenGames(player2ID = userName)
     }
 
     fun searchForGames(gameName: String, timeMode: String){
         gameParameters.name = gameName
         gameParameters.time = timeMode
-        multiplayerDB.searchForOpenGames(gameName, timeMode, userName)
+        //multiplayerDB.searchForOpenGames(gameName, timeMode, userName)
     }
 
     /** saves game parameters and player data into bundle and start chess activity*/
@@ -332,6 +367,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         intent.putExtra(gameOpponentStatsExtra, opponentStats)
         intent.putExtra(gameNameExtra, gameParameters.name)
         intent.putExtra(gameModeExtra, gameParameters.playMode)
+        intent.putExtra(gameDifficultyExtra, gameParameters.difficulty)
         intent.putExtra(gameTimeExtra, gameParameters.time)
         intent.putExtra(playerColorExtra, gameParameters.playerColor)
         mainActivity.startActivity(intent)
@@ -370,7 +406,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
      *  create player if playername unique, else notify user via toast*/
     override fun onPlayerNameSearchComplete(playerID: String, occurences: Int) {
         if(occurences==0){
-            multiplayerDB.createPlayer(userName)
+            //multiplayerDB.createPlayer(userName)
         } else {
             userNameDialog.setMessage("user name already taken")
             Toast.makeText(
@@ -426,14 +462,14 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
                 }
 
                 //join game
-                multiplayerDB.joinGame(
+                /*multiplayerDB.joinGame(
                     chosenGame.id,changeMap.toMap()
-                )
+                )*/
             } else {
                 AlertDialog.Builder(mainActivity)
                     .setTitle("no games found")
                     .setPositiveButton("create game"
-                    ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)}
+                    ) { _, _ -> /*multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)*/}
                     .setNegativeButton("close",null)
                     .show()
             }
@@ -441,7 +477,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             AlertDialog.Builder(mainActivity)
                 .setTitle("no games found")
                 .setPositiveButton("create game"
-                ) { _, _ -> multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)}
+                ) { _, _ -> /*multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)*/}
                 .setNegativeButton("close",null)
                 .show()
         }
@@ -459,7 +495,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             Toast.LENGTH_SHORT
         ).show()
         createdGameID = gameID
-        multiplayerDB.listenToGameSearch(gameID)
+        //multiplayerDB.listenToGameSearch(gameID)
         gameParameters.playerColor = playerColor
 
         val builder = AlertDialog.Builder(mainActivity)
@@ -472,7 +508,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
             run{
                 if(createdGameID.isNotEmpty()){
                     joinWaitDialog!!.dismiss()
-                    multiplayerDB.cancelGame(createdGameID)
+                    //multiplayerDB.cancelGame(createdGameID)
                     createdGameID = ""
                 }
             }
@@ -480,7 +516,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
         val btn_createDynLink = joinWaitDialog!!.findViewById<Button>(R.id.btn_createDynamicLink)
         btn_createDynLink.setOnClickListener{_ ->
             run{
-               multiplayerDB.createDynamicLink(createdGameID)
+               //multiplayerDB.createDynamicLink(createdGameID)
             }
         }
     }
@@ -489,7 +525,7 @@ class MainActivityListener() : View.OnClickListener,MultiplayerDBSearchInterface
      *  check if second player has joined */
     override fun onGameChanged(gameId: String) {
         if(!launchedGamesMap.containsKey(gameId)){
-            multiplayerDB.hasSecondPlayerJoined(gameId)
+            //multiplayerDB.hasSecondPlayerJoined(gameId)
         }
     }
 

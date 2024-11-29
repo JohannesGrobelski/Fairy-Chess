@@ -1,0 +1,3 @@
+[submodule "app/src/main/cpp/JFFish"]
+	path = app/src/main/cpp/JFFish
+	url = git@github.com:JohannesGrobelski/JFFish.git

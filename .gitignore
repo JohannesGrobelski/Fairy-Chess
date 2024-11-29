@@ -2,6 +2,18 @@
 .gradle
 /local.properties
 /.idea/caches
+/.idea/*
+.idea
+.idea/*
+.idea/deploymentTargetSelector.xml.xml
+.classpath
+.classpath/*
+.project
+.project/*
+.settings
+.settings/*
+app/.settings
+app/.settings/*
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
@@ -12,3 +24,4 @@
 /captures
 .externalNativeBuild
 .cxx
+google-services.json

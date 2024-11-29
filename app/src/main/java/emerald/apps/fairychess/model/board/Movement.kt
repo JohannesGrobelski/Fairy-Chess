@@ -1,4 +1,4 @@
-package emerald.apps.fairychess.model
+package emerald.apps.fairychess.model.board
 
 import java.util.*
 import kotlin.math.abs
@@ -14,15 +14,15 @@ open class Movement(val movementNotation : MovementNotation = MovementNotation("
             : this(MovementNotation("", emptyList(),"",emptyList(),""),sourceRank, sourceFile, targetRank, targetFile)
 
 
-    constructor(movementNotation: MovementNotation, source : Bitboard.Companion.Coordinate, targetRank:Int, targetFile:Int) : this(movementNotation, source.rank,source.file,targetRank,targetFile)
-    constructor(source : Bitboard.Companion.Coordinate, targetRank:Int, targetFile:Int) : this(source.rank,source.file,targetRank,targetFile)
-    constructor(source : Bitboard.Companion.Coordinate, target : Bitboard.Companion.Coordinate) : this(source.rank,source.file,target.rank,target.file)
+    constructor(movementNotation: MovementNotation, source :Coordinate, targetRank:Int, targetFile:Int) : this(movementNotation, source.rank,source.file,targetRank,targetFile)
+    constructor(source : Coordinate, targetRank:Int, targetFile:Int) : this(source.rank,source.file,targetRank,targetFile)
+    constructor(source :Coordinate, target :Coordinate) : this(source.rank,source.file,target.rank,target.file)
 
-    fun getSourceCoordinate(): Bitboard.Companion.Coordinate {
-        return Bitboard.Companion.Coordinate(sourceRank, sourceFile)
+    fun getSourceCoordinate():Coordinate {
+        return Coordinate(sourceRank, sourceFile)
     }
-    fun getTargetCoordinate(): Bitboard.Companion.Coordinate {
-        return Bitboard.Companion.Coordinate(targetRank, targetFile)
+    fun getTargetCoordinate():Coordinate {
+        return Coordinate(targetRank, targetFile)
     }
     fun getRankDif() : Int{
         return abs(targetRank - sourceRank)

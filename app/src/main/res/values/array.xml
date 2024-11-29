@@ -1,22 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="gamemodes">
-        <item>all game modes</item>
-        <item>normal chess</item>
-        <item>berolina chess</item>
-        <item>grasshopper chess</item>
+        <item>Normal</item>
+        <item>Antichess</item>
+        <item>Berolina</item>
+        <item>Grasshopper</item>
+        <item>Asean</item>
+        <item>Almost</item>
+        <item>Atomar</item>
+        <item>Breakthrough</item>
+        <item>Cambodian</item>
+        <item>Chaturanga</item>
+        <item>Codrus</item>
+        <item>Coregal</item>
+        <item>Fischerandom</item>
+    </string-array>
+    <string-array name="gamemode_descriptions">
+        <item>Normal: Standard chess rules with the classic goal of checkmating the opponents king.</item>
+        <item>Antichess: A playful variant where the goal is to lose all your pieces or get stalemated. Players must sacrifice pieces and avoid checkmate.</item>
+        <item>Berolina: Pawns move diagonally and capture straight ahead, flipping their standard rules.</item>
+        <item>Grasshopper: Introduces the "Grasshopper," a piece that moves like a queen but must jump over other pieces to move or capture.</item>
+        <item>Asean: Bishops move only one or two squares diagonally. The queen moves only one square diagonally.</item>
+        <item>Almost: The queen is replaced by a chancellor, a piece which combines the moves of the rook and the knight.</item>
+        <item>Atomar: Capturing a piece triggers an explosive chain reaction that removes surrounding pieces.</item>
+        <item>Breakthrough: Pawns only; the goal is to get one pawn to the opponent’s back rank.</item>
+        <item>Cambodian: the queen moves one square diagonally, bishops move diagonally or one square forward, and the king has a knight-like jump on its first move.</item>
+        <item>Chaturanga: the game includes two new pieces - the "Elephant" (moves similar to a modern rook) and "Chariot" (moves like the rook).</item>
+        <item>Codrus: the objective is to have your king captured to win.</item>
+        <item>Coregal: Both the king and queen are royal; checkmate either to win, adding extra strategy. Players must protect both pieces.</item>
+        <item>Fischerandom: Pieces are shuffled randomly on the back rank, creating new openings and strategies.</item>
     </string-array>
     <string-array name="timemodes">
-        <item>all time modes</item>
-        <item>bullet (2 minutes)</item>
-        <item>blitz (5 minutes)</item>
-        <item>rapid (10 minutes)</item>
-        <item>infinite</item>
+        <item>Bullet (2 minutes)</item>
+        <item>Blitz (5 minutes)</item>
+        <item>Rapid (10 minutes)</item>
+        <item>Infinite (no time limit)</item>
     </string-array>
     <string-array name="difficultyModes">
-        <item>400</item>
-        <item>600</item>
-        <item>800</item>
-        <item>1000</item>
+        <item>Depth 2 - Beginner friendly</item>
+        <item>Depth 4 - Balanced strength</item>
+        <item>Depth 6 - Strong play</item>
+        <item>Depth 8 - Tournament strength</item>
+        <item>Depth 10 - Expert Level</item>
+        <item>Depth 12 - Expert Level 2</item>
     </string-array>
 </resources>

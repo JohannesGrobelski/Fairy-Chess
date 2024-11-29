@@ -4,6 +4,15 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <TextView
+        android:id="@+id/tv_gameMode_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select a game mode to see its description"
+        android:padding="16dp"
+        android:layout_marginStart="10dp"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
     <Spinner
         android:id="@+id/spinner_createGame_gameName"
         android:layout_width="match_parent"
@@ -20,11 +29,15 @@
         android:id="@+id/spinner_createGame_difficulty"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:spinnerMode="dialog"
+        android:contentDescription="@string/difficulty_hint" />
 
     <Button
         android:id="@+id/btn_createGame_create_game"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="create game" />
+
+
 </LinearLayout>

@@ -1,8 +1,11 @@
 package emerald.apps.fairychess.model
 
 import emerald.apps.fairychess.controller.MainActivityListener
-import emerald.apps.fairychess.utility.ChessFormationParser
-import emerald.apps.fairychess.utility.FigureParser
+import emerald.apps.fairychess.model.board.Chessboard
+import emerald.apps.fairychess.model.board.Color
+import emerald.apps.fairychess.model.board.Movement
+import emerald.apps.fairychess.model.board.PromotionMovement
+import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
 import emerald.apps.fairychess.view.ChessActivity
 
 class Chessgame() {
@@ -16,22 +19,12 @@ class Chessgame() {
     var gameFinished : Boolean = false
     private lateinit var chessActivity : ChessActivity
 
-    lateinit var figureMap : Map<String, FigureParser.Figure>
-
     constructor(
         chessActivity: ChessActivity,
         gameData: MultiplayerDB.GameData,
         gameParameters: MainActivityListener.GameParameters
     ) : this() {
-        val chessFormationArray: Array<Array<String>> = ChessFormationParser.parseChessFormation(
-            chessActivity, gameParameters.name.replace(
-                " ",
-                "_"
-            )
-        )
-        figureMap = FigureParser.parseFigureMapFromFile(chessActivity)
-
-        chessboard = Chessboard(chessFormationArray, figureMap)
+        chessboard = Chessboard(gameParameters.name, gameParameters.difficulty)
 
         this.gameData = gameData
         this.gameParameters = gameParameters
@@ -41,36 +34,37 @@ class Chessgame() {
     }
 
     /** execute movement and check if color allows movement */
-    fun movePlayer(movement: Movement?, color: String): String {
+    fun movePlayerWithCheck(movement: Movement?, color: Color): String {
         return if(movement != null){
-            val returnValue = chessboard.checkMoveAndMove(color, movement)
-            gameFinished = chessboard.checkForWinner() != ""
+            val returnValue = chessboard.checkMoveAndMove(movement)
+            //gameFinished = chessboard.checkForWinner() != null
             returnValue
         } else {
             "no move made"
         }
     }
 
-    fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<Movement> {
-        println(chessboard.toString())
-        return chessboard.getTargetMovementsAsMovementList(Bitboard.Companion.Coordinate(sourceRank, sourceFile))
+    fun movePlayerWithoutCheck(movement: Movement?) {
+        if(movement != null){
+            chessboard.move(movement)
+        }
+
     }
 
-    fun getPieceName(coordinate: Bitboard.Companion.Coordinate) : String{
-        return chessboard.getPieceName(coordinate)
+    fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<Movement> {
+        return chessboard.getTargetMovementsAsMovementList(sourceRank, sourceFile)
+    }
+
+    fun getPieceName(sourceRank: Int, sourceFile: Int) : String{
+        return chessboard.getPieceName(sourceRank, sourceFile)
     }
 
     fun getPieceColor(rank: Int, file: Int) : String{
         return chessboard.getPieceColor(rank,file)
     }
 
-
     fun getChessboard() : Chessboard {
         return chessboard
-    }
-
-    fun setChessboard(chessboard: Chessboard) {
-        this.chessboard = chessboard
     }
 
     fun makeMove(moveString: String) {
@@ -81,8 +75,8 @@ class Chessgame() {
     }
 
     fun makeMove(movement: Movement){
-        chessboard.checkMoveAndMove(chessboard.getMovecolor(), movement)
-        gameFinished = chessboard.checkForWinner() != ""
+        chessboard.checkMoveAndMove(movement)
+        gameFinished = chessboard.checkForGameEnd() != ""
     }
 
     val colors = arrayOf("white","black")
@@ -92,10 +86,6 @@ class Chessgame() {
             if(color == colors[0]) colors[1]
             else colors[0]
         }
-    }
-
-    fun checkForWinner() : String {
-        return chessboard.checkForWinner()
     }
 }
 
