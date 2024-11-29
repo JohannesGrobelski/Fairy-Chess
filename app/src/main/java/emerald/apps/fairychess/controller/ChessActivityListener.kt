@@ -379,6 +379,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             return R.drawable.white_berolina
         } else if (color == "white" && type == "grasshopper") {
             return R.drawable.white_grasshopper
+        } else if (color == "white" && type == "chancellor") {
+            return R.drawable.white_chancellor
         } else if (color == "black" && type == "king") {
             return R.drawable.black_king
         } else if (color == "black" && type == "queen") {
@@ -395,6 +397,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             return R.drawable.black_berolina
         } else if (color == "black" && type == "grasshopper") {
             return R.drawable.black_grasshopper
+        } else if (color == "black" && type == "chancellor") {
+            return R.drawable.black_chancellor
         } else {
             return android.R.color.transparent
         }

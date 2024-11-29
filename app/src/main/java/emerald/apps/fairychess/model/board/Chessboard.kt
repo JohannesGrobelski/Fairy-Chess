@@ -253,6 +253,7 @@ class Chessboard(
         val pieceName = when (char.lowercase()) {
             "p" -> "pawn"
             "g" -> "grasshopper"
+            "c" -> "chancellor"
             "n" -> "knight"
             "b" -> "bishop"
             "r" -> "rook"
