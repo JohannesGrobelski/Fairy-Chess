@@ -80,8 +80,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOW)
             tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeW)
             tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeW)
-            tvCalcStatsInfo = chessActivity.findViewById(R.id.calcstatsInfoW)
-            tvCalcStatsHash = chessActivity.findViewById(R.id.calcstatsHashW)
         } else {
             tvPlayerName = chessActivity.findViewById(R.id.tv_playernameB)
             tvOpponentName = chessActivity.findViewById(R.id.tv_opponentnameB)
@@ -89,8 +87,6 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             tvOpponentELO = chessActivity.findViewById(R.id.tv_OpponentELOB)
             tvPlayerTime = chessActivity.findViewById(R.id.tv_PlayerTimeB)
             tvOpponentTime = chessActivity.findViewById(R.id.tv_OpponentTimeB)
-            tvCalcStatsInfo = chessActivity.findViewById(R.id.calcstatsInfoB)
-            tvCalcStatsHash = chessActivity.findViewById(R.id.calcstatsHashB)
         }
     }
 

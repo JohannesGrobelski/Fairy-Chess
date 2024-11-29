@@ -20,6 +20,7 @@ import emerald.apps.fairychess.model.multiplayer.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
 import kotlinx.coroutines.*
+import java.util.*
 
 
 class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterface {
@@ -161,6 +162,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
     /** alert dialog to search for online games  */
     fun displayAlertDialogAIMatch(){
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
+        val gamemode_descriptions = mainActivity.resources.getStringArray(R.array.gamemode_descriptions)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
         val difficultyModes = mainActivity.resources.getStringArray(R.array.difficultyModes)
 
@@ -180,6 +182,28 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             android.R.layout.simple_list_item_1,
             gameModes
         )
+
+        // Update TextView description when a game mode is selected
+        val tv_gameMode_description : TextView = createDialogView.findViewById(R.id.tv_gameMode_description)
+        spinner_gameName.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                for(desc in gamemode_descriptions){
+                    if(desc.split(":")[0].lowercase(Locale.ROOT) == spinner_gameName.selectedItem.toString().toLowerCase() ){
+                        tv_gameMode_description.text = desc
+                    }
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                tv_gameMode_description.text = "Select a game mode to see its description"
+            }
+        }
+
         val spinner_timemode : Spinner = createDialogView.findViewById(R.id.spinner_createGame_timemode)
         spinner_timemode.adapter = ArrayAdapter(
             mainActivity,
@@ -196,7 +220,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         val createDialog = AlertDialog.Builder(mainActivity).setView(createDialogView).create()
 
         btn_create_game.setOnClickListener{
-            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             gameParameters.playerColor = "white"
             val diffAi = spinner_diff.selectedItem.toString().split(" ")[1].toDouble()
@@ -239,7 +263,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
 
         btn_search_game.setOnClickListener{
-            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             searchForGames(gameParameters.name,gameParameters.time)
         }
@@ -283,7 +307,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
 
         btn_create_game.setOnClickListener{
-            gameParameters.name = spinner_gameName.selectedItem.toString()
+            gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             gameParameters.difficulty = spinner_difficultymode.selectedItem.toString().split(" ")[1].toInt()
             //multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)

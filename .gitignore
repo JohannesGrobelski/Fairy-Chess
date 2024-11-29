@@ -5,6 +5,7 @@
 /.idea/*
 .idea
 .idea/*
+.idea/deploymentTargetSelector.xml.xml
 .classpath
 .classpath/*
 .project

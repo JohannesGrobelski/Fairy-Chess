@@ -24,9 +24,9 @@ class ChessTimerPlayer(
             timeMode: String
         ) : ChessTimerPlayer? {
             return when(timeMode){
-                "bullet (2 minutes)" -> ChessTimerPlayer(chessTimerPlayerInterface, 120000, 1000)
-                "blitz (5 minutes)" -> ChessTimerPlayer(chessTimerPlayerInterface, 300000, 1000)
-                "rapid (10 minutes)" -> ChessTimerPlayer(chessTimerPlayerInterface, 600000, 1000)
+                "Bullet (2 minutes)" -> ChessTimerPlayer(chessTimerPlayerInterface, 120000, 1000)
+                "Blitz (5 minutes)" -> ChessTimerPlayer(chessTimerPlayerInterface, 300000, 1000)
+                "Rapid (10 minutes)" -> ChessTimerPlayer(chessTimerPlayerInterface, 600000, 1000)
                 else -> null
             }
         }
