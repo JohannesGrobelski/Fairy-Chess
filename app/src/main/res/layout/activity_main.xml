@@ -80,4 +80,17 @@
         android:textSize="20sp"
         android:visibility="visible" />
 
+    <TextView
+        android:id="@+id/tv_powered_by"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/powered_by_jffish"
+        android:textColor="#CCCCCC"
+        android:textSize="14sp"
+        android:autoLink="web"
+        android:linksClickable="true"
+        android:textColorLink="#CCCCCC" />
+
 </LinearLayout>

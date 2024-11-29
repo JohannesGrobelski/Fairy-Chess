@@ -1,3 +1,3 @@
-[submodule "app/src/main/cpp/Fairy-Stockfish"]
-	path = app/src/main/cpp/Fairy-Stockfish
-	url = git@github.com:JohannesGrobelski/Fairy-Stockfish.git
+[submodule "app/src/main/cpp/JFFish"]
+	path = app/src/main/cpp/JFFish
+	url = git@github.com:JohannesGrobelski/JFFish.git

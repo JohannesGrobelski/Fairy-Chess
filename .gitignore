@@ -5,6 +5,14 @@
 /.idea/*
 .idea
 .idea/*
+.classpath
+.classpath/*
+.project
+.project/*
+.settings
+.settings/*
+app/.settings
+app/.settings/*
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
