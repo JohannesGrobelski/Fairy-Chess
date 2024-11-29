@@ -256,8 +256,10 @@ class Chessboard(
             "c" -> "chancellor"
             "n" -> "knight"
             "b" -> "bishop"
+            "s" -> "sa" //Sa - Bishop in cambodian
             "r" -> "rook"
             "q" -> "queen"
+            "m" -> "met" //Met - restricted queen in cambodian
             "k" -> "king"
             else -> ""
         }

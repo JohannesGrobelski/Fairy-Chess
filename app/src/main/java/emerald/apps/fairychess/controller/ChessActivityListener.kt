@@ -362,15 +362,17 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         imageViews = squares
     }
 
-    /** get Drawable from figure name*/
+    /** Get Drawable from figure name
+     *
+     */
     fun getDrawableFromName(type: String, color: String): Int {
         if (color == "white" && type == "king") {
             return R.drawable.white_king
-        } else if (color == "white" && type == "queen") {
+        } else if (color == "white" && (type == "queen" || type == "met")) {
             return R.drawable.white_queen
         } else if (color == "white" && type == "pawn") {
             return R.drawable.white_pawn
-        } else if (color == "white" && type == "bishop") {
+        } else if (color == "white" && (type == "bishop" || type == "sa")) {
             return R.drawable.white_bishop
         } else if (color == "white" && type == "knight") {
             return R.drawable.white_knight
@@ -384,11 +386,11 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             return R.drawable.white_chancellor
         } else if (color == "black" && type == "king") {
             return R.drawable.black_king
-        } else if (color == "black" && type == "queen") {
+        } else if (color == "black" && (type == "queen" || type == "met")) {
             return R.drawable.black_queen
         } else if (color == "black" && type == "pawn") {
             return R.drawable.black_pawn
-        } else if (color == "black" && type == "bishop") {
+        } else if (color == "black" && (type == "bishop" || type == "sa")) {
             return R.drawable.black_bishop
         } else if (color == "black" && type == "knight") {
             return R.drawable.black_knight
