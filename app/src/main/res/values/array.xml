@@ -13,9 +13,11 @@
         <item>infinite</item>
     </string-array>
     <string-array name="difficultyModes">
-        <item>400</item>
-        <item>600</item>
-        <item>800</item>
-        <item>1000</item>
+        <item>Depth 2 - Beginner friendly</item>
+        <item>Depth 4 - Balanced strength</item>
+        <item>Depth 6 - Strong play</item>
+        <item>Depth 8 - Tournament strength</item>
+        <item>Depth 10 - Expert Level</item>
+        <item>Depth 12 - Expert Level 2</item>
     </string-array>
 </resources>

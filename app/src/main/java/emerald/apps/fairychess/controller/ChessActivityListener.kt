@@ -102,7 +102,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             chessActivity.intent.getStringExtra(MainActivityListener.gameNameExtra)!!,
             chessActivity.intent.getStringExtra(MainActivityListener.gameModeExtra)!!,
             chessActivity.intent.getStringExtra(MainActivityListener.gameTimeExtra)!!,
-            chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!
+            chessActivity.intent.getStringExtra(MainActivityListener.playerColorExtra)!!,
+            chessActivity.intent.getIntExtra(MainActivityListener.gameDifficultyExtra,0)
         )
 
         gameData = MultiplayerDB.GameData(

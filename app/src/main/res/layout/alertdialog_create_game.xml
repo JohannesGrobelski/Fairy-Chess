@@ -20,11 +20,15 @@
         android:id="@+id/spinner_createGame_difficulty"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:spinnerMode="dialog"
+        android:contentDescription="@string/difficulty_hint" />
 
     <Button
         android:id="@+id/btn_createGame_create_game"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="create game" />
+
+
 </LinearLayout>

@@ -7,5 +7,6 @@
     <string name="create_game">open new game</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="difficulty_hint">Select search depth - higher depths mean stronger AI but slower moves (2–8 moves ahead)</string>
 
 </resources>

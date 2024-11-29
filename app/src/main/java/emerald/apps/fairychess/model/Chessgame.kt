@@ -24,7 +24,7 @@ class Chessgame() {
         gameData: MultiplayerDB.GameData,
         gameParameters: MainActivityListener.GameParameters
     ) : this() {
-        chessboard = Chessboard(gameParameters.name)
+        chessboard = Chessboard(gameParameters.name, gameParameters.difficulty)
 
         this.gameData = gameData
         this.gameParameters = gameParameters

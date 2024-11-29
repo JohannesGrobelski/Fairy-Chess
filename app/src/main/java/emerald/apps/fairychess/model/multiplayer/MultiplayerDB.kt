@@ -275,7 +275,7 @@ class MultiplayerDB {
                     val time = docRef.getString(GAMEFIELD_TIMEMODE)!!
                     var playerColor = docRef.getString(GAMEFIELD_PLAYER1Color)!!
                     if(userName == player2ID)playerColor = docRef.getString(GAMEFIELD_PLAYER2Color)!!
-                    val gameParameters = MainActivityListener.GameParameters(name,playMode,time,playerColor)
+                    val gameParameters = MainActivityListener.GameParameters(name,playMode,time,playerColor,0)
 
                     multiplayerDBSearchInterface?.onJoinGame(gameParameters,gameData)
                 }

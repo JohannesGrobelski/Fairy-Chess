@@ -1,7 +1,8 @@
 package emerald.apps.fairychess.model.board
 
 class Chessboard(
-    var variant: String
+    var variant: String,
+    var difficulty: Int
 ) {
 
 
@@ -160,7 +161,7 @@ class Chessboard(
     }
 
     fun calcMove(fenString: String): Movement {
-        val bestMove = calcBestMove(this.variant, fenString, 8, 30000)
+        val bestMove = calcBestMove(this.variant, fenString, difficulty, 30000)
         return transformStringToMovement(bestMove)
     }
 

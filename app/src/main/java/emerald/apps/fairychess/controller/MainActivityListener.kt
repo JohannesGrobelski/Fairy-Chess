@@ -44,9 +44,10 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         var name: String,
         var playMode: String,
         var time: String,
-        var playerColor: String
+        var playerColor: String,
+        var difficulty: Int
     )
-    private var gameParameters = GameParameters("", "", "", "")
+    private var gameParameters = GameParameters("", "", "", "", 0)
     private var createdGameID = ""
 
     companion object {
@@ -61,6 +62,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         const val gameModeExtra = "gameMode"
         const val gameNameExtra = "name"
         const val gameTimeExtra = "gameTime"
+        const val gameDifficultyExtra = "gameDifficultyExtra"
         const val playerColorExtra = "playerColor"
 
         var clipboardCopyJob : Job? = null
@@ -197,7 +199,8 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             gameParameters.name = spinner_gameName.selectedItem.toString()
             gameParameters.time = spinner_timemode.selectedItem.toString()
             gameParameters.playerColor = "white"
-            val diffAi = spinner_diff.selectedItem.toString().toDouble()
+            val diffAi = spinner_diff.selectedItem.toString().split(" ")[1].toDouble()
+            gameParameters.difficulty = spinner_diff.selectedItem.toString().split(" ")[1].toInt();
             this.opponentStats = MultiplayerDB.PlayerStats(0L,0L,0L,diffAi)
             val gameData = MultiplayerDB.GameData("aigame",userName,"AI",playerStats.ELO,diffAi)
             start_gameWithParameters(gameData,gameParameters)
@@ -247,6 +250,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
     fun displayAlertDialogCreateGames(){
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
+        val difficultyModes = mainActivity.resources.getStringArray(R.array.difficultyModes)
         val inflater = LayoutInflater.from(mainActivity)
 
         //inflate the layout (depending on mode)
@@ -269,12 +273,19 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             android.R.layout.simple_list_item_1,
             timeModes
         )
+        val spinner_difficultymode : Spinner = searchDialogView.findViewById(R.id.spinner_createGame_difficulty)
+        spinner_timemode.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            difficultyModes
+        )
         val btn_create_game = searchDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
         val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
 
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString()
             gameParameters.time = spinner_timemode.selectedItem.toString()
+            gameParameters.difficulty = spinner_difficultymode.selectedItem.toString().split(" ")[1].toInt()
             //multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)
         }
         searchDialog.show()
@@ -332,6 +343,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         intent.putExtra(gameOpponentStatsExtra, opponentStats)
         intent.putExtra(gameNameExtra, gameParameters.name)
         intent.putExtra(gameModeExtra, gameParameters.playMode)
+        intent.putExtra(gameDifficultyExtra, gameParameters.difficulty)
         intent.putExtra(gameTimeExtra, gameParameters.time)
         intent.putExtra(playerColorExtra, gameParameters.playerColor)
         mainActivity.startActivity(intent)
