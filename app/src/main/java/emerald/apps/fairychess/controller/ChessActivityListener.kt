@@ -12,7 +12,9 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import emerald.apps.fairychess.R
+import emerald.apps.fairychess.databinding.DialogGameEndBinding
 import emerald.apps.fairychess.model.rating.ChessRatingSystem
 import emerald.apps.fairychess.model.timer.ChessTimerOpponent
 import emerald.apps.fairychess.model.timer.ChessTimerPlayer
@@ -30,6 +32,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 
 /** controller that propagates inputs from view to model and changes from model to view */
@@ -448,8 +451,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         val gameEndResult = chessgame.getChessboard().checkForGameEnd()
         if(gameEndResult != ""){
             //end timers
-            playerTimer!!.cancel()
-            opponentTimer!!.cancel()
+            playerTimer?.cancel()
+            opponentTimer?.cancel()
             if(gameEndResult.contains(gameParameters.playerColor)){
                 finishGame(gameEndResult, true)
             } else {
@@ -523,19 +526,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     override fun onFinishGame(gameId: String, cause: String) {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                // Show a simple Toast
-                Toast.makeText(chessActivity, cause, Toast.LENGTH_LONG).show()
-
-                // Wait 10 seconds
-                delay(5000)
-
-                // Finish activity
-                if (!chessActivity.isFinishing) {
-                    val data = Intent()
-                    data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
-                    chessActivity.setResult(RESULT_OK, data)
-                    chessActivity.finish()
-                }
+                showGameEndDialog(cause)
             } catch (e: Exception) {
                 // Handle any exceptions
                 val data = Intent()
@@ -561,5 +552,46 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     override fun onFinishPlayerTimer() {
         finishGame("timeout. you lost.", false)
+    }
+
+    private fun showGameEndDialog(cause: String) {
+        // Create custom layout for dialog
+        val binding = DialogGameEndBinding.inflate(chessActivity.layoutInflater)
+
+        with(binding) {
+            // Set winner text
+            tvWinner.text = cause
+
+            val gameStats = chessgame.getChessboard().getGameStats()
+
+            // Set statistics
+            tvStatistics.text = buildString {
+                append("Game Duration: ${formatDuration(gameStats.third)}\n")
+                append("Moves Made: ${gameStats.second}\n")
+                append("Pieces Captured: ${gameStats.first}\n")
+                // Add more statistics as needed
+            }
+        }
+
+        MaterialAlertDialogBuilder(chessActivity, R.style.MaterialAlertDialog_Rounded)
+            .setView(binding.root)
+            .setCancelable(false)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+                if (!chessActivity.isFinishing) {
+                    val data = Intent()
+                    data.putExtra(MainActivityListener.gamePlayerStatsExtra, playerStats)
+                    chessActivity.setResult(RESULT_OK, data)
+                    chessActivity.finish()
+                }
+            }
+            .show()
+    }
+
+    // Utility function to format duration
+    private fun formatDuration(durationMillis: Long): String {
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(durationMillis) % 60
+        return String.format("%02d:%02d", minutes, seconds)
     }
 }

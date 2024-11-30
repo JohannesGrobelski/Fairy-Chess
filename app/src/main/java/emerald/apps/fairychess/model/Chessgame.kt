@@ -10,6 +10,7 @@ import emerald.apps.fairychess.view.ChessActivity
 
 class Chessgame() {
 
+
     private lateinit var chessboard: Chessboard
 
     lateinit var gameData: MultiplayerDB.GameData
@@ -24,7 +25,7 @@ class Chessgame() {
         gameData: MultiplayerDB.GameData,
         gameParameters: MainActivityListener.GameParameters
     ) : this() {
-        chessboard = Chessboard(gameParameters.name, gameParameters.difficulty)
+        chessboard = Chessboard(gameParameters)
 
         this.gameData = gameData
         this.gameParameters = gameParameters

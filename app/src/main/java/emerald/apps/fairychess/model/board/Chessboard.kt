@@ -1,12 +1,15 @@
 package emerald.apps.fairychess.model.board
 
 import android.util.Log
+import emerald.apps.fairychess.controller.MainActivityListener
 
 class Chessboard(
-    var variant: String,
-    var difficulty: Int
+    val gameParameters: MainActivityListener.GameParameters
 ) {
-
+    var piecesCaptured: Int = 0
+    var movesMade: Int = 0
+    var gameDuration: Long = 0
+    private val gameStartTime: Long = System.currentTimeMillis()  // Add game start timestamp
 
     private var movecolor: Color = Color.WHITE
     private var board: Array<Array<Pair<String, String>>> = Array(8) { Array(8) { Pair("", "") } } //[rank][file]
@@ -40,7 +43,7 @@ class Chessboard(
     external fun capturesToHand(variant: String): Boolean
     external fun legalMoves(variant: String, fen: String, chess960: Boolean = false): Array<String>
     external fun givesCheck(variant: String, fen: String, moves: Array<String>, chess960: Boolean = false): Boolean
-    external fun isCapture(variant: String, fen: String, moves: Array<String>, move: String, chess960: Boolean = false): Boolean
+    external fun isCapture(variant: String, fen: String, move: String, chess960: Boolean = false): Boolean
     external fun isImmediateGameEnd(variant: String, fen: String, moves: Array<String>, chess960: Boolean = false): IntArray
     external fun hasInsufficientMaterial(variant: String, fen: String, moves: Array<String>, chess960: Boolean = false): BooleanArray
     external fun calcBestMove(variant: String, fen: String, depth: Int, movetime: Int, chess960: Boolean = false): String
@@ -64,9 +67,9 @@ class Chessboard(
     }
 
     private fun setupInitialPosition() {
-        fen = startFen(this.variant)
+        fen = startFen(this.gameParameters.name)
         updateBoardState()
-        setPosition(fen, variant == "fischerandom")
+        setPosition(fen, this.gameParameters.name == "fischerandom")
         // Store the initial FEN
     }
 
@@ -81,7 +84,7 @@ class Chessboard(
         val toSquare = fileRankToSquare(movement.targetRank, movement.targetFile)
         val moveStr = "$fromSquare$toSquare"
 
-        return isLegalMove(variant, fen, moveStr)
+        return isLegalMove(this.gameParameters.name, fen, moveStr)
     }
 
     fun checkMoveAndMove(movement: Movement): String {
@@ -89,9 +92,17 @@ class Chessboard(
         val toSquare = fileRankToSquare(movement.targetRank, movement.targetFile)
         val moveStr = "$fromSquare$toSquare"
 
-        return if (isLegalMove(variant, fen, moveStr)) {
+        return if (isLegalMove(this.gameParameters.name, fen, moveStr)) {
+            if(movecolor.stringValue == this.gameParameters.playerColor){
+                val isCapture = isCapture(this.gameParameters.name, fen, moveStr, this.gameParameters.name == "fischerandom")
+                if (isCapture) {
+                    piecesCaptured++
+                }
+            }
+
             movecolor = if (movecolor == Color.WHITE) Color.BLACK else Color.WHITE
-            fen = getFEN(this.variant, fen, arrayOf(moveStr)) // update the FEN after the move
+            fen = getFEN(this.gameParameters.name, fen, arrayOf(moveStr)) // update the FEN after the move
+            ++movesMade  // Increment moves counter for statistic
             updateBoardState()
             ""
         } else {
@@ -104,14 +115,22 @@ class Chessboard(
         val toSquare = fileRankToSquare(movement.targetFile,movement.targetRank)
         val moveStr = "$fromSquare$toSquare"
 
+        // Check if move is a capture
+        if(movecolor.stringValue == this.gameParameters.playerColor){
+            val isCapture = isCapture(this.gameParameters.name, fen, moveStr, this.gameParameters.name == "fischerandom")
+            if (isCapture) {
+                piecesCaptured++
+            }
+        }
+
         movecolor = if (movecolor == Color.WHITE) Color.BLACK else Color.WHITE
-        fen = getFEN(this.variant, fen, arrayOf(moveStr)) // update the FEN after the move
+        fen = getFEN(this.gameParameters.name, fen, arrayOf(moveStr)) // update the FEN after the move
         updateBoardState()
     }
 
     fun getTargetMovementsAsMovementList(rank: Int, file: Int): List<Movement> {
         val square = fileRankToSquare(rank, file)
-        val legalMoves = legalMoves(this.variant, fen, variant == "fischerandom")
+        val legalMoves = legalMoves(this.gameParameters.name, fen, this.gameParameters.name == "fischerandom")
             .filter { moveStr ->  moveStr[0] - 'a' == rank && moveStr[1] - '1' == file}
         return legalMoves
             .map { moveStr ->
@@ -137,8 +156,8 @@ class Chessboard(
         if (coordinate == promotionCoordinate) {
             val square = fileRankToSquare(coordinate.file, coordinate.rank)
             val moveStr = "${square}${square}${promotion.lowercase()[0]}"
-            if (isLegalMove(variant, fen, moveStr)) {
-                fen = getFEN(this.variant, fen, arrayOf(moveStr))
+            if (isLegalMove(this.gameParameters.name, fen, moveStr)) {
+                fen = getFEN(this.gameParameters.name, fen, arrayOf(moveStr))
                 updateBoardState()
                 promotionCoordinate = null
             }
@@ -146,13 +165,13 @@ class Chessboard(
     }
 
     fun checkForGameEnd(): String {
-        val result = getGameResult(variant, fen, arrayOf(), (variant == "fischerchess"))
+        val result = getGameResult(this.gameParameters.name, fen, arrayOf(), (this.gameParameters.name == "fischerchess"))
         Log.i("Gameend?",result)
         return result
     }
 
     fun calcMove(fenString: String): Movement {
-        val bestMove = calcBestMove(this.variant, fenString, difficulty, 30000)
+        val bestMove = calcBestMove(this.gameParameters.name, fenString, this.gameParameters.difficulty, 30000)
         return transformStringToMovement(bestMove)
     }
 
@@ -238,6 +257,10 @@ class Chessboard(
         return "queen"
     }
 
+    // Add method to get current game duration
+    fun getCurrentGameDuration(): Long {
+        return System.currentTimeMillis() - gameStartTime
+    }
 
     fun extractPieceFromChar(char: Char): Pair<String, String> {
         val color = if (char.isUpperCase()) "white" else "black"
@@ -255,5 +278,14 @@ class Chessboard(
             else -> ""
         }
         return Pair(pieceName, color)
+    }
+
+    // Add method to get game statistics
+    fun getGameStats(): Triple<Int, Int, Long> {
+        return Triple(
+            piecesCaptured,
+            movesMade,
+            getCurrentGameDuration()
+        )
     }
 }

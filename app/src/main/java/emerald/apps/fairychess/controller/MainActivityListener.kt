@@ -29,6 +29,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
 
     lateinit var userNameDialog : AlertDialog
     var joinWaitDialog : AlertDialog? = null
+    var createDialog : AlertDialog? = null
     private var launchedGamesMap = mutableMapOf<String, Boolean>()
 
     private lateinit var userName:String
@@ -217,7 +218,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             difficultyModes
         )
         val btn_create_game = createDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
-        val createDialog = AlertDialog.Builder(mainActivity).setView(createDialogView).create()
+        createDialog = AlertDialog.Builder(mainActivity).setView(createDialogView).create()
 
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
@@ -230,7 +231,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             start_gameWithParameters(gameData,gameParameters)
         }
 
-        createDialog.show()
+        createDialog?.show()
     }
 
     /** alert dialog to search for online games  */
@@ -358,6 +359,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
     fun start_gameWithParameters(gameData: MultiplayerDB.GameData, gameParameters: GameParameters){
         launchedGamesMap[gameData.gameId] = true
         joinWaitDialog?.dismiss()
+        createDialog?.dismiss()
 
         val intent = Intent(mainActivity, ChessActivity::class.java)
         intent.putExtra(gameIdExtra, gameData.gameId)

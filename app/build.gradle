@@ -130,6 +130,9 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
+    //Views and Styling
+    implementation 'com.google.android.material:material:1.9.0'  // Use latest version
+
     // Room
     implementation 'androidx.room:room-runtime:2.6.1'
     annotationProcessor 'androidx.room:room-compiler:2.6.1'
