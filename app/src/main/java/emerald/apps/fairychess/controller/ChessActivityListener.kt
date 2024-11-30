@@ -4,14 +4,15 @@ import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
-import android.os.Looper
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
+import androidx.transition.Visibility
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.databinding.DialogGameEndBinding
@@ -19,6 +20,7 @@ import emerald.apps.fairychess.model.rating.ChessRatingSystem
 import emerald.apps.fairychess.model.timer.ChessTimerOpponent
 import emerald.apps.fairychess.model.timer.ChessTimerPlayer
 import emerald.apps.fairychess.model.Chessgame
+import emerald.apps.fairychess.model.board.Chessboard
 import emerald.apps.fairychess.model.board.Coordinate
 import emerald.apps.fairychess.model.board.Movement
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
@@ -29,7 +31,6 @@ import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -56,8 +57,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     lateinit var gameData: MultiplayerDB.GameData
     lateinit var gameParameters: MainActivityListener.GameParameters
+    private lateinit var gameboardSize : Pair<Int,Int>
 
-    class PlayerSelectedSquare(var rank: Int, var file: Int)
+    class PlayerSelectedSquare(var file: Int, var rank: Int)
     val playerSelectedSquare = PlayerSelectedSquare(-1, -1)
 
     private lateinit var imageViews: Array<Array<ImageView>>
@@ -72,6 +74,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     constructor(chessActivity: ChessActivity) : this() {
         this.chessActivity = chessActivity
         getIntentData()
+        gameboardSize = Chessboard.getGameboardSize(gameParameters.name)
         initializeViews()
         setupGame()
     }
@@ -127,8 +130,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         chessgame = Chessgame(chessActivity, gameData, gameParameters)
 
         // Initialize timers and board
+        initAdaptBoard()
         initializeTimers()
-        create2DArrayImageViews()
         displayFigures()
 
         //init multiplayerDB
@@ -158,15 +161,15 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 //calculate clickedFile and clickedRank
                 val clickedFile = nameToFile(clickedViewName)
                 val clickedRank = nameToRank(clickedViewName)
-                if(playerSelectedSquare.rank == clickedRank && playerSelectedSquare.file == clickedFile){
+                if(playerSelectedSquare.file == clickedFile && playerSelectedSquare.rank == clickedRank){
                     resetFieldColor()
                     return
                 }
                 val movement = Movement(
-                    sourceRank = playerSelectedSquare.rank,
                     sourceFile = playerSelectedSquare.file,
-                    targetRank = clickedRank,
-                    targetFile = clickedFile
+                    sourceRank = playerSelectedSquare.rank,
+                    targetFile = clickedFile,
+                    targetRank = clickedRank
                 )
                 //check if movement is legal
                 if(!chessgame.getChessboard().checkMove(movement)){
@@ -203,8 +206,8 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 displayFigures()
                 resetFieldColor()
                 //reset saved position after move
-                playerSelectedSquare.rank = -1
                 playerSelectedSquare.file = -1
+                playerSelectedSquare.rank = -1
             }
         } else {
             resetFieldColor()
@@ -221,7 +224,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** handle pawn promotion*/
     private fun pawnPromotion(pawnPromotionCandidate: Coordinate) {
-        val pieceColor = chessgame.getChessboard().getPieceColor(pawnPromotionCandidate.rank,pawnPromotionCandidate.file)
+        val pieceColor = chessgame.getChessboard().getPieceColor(pawnPromotionCandidate.file,pawnPromotionCandidate.rank)
         //handle pawn promotion of ai (exchange pawn with queen)
         if(pieceColor != gameParameters.playerColor && gameParameters.playMode=="ai"){ //always promote to queen
             chessgame.getChessboard().promotePiece(pawnPromotionCandidate,chessgame.getChessboard().getPromotion())
@@ -251,21 +254,22 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     //propagate promotion information from the AlertDialog onto chessboard
     private fun promotePawn(color: String, promotion: String, pawnPromotionCandidate: Coordinate) {
-        if (pawnPromotionCandidate.file < 0 || pawnPromotionCandidate.file > 7 || pawnPromotionCandidate.rank < 0 || pawnPromotionCandidate.rank > 7) return
+
+        if (pawnPromotionCandidate.file < 0 || pawnPromotionCandidate.file >= gameboardSize.first || pawnPromotionCandidate.rank < 0 || pawnPromotionCandidate.rank > gameboardSize.second) return
         chessgame.getChessboard().promotePiece(pawnPromotionCandidate,promotion)
         displayFigures()
 
-        val sourceRank = pawnPromotionCandidate.rank
         var sourceFile = 1
-        if(color == "white")sourceFile = 6
+        val sourceRank = pawnPromotionCandidate.rank
+        if(color == "white")sourceFile = gameboardSize.second - 2
         if(gameParameters.playMode == "human"){
             multiplayerDB.writePlayerMovement(
                 gameData.gameId,
                 PromotionMovement(
-                    sourceRank = sourceRank,
                     sourceFile = sourceFile,
-                    targetRank = pawnPromotionCandidate.rank,
+                    sourceRank = sourceRank,
                     targetFile = pawnPromotionCandidate.file,
+                    targetRank = pawnPromotionCandidate.rank,
                     promotion = promotion
                 )
             )
@@ -275,13 +279,15 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** display figures from chess board in imageViews of chessActivity-layout */
     fun displayFigures() {
-        for (rank in 0..7) {
-            for (file in 0..7) {
+        val gameBoardSizeMap = Chessboard.getGameboardSize(gameParameters.name)
+
+        for (file in 0..< gameBoardSizeMap.first) {
+            for (rank in 0..< gameBoardSizeMap.second) {
                 val x: Int = getDrawableFromName(
-                    chessgame.getPieceName(rank, file),
-                    chessgame.getPieceColor(rank, file)
+                    chessgame.getPieceName(file, rank),
+                    chessgame.getPieceColor(file, rank)
                 )
-                if (x != -1) imageViews[rank][file].setImageResource(x)
+                if (x != -1) imageViews[file][rank].setImageResource(x)
             }
         }
         //display captures
@@ -297,6 +303,36 @@ class ChessActivityListener() : MultiplayerDBGameInterface
          */
         chessActivity.highlightActivePlayer(chessgame.getChessboard().getMovecolor().stringValue)
         switchClocks(chessgame.getChessboard().getMovecolor().stringValue)
+    }
+
+    private fun initAdaptBoard() {
+        val gameboardSize : Pair<Int,Int> = Chessboard.getGameboardSize(gameParameters.name)
+
+        val squares = Array(10) { file->
+            Array(10) { rank ->
+                val resId = chessActivity.resources.getIdentifier(
+                    "${('A' + file).toChar()}${rank + 1}",
+                    "id",
+                    chessActivity.packageName
+                )
+                val imageView = chessActivity.findViewById<ImageView>(resId)
+
+                // Hide squares that are outside the board dimensions
+                if (file >= gameboardSize.first || rank >= gameboardSize.second) {
+                    imageView.visibility = View.GONE
+                    // Also hide the parent LinearLayout if all squares in the column are hidden
+                    if (rank == 0) {  // Only need to do this once per column
+                        imageView.parent?.let { parent ->
+                            if (parent is LinearLayout && file >= gameboardSize.first) {
+                                parent.visibility = View.GONE
+                            }
+                        }
+                    }
+                }
+                imageView
+            }
+        }
+        imageViews = squares
     }
 
     private fun initializeTimers() {
@@ -336,25 +372,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     /** highlight the square from */
     private fun displayTargetMovements() {
-        val targetMovements = chessgame.getTargetMovements(playerSelectedSquare.rank, playerSelectedSquare.file)
+        val targetMovements = chessgame.getTargetMovements(playerSelectedSquare.file,playerSelectedSquare.rank)
         for (targetMovement in targetMovements){
-            markSquare(targetMovement.targetRank, targetMovement.targetFile)
+            markSquare(targetMovement.targetFile,targetMovement.targetRank)
         }
-    }
-
-    /** create 2D array of chesssquare-imageViews */
-    private fun create2DArrayImageViews() {
-        val squares = Array(8) { rank ->
-            Array(8) { file ->
-                val resId = chessActivity.resources.getIdentifier(
-                    "${('A' + rank).toChar()}${file + 1}",
-                    "id",
-                    chessActivity.packageName
-                )
-                chessActivity.findViewById<ImageView>(resId)
-            }
-        }
-        imageViews = squares
     }
 
     /** Get Drawable from figure name
@@ -406,43 +427,46 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     fun markFigure(v: View) {
         val fullName: String = chessActivity.resources.getResourceName(v.id)
         val name: String = fullName.substring(fullName.lastIndexOf("/") + 1)
-        val rank = nameToRank(name)
         val file = nameToFile(name)
+        val rank = nameToRank(name)
         resetFieldColor()
-        if(playerSelectedSquare.rank != -1 && playerSelectedSquare.file != -1){ //unselect
-            playerSelectedSquare.rank = -1
+        if(playerSelectedSquare.file != -1 && playerSelectedSquare.rank != -1){ //unselect
             playerSelectedSquare.file = -1
+            playerSelectedSquare.rank = -1
         } else {
-            imageViews[rank][file].setBackgroundColor(
-                getMixedColor(rank, file, Color.RED)
+            imageViews[file][rank].setBackgroundColor(
+                getMixedColor(file, rank, Color.RED)
             )
-            playerSelectedSquare.rank = rank
             playerSelectedSquare.file = file
+            playerSelectedSquare.rank = rank
         }
     }
 
-    fun markSquare(rank: Int, file: Int) {
-        imageViews[rank][file].setBackgroundColor(
-            getMixedColor(rank, file, Color.YELLOW)
+    fun markSquare(file: Int, rank: Int) {
+        imageViews[file][rank].setBackgroundColor(
+            getMixedColor(file, rank, Color.YELLOW)
         )
     }
 
     /** reset chessboard square color to "normal" after highlighting it */
     private fun resetFieldColor() {
-        playerSelectedSquare.rank = -1
         playerSelectedSquare.file = -1
-        for(rank in 0..7){
-            for(file in 0..7){
-                if ((rank + file) % 2 != 0) imageViews[rank][file].setBackgroundColor(
-                    chessActivity.resources.getColor(
-                        R.color.colorWhite
+        playerSelectedSquare.rank = -1
+        for(file in 0..<gameboardSize.first){
+            for(rank in 0..<gameboardSize.second){
+                if ((file + rank) % 2 != 0){
+                    imageViews[file][rank].setBackgroundColor(
+                        chessActivity.resources.getColor(
+                            R.color.colorWhite
+                        )
                     )
-                )
-                if ((rank + file) % 2 == 0) imageViews[rank][file].setBackgroundColor(
-                    chessActivity.resources.getColor(
-                        R.color.colorBlack
+                } else {
+                    imageViews[file][rank].setBackgroundColor(
+                        chessActivity.resources.getColor(
+                            R.color.colorBlack
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -462,7 +486,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     /** helper functions for highlighting square */
-    private fun getMixedColor(rank: Int, file: Int, color: Int): Int {
+    private fun getMixedColor(file: Int, rank: Int, color: Int): Int {
         return if ((file + rank) % 2 == 0) ColorUtils.blendARGB(
             color,
             chessActivity.resources.getColor(R.color.colorWhite),
@@ -474,11 +498,11 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     private fun nameToFile(name: String): Int {
-        return Integer.valueOf(name.substring(1, 2)) - 1
+        return name.toLowerCase()[0] - 'a'
     }
 
     private fun nameToRank(name: String): Int {
-        return name.toLowerCase()[0] - 'a'
+        return Integer.valueOf(name.substring(1, 2)) - 1
     }
 
     fun onDestroy() {

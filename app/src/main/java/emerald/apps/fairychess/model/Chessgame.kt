@@ -52,16 +52,16 @@ class Chessgame() {
 
     }
 
-    fun getTargetMovements(sourceRank: Int, sourceFile: Int): List<Movement> {
-        return chessboard.getTargetMovementsAsMovementList(sourceRank, sourceFile)
+    fun getTargetMovements(sourceFile: Int, sourceRank: Int): List<Movement> {
+        return chessboard.getTargetMovementsAsMovementList(sourceFile,sourceRank)
     }
 
-    fun getPieceName(sourceRank: Int, sourceFile: Int) : String{
-        return chessboard.getPieceName(sourceRank, sourceFile)
+    fun getPieceName(sourceFile: Int, sourceRank: Int) : String{
+        return chessboard.getPieceName(sourceFile, sourceRank)
     }
 
-    fun getPieceColor(rank: Int, file: Int) : String{
-        return chessboard.getPieceColor(rank,file)
+    fun getPieceColor(file: Int, rank: Int) : String{
+        return chessboard.getPieceColor(file,rank)
     }
 
     fun getChessboard() : Chessboard {

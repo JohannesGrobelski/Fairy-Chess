@@ -8,8 +8,6 @@ import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewbinding.ViewBinding
-import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.ChessActivityListener
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.databinding.ActivityChessBlackPerspectiveBinding

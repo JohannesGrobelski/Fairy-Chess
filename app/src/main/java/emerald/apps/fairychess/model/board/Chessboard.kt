@@ -3,16 +3,33 @@ package emerald.apps.fairychess.model.board
 import android.util.Log
 import emerald.apps.fairychess.controller.MainActivityListener
 
+/** Important for all coordinate notations we use standard notation (file,rank) e.g. A1.
+ *  "The columns of a chessboard are known as files, the rows are known as ranks ...
+ *   files are labeled a through h from left to right, and ranks are labeled 1 through 8 from bottom to top" - Wikipedia
+ *
+ */
 class Chessboard(
     val gameParameters: MainActivityListener.GameParameters
 ) {
+
+    companion object {
+        val gameBoardSizeMap = mapOf("clobber" to Pair(5,6)) //files,ranks
+
+        fun getGameboardSize(variant: String) : Pair<Int,Int> {
+            return if(gameBoardSizeMap.containsKey(variant)){
+                gameBoardSizeMap[variant]!!
+            } else {
+                Pair(8,8)
+            }
+        }
+    }
     var piecesCaptured: Int = 0
     var movesMade: Int = 0
     var gameDuration: Long = 0
     private val gameStartTime: Long = System.currentTimeMillis()  // Add game start timestamp
 
     private var movecolor: Color = Color.WHITE
-    private var board: Array<Array<Pair<String, String>>> = Array(8) { Array(8) { Pair("", "") } } //[rank][file]
+    private var board: Array<Array<Pair<String, String>>> //file,rank
     private var promotionCoordinate: Coordinate? = null
     private lateinit var fen: String
 
@@ -61,6 +78,8 @@ class Chessboard(
     ): String
 
     init {
+        val gameBoardSizeMap = getGameboardSize(gameParameters.name)
+        board = Array(gameBoardSizeMap.first) { Array(gameBoardSizeMap.second) { Pair("", "") } } //[file][rank]
         System.loadLibrary("stockfish")
         initEngine()
         setupInitialPosition()
@@ -80,16 +99,16 @@ class Chessboard(
     }
 
     fun checkMove(movement: Movement) : Boolean {
-        val fromSquare = fileRankToSquare(movement.sourceRank, movement.sourceFile)
-        val toSquare = fileRankToSquare(movement.targetRank, movement.targetFile)
+        val fromSquare = fileRankToSquare(movement.sourceFile,movement.sourceRank)
+        val toSquare = fileRankToSquare(movement.targetFile, movement.targetRank)
         val moveStr = "$fromSquare$toSquare"
 
         return isLegalMove(this.gameParameters.name, fen, moveStr)
     }
 
     fun checkMoveAndMove(movement: Movement): String {
-        val fromSquare = fileRankToSquare(movement.sourceRank, movement.sourceFile)
-        val toSquare = fileRankToSquare(movement.targetRank, movement.targetFile)
+        val fromSquare = fileRankToSquare(movement.sourceFile,movement.sourceRank)
+        val toSquare = fileRankToSquare(movement.targetFile, movement.targetRank)
         val moveStr = "$fromSquare$toSquare"
 
         return if (isLegalMove(this.gameParameters.name, fen, moveStr)) {
@@ -112,7 +131,7 @@ class Chessboard(
 
     fun move(movement: Movement) {
         val fromSquare = fileRankToSquare(movement.sourceFile,movement.sourceRank)
-        val toSquare = fileRankToSquare(movement.targetFile,movement.targetRank)
+        val toSquare = fileRankToSquare(movement.targetFile, movement.targetRank)
         val moveStr = "$fromSquare$toSquare"
 
         // Check if move is a capture
@@ -128,33 +147,33 @@ class Chessboard(
         updateBoardState()
     }
 
-    fun getTargetMovementsAsMovementList(rank: Int, file: Int): List<Movement> {
-        val square = fileRankToSquare(rank, file)
+    fun getTargetMovementsAsMovementList(file: Int,rank: Int): List<Movement> {
+        val square = fileRankToSquare(file,rank)
         val legalMoves = legalMoves(this.gameParameters.name, fen, this.gameParameters.name == "fischerandom")
-            .filter { moveStr ->  moveStr[0] - 'a' == rank && moveStr[1] - '1' == file}
+            .filter { moveStr ->  moveStr[0] - 'a' == file && moveStr[1] - '1' == rank}
         return legalMoves
             .map { moveStr ->
-                val targetRank = moveStr[2] - 'a'
-                val targetFile = moveStr[3] - '1'
-                Movement(rank, file, targetRank, targetFile)
+                val targetFile = moveStr[2] - 'a'
+                val targetRank = moveStr[3] - '1'
+                Movement(file, rank, targetFile, targetRank)
             }
     }
 
     fun getMovecolor(): Color = movecolor
 
-    fun getPieceColor(rank: Int, file: Int): String {
-        return board[rank][file].second
+    fun getPieceColor(file: Int, rank: Int): String {
+        return board[file][rank].second
     }
 
-    fun getPieceName(rank: Int, file: Int): String {
-        return board[rank][file].first
+    fun getPieceName(file: Int, rank: Int): String {
+        return board[file][rank].first
     }
 
     fun getPromotionCoordinate(): Coordinate? = promotionCoordinate
 
     fun promotePiece(coordinate: Coordinate, promotion: String) {
         if (coordinate == promotionCoordinate) {
-            val square = fileRankToSquare(coordinate.file, coordinate.rank)
+            val square = fileRankToSquare(coordinate.rank, coordinate.file)
             val moveStr = "${square}${square}${promotion.lowercase()[0]}"
             if (isLegalMove(this.gameParameters.name, fen, moveStr)) {
                 fen = getFEN(this.gameParameters.name, fen, arrayOf(moveStr))
@@ -189,34 +208,16 @@ class Chessboard(
         return "${'a' + file}${rank + 1}"
     }
 
-
-    private fun checkForPromotion(fen: String) {
-        // Check if there's a pawn on the last rank
-        val ranks = fen.split(" ")[0].split("/")
-        for (file in 0..7) {
-            // Check first rank for black pawns
-            if (ranks[0][file] == 'p') {
-                promotionCoordinate = Coordinate(file, 0)
-                return
-            }
-            // Check last rank for white pawns
-            if (ranks[7][file] == 'P') {
-                promotionCoordinate = Coordinate(file, 7)
-                return
-            }
-        }
-        promotionCoordinate = null
-    }
-
     fun extractPiecesFromFen(fen: String) {
+        val gameboardSize = getGameboardSize(gameParameters.name)
         val fenParts = fen.split(" ")
 
         // Get piece placement section
-        val files = fenParts[0].split("/")
+        val ranks = fenParts[0].split("/")
 
         // Replace numbers with spaces to create fixedFiles
-        val fixedFiles = files.map { rank ->
-            rank.flatMap { char ->
+        val fixedRanks = ranks.map { file ->
+            file.flatMap { char ->
                 if (char.isDigit()) {
                     List(char.digitToInt()) { ' ' } // Replace number with equivalent spaces
                 } else {
@@ -225,11 +226,11 @@ class Chessboard(
             }.joinToString("")
         }
 
-        for (rank in 0..7) {
-            var file = 0
-            for (char in fixedFiles[rank]) {
+        for (rank in 0..<gameboardSize.second) {
+            var file= 0
+            for (char in fixedRanks[rank]) {
                 val piece = extractPieceFromChar(char)
-                this.board[file][7-rank] = piece
+                this.board[file][gameboardSize.second-1-rank] = piece
                 file++ // Move to next file
             }
         }
@@ -246,9 +247,9 @@ class Chessboard(
         val targetRank = moveStr[3] - '1'
 
         return if (moveStr.length == 5) {
-            PromotionMovement(sourceRank, sourceFile, targetRank, targetFile, moveStr[4].toString())
+            PromotionMovement(sourceFile, sourceRank, targetFile, targetRank, moveStr[4].toString())
         } else {
-            Movement(sourceRank, sourceFile, targetRank, targetFile)
+            Movement(sourceFile, sourceRank, targetFile, targetRank)
         }
     }
 

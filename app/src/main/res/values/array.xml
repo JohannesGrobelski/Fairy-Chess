@@ -13,6 +13,8 @@
         <item>Chaturanga</item>
         <item>Codrus</item>
         <item>Coregal</item>
+        <item>Chigorin</item>
+        <item>Clobber</item>
         <item>Fischerandom</item>
     </string-array>
     <string-array name="gamemode_descriptions">
@@ -28,6 +30,8 @@
         <item>Chaturanga: the game includes two new pieces - the "Elephant" (moves similar to a modern rook) and "Chariot" (moves like the rook).</item>
         <item>Codrus: the objective is to have your king captured to win.</item>
         <item>Coregal: Both the king and queen are royal; checkmate either to win, adding extra strategy. Players must protect both pieces.</item>
+        <item>Chigorin: Replaces both knights with bishops and the queen with a chancellor (combination of rook and knight).</item>
+        <item>Clobber: afgwa</item>
         <item>Fischerandom: Pieces are shuffled randomly on the back rank, creating new openings and strategies.</item>
     </string-array>
     <string-array name="timemodes">
