@@ -6,40 +6,38 @@
     android:layout_height="match_parent"
     android:background="@drawable/wallpaper"
     tools:context=".view.MainActivity">
+    <ImageButton
+        android:id="@+id/btn_info"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Information"
+        android:src="@android:drawable/ic_dialog_info"
+        android:tint="#CCCCCC"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
+        android:layout_marginTop="48dp"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/tv_playerstats"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tv_playerstats" />
 
     <TextView
         android:id="@+id/tv_playerstats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:gravity="center"
         android:onClick="onClick"
         android:padding="10dp"
         android:text="username"
-        android:textAlignment="center"
         android:textColor="@android:color/white"
-        android:textSize="20sp"
+        android:textSize="40sp"
         android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@id/tv_powered_by" />
-
-    <TextView
-        android:id="@+id/tv_powered_by"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="@string/powered_by_jffish"
-        android:textColor="#CCCCCC"
-        android:textSize="14sp"
-        android:autoLink="web"
-        android:linksClickable="true"
-        android:textColorLink="#CCCCCC"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

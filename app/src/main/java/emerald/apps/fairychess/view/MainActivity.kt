@@ -2,6 +2,8 @@ package emerald.apps.fairychess.view
 
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -44,6 +46,11 @@ class MainActivity : AppCompatActivity() {
                 binding.bottomNavigation.menu.getItem(position).isChecked = true
             }
         })
+
+        // Set up info button
+        binding.btnInfo.setOnClickListener {
+            showInfoDialog()
+        }
     }
 
     override fun onResume() {
@@ -54,6 +61,20 @@ class MainActivity : AppCompatActivity() {
     fun onClick(v: View){
         mainActivityListener.onClick(v)
     }
+
+    private fun showInfoDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_info, null)
+
+        // Get app version and set it
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        dialogView.findViewById<TextView>(R.id.tvVersion).text = "Version ${packageInfo.versionName}"
+
+        AlertDialog.Builder(this, R.style.MaterialAlertDialog_Rounded)
+            .setView(dialogView)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
 
 }
 

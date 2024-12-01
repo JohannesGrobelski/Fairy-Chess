@@ -83,14 +83,9 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         handleDeepLink(intent)
     }
 
-
-
     fun onResume() {
         loadPlayerStats()
     }
-
-
-
 
     fun loadPlayerStats(){
         playerStats = MultiplayerDB.PlayerStats.getDefault()
