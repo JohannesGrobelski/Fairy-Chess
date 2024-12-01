@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+
+<!-- Info/Help Button at the top -->
+    <Button
+        android:id="@+id/btn_info"
+        style="@style/CustomButtonStyle"
+        android:layout_width="0dp"
+        android:layout_height="96dp"
+        android:layout_margin="20dp"
+        android:drawableStart="@android:drawable/ic_dialog_info"
+        android:drawablePadding="8dp"
+        android:gravity="start|center_vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:text="Help &amp; Information"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Stats TextView -->
+    <TextView
+        android:id="@+id/tv_playerstats"
+        android:layout_width="0dp"
+        android:layout_height="96dp"
+        android:layout_margin="20dp"
+        android:gravity="center"
+        android:onClick="onClick"
+        android:text="username"
+        android:textColor="@android:color/black"
+        android:textSize="40sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_info"
+        app:layout_constraintVertical_bias="1.0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

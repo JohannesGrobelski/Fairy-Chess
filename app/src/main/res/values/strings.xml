@@ -9,6 +9,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="difficulty_hint">Select search depth - higher depths mean stronger AI but slower moves (2–8 moves ahead)</string>
     <string name="powered_by_jffish">powered by https://github.com/JohannesGrobelski/JFFish</string>
+    <string name="wallpaper_source">Wallpaper Image by https://pixabay.com/users/pxel_photographer-17831348/?utm_source=link-attribution&amp;amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=5516446 Elmer L. Geissler from https://pixabay.com//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=5516446 Pixabay</string>
     <string name="chess_creator_coming_soon">Chess Creator Coming Soon</string>
 
 </resources>

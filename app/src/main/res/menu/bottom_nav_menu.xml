@@ -10,6 +10,10 @@
         android:title="Multiplayer" />
     <item
         android:id="@+id/navigation_chesscreator"
-        android:icon="@android:drawable/ic_menu_edit"
+        android:icon="@drawable/edit_icon2"
         android:title="Chess Creator" />
+    <item
+        android:id="@+id/navigation_profile"
+        android:icon="@drawable/profile_icon2"
+        android:title="Profile" />
 </menu>

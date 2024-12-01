@@ -16,6 +16,7 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.firestore.FirebaseFirestoreException
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.databinding.ActivityMainBinding
@@ -25,6 +26,7 @@ import emerald.apps.fairychess.model.multiplayer.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.model.rating.ChessRatingSystem
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
+import emerald.apps.fairychess.view.ProfileViewModel
 import java.util.Locale
 
 
@@ -32,6 +34,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
     private lateinit var mainActivity : MainActivity
     private lateinit var binding: ActivityMainBinding
     private lateinit var multiplayerDB: MultiplayerDB
+    private lateinit var viewModel: ProfileViewModel
 
     lateinit var userNameDialog : AlertDialog
     var joinWaitDialog : AlertDialog? = null
@@ -81,6 +84,8 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         multiplayerDB = MultiplayerDB(this)
         loadPlayerStats()
         handleDeepLink(intent)
+        viewModel = ViewModelProvider(mainActivity)[ProfileViewModel::class.java]
+
     }
 
     fun onResume() {
@@ -390,8 +395,6 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         userName = sharedPrefs.getString(userNameExtra, "")!!
         if(userName.isEmpty()){
             openCreateUserNameDialog("")
-        } else {
-            Toast.makeText(mainActivity, "welcome $userName!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -544,7 +547,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
     /** call back method after getting player stats */
     override fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats) {
         this.playerStats = playerStats
-        mainActivity.findViewById<TextView>(R.id.tv_playerstats).text = userName
+        viewModel.updateStats(playerStats, userName)
     }
 
     override fun processGameInvite(gameId: String) {

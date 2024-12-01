@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_singleplayer -> binding.viewPager.currentItem = 0
                 R.id.navigation_multiplayer -> binding.viewPager.currentItem = 1
                 R.id.navigation_chesscreator -> binding.viewPager.currentItem = 2
+                R.id.navigation_profile -> binding.viewPager.currentItem = 3
             }
             true
         }
@@ -46,11 +47,6 @@ class MainActivity : AppCompatActivity() {
                 binding.bottomNavigation.menu.getItem(position).isChecked = true
             }
         })
-
-        // Set up info button
-        binding.btnInfo.setOnClickListener {
-            showInfoDialog()
-        }
     }
 
     override fun onResume() {
@@ -62,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         mainActivityListener.onClick(v)
     }
 
-    private fun showInfoDialog() {
+    fun showInfoDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_info, null)
 
         // Get app version and set it
@@ -74,18 +70,17 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("OK", null)
             .show()
     }
-
-
 }
 
 private class TabsPagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
-    override fun getItemCount(): Int = 3
+    override fun getItemCount(): Int = 4
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> SingleplayerFragment()
             1 -> MultiplayerFragment()
             2 -> ChessCreatorFragment()
+            3 -> ProfileFragment()
             else -> throw IllegalArgumentException("Invalid position $position")
         }
     }
