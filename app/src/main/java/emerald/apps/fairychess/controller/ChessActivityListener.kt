@@ -12,7 +12,6 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
-import androidx.transition.Visibility
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.databinding.DialogGameEndBinding
@@ -25,7 +24,6 @@ import emerald.apps.fairychess.model.board.Coordinate
 import emerald.apps.fairychess.model.board.Movement
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDBGameInterface
-import emerald.apps.fairychess.model.board.PromotionMovement
 import emerald.apps.fairychess.model.timer.TimerUtils.Companion.transformLongToTimeString
 import emerald.apps.fairychess.view.ChessActivity
 import kotlinx.coroutines.CoroutineScope
@@ -77,6 +75,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         gameboardSize = Chessboard.getGameboardSize(gameParameters.name)
         initializeViews()
         setupGame()
+        if (gameParameters.playMode == "human") {
+            setupOnlineGame()
+        }
     }
 
     private fun initializeViews() {
@@ -141,6 +142,17 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         }
     }
 
+    private fun setupOnlineGame(){
+        //init multiplayerDB and set initial FEN if needed
+        multiplayerDB = MultiplayerDB(this, chessgame)
+        // If we're player1 (creator), set the initial FEN
+        if(gameData.playerID != gameData.opponentID) {  // This check suggests we're player1
+            val initialFen = chessgame.getChessboard().getCurrentFEN()
+            multiplayerDB.writeFenAfterMovement(gameData.gameId, initialFen)
+        }
+        multiplayerDB.listenToGameIngame(gameData.gameId)
+    }
+
     /** select, unselect and move figure */
     fun clickSquare(clickedView: View){
         //get file and rank of clicked view
@@ -187,7 +199,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 moveResult += handlePromotion()
                  */
                 if(gameParameters.playMode=="human" && moveResult==""){
-                    multiplayerDB.writePlayerMovement(gameData.gameId, movement)
+                    //persist fen after movement in firestore
+                    val fenAfterMove = chessgame.getChessboard().getCurrentFEN()
+                    multiplayerDB.writeFenAfterMovement(gameData.gameId, fenAfterMove)
                 } else if(gameParameters.playMode=="ai"){
                     //calculate ai move in coroutine to avoid blocking the ui thread
                     calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
@@ -254,27 +268,14 @@ class ChessActivityListener() : MultiplayerDBGameInterface
 
     //propagate promotion information from the AlertDialog onto chessboard
     private fun promotePawn(color: String, promotion: String, pawnPromotionCandidate: Coordinate) {
-
         if (pawnPromotionCandidate.file < 0 || pawnPromotionCandidate.file >= gameboardSize.first || pawnPromotionCandidate.rank < 0 || pawnPromotionCandidate.rank > gameboardSize.second) return
         chessgame.getChessboard().promotePiece(pawnPromotionCandidate,promotion)
         displayFigures()
 
-        var sourceFile = 1
-        val sourceRank = pawnPromotionCandidate.rank
-        if(color == "white")sourceFile = gameboardSize.second - 2
         if(gameParameters.playMode == "human"){
-            multiplayerDB.writePlayerMovement(
-                gameData.gameId,
-                PromotionMovement(
-                    sourceFile = sourceFile,
-                    sourceRank = sourceRank,
-                    targetFile = pawnPromotionCandidate.file,
-                    targetRank = pawnPromotionCandidate.rank,
-                    promotion = promotion
-                )
-            )
+            val fenAfterMove = chessgame.getChessboard().getCurrentFEN()
+            multiplayerDB.writeFenAfterMovement(gameData.gameId, fenAfterMove)
         }
-
     }
 
     /** display figures from chess board in imageViews of chessActivity-layout */
@@ -506,7 +507,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
     }
 
     fun onDestroy() {
-        //finishGame(gameParameters.playerColor + " left the game", false)
+        finishGame(gameParameters.playerColor + " left the game", false)
     }
 
     /** finish a chess game by writing changes to multiplayerDB*/
@@ -520,6 +521,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     playerWon
                 )
                 multiplayerDB.setPlayerStats(gameData.playerID, playerStats, cause)
+                multiplayerDB.cancelGame(gameData.gameId)
                 playerStatsUpdated = true
             }
         } else {
@@ -536,13 +538,10 @@ class ChessActivityListener() : MultiplayerDBGameInterface
             Toast.makeText(chessActivity, "opponent left game", Toast.LENGTH_LONG).show()
             finishGame("opponent left game", true)
         } else {
-            if(gameState.moves.isNotEmpty()){
-                if(gameParameters.playerColor == "white" && gameState.moves.size%2==0
-                    || gameParameters.playerColor == "black" && gameState.moves.size%2==1){
-                    chessgame.makeMove(gameState.moves[gameState.moves.lastIndex])
-                    displayFigures()
-                    handleGameEnd()
-                }
+            if(gameState.currentFen.isNotEmpty()){
+                chessgame.getChessboard().updateFen(gameState.currentFen)
+                displayFigures()
+                handleGameEnd()
             }
         }
     }

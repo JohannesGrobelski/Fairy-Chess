@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        mainActivityListener = MainActivityListener(this)
+        mainActivityListener = MainActivityListener(this, intent)
         binding.btnCreateGame.setOnClickListener(mainActivityListener)
         binding.btnSearchGame.setOnClickListener(mainActivityListener)
         binding.btnQuickmatch.setOnClickListener(mainActivityListener)

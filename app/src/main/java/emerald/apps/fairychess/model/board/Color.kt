@@ -6,7 +6,7 @@ enum class Color(val stringValue: String) {
 
     companion object {
         fun randomColor(): Color {
-            return values().random()
+            return entries.toTypedArray().random()
         }
 
         fun oppositeColor(color: Color): Color {

@@ -289,4 +289,101 @@ class Chessboard(
             getCurrentGameDuration()
         )
     }
+
+    fun updateFen(currentFen: String) {
+        fen = currentFen
+        updateBoardState()
+        setPosition(fen, this.gameParameters.name == "fischerandom")
+    }
+
+    override fun toString(): String {
+        val gameBoardSize = getGameboardSize(gameParameters.name)
+        val files = gameBoardSize.first
+        val ranks = gameBoardSize.second
+        val sb = StringBuilder()
+
+        // Add file labels at the top
+        sb.append("   ") // Space for left margin
+        for (file in 0 until files) {
+            sb.append(" ${('A' + file)} ")
+        }
+        sb.append("\n")
+
+        // Add top border
+        sb.append("  ╔")
+        for (file in 0 until files) {
+            sb.append("═══")
+            if (file < files - 1) sb.append("╦")
+        }
+        sb.append("╗\n")
+
+        // Add board content with rank labels
+        for (rank in ranks - 1 downTo 0) {
+            sb.append("${rank + 1} ║") // Rank number and left border
+
+            // Add pieces
+            for (file in 0 until files) {
+                val piece = board[file][rank]
+                val symbol = when {
+                    piece.first.isEmpty() -> " "
+                    piece.second == "white" -> when(piece.first) {
+                        "pawn" -> "P"
+                        "knight" -> "N"
+                        "bishop" -> "B"
+                        "rook" -> "R"
+                        "queen" -> "Q"
+                        "king" -> "K"
+                        "grasshopper" -> "G"
+                        "chancellor" -> "C"
+                        "sa" -> "S"
+                        "met" -> "M"
+                        else -> "?"
+                    }
+                    else -> when(piece.first) {
+                        "pawn" -> "p"
+                        "knight" -> "n"
+                        "bishop" -> "b"
+                        "rook" -> "r"
+                        "queen" -> "q"
+                        "king" -> "k"
+                        "grasshopper" -> "g"
+                        "chancellor" -> "c"
+                        "sa" -> "s"
+                        "met" -> "m"
+                        else -> "?"
+                    }
+                }
+                sb.append(" $symbol ")
+
+                // Add vertical border
+                if (file < files - 1) sb.append("║")
+            }
+            sb.append("║\n") // Right border
+
+            // Add rank separator, except for the last rank
+            if (rank > 0) {
+                sb.append("  ╠")
+                for (file in 0 until files) {
+                    sb.append("═══")
+                    if (file < files - 1) sb.append("╬")
+                }
+                sb.append("╣\n")
+            }
+        }
+
+        // Add bottom border
+        sb.append("  ╚")
+        for (file in 0 until files) {
+            sb.append("═══")
+            if (file < files - 1) sb.append("╩")
+        }
+        sb.append("╝\n")
+
+        // Add current state information
+        sb.append("\nMove: ${movecolor.stringValue}")
+        sb.append("\nFEN: $fen")
+
+        return sb.toString()
+    }
+
 }

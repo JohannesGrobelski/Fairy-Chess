@@ -1,21 +1,13 @@
 package emerald.apps.fairychess.model.multiplayer
 
-import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
-import com.google.firebase.dynamiclinks.DynamicLink
-import com.google.firebase.dynamiclinks.ktx.*
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import emerald.apps.fairychess.controller.MainActivityListener
-import com.google.firebase.dynamiclinks.ktx.component1
-import com.google.firebase.dynamiclinks.ktx.component2
 import emerald.apps.fairychess.model.Chessgame
-import emerald.apps.fairychess.model.board.Movement
-import emerald.apps.fairychess.model.board.PromotionMovement
 import emerald.apps.fairychess.model.board.Color
 
 /** MultiplayerDB adds/changes FirebaseFirestore-Database like
@@ -27,7 +19,7 @@ import emerald.apps.fairychess.model.board.Color
     usercase: search for gameMode
     - search for gameMode
     - if found -> join the gameMode
-    - unless
+    - else
     -> create gameMode
     -> search
     -> set listener: (if 2 players have joined) -> join gameMode
@@ -44,8 +36,8 @@ class MultiplayerDB {
         const val TAG = "MultiplayerDB"
         
         //collection paths
-        const val GAMECOLLECTIONPATH = "test_games"
-        const val PLAYERCOLLECTIONPATH = "test_players"
+        const val GAMECOLLECTIONPATH = "games_collection"
+        const val PLAYERCOLLECTIONPATH = "players_collection"
 
         //fields in player (in player collection)
         const val PLAYER_ID = "name"
@@ -58,7 +50,7 @@ class MultiplayerDB {
         const val GAMEFIELD_FINISHED = "finished"
         const val GAMEFIELD_GAMENAME = "gameName"
         const val GAMEFIELD_TIMEMODE = "timeMode"
-        const val GAMEFIELD_MOVES = "moves"
+        const val GAMEFIELD_FEN = "currentFen"  //save fen string after each move
         const val GAMEFIELD_PLAYER1ID = "player1ID"
         const val GAMEFIELD_PLAYER1Color = "player1Color"
         const val GAMEFIELD_PLAYER1ELO = "player1ELO"
@@ -90,60 +82,14 @@ class MultiplayerDB {
         this.multiplayerDBGameInterface = multiplayerDBGameInterface
     }
 
-    fun createDynamicLink(gameId: String) {
-        Firebase.dynamicLinks.shortLinkAsync {
-            link = Uri.parse("https://www.example.com?game_id=$gameId")
-            domainUriPrefix = "https://example.page.link"
-            // Open links with this app on Android
-            androidParameters {
-                DynamicLink.AndroidParameters.Builder("com.example.android")
-                    .setMinimumVersion(1)
-                    .build()
-            }
-            socialMetaTagParameters {
-                DynamicLink.SocialMetaTagParameters.Builder()
-                    .setTitle("Example of a Dynamic Link")
-                    .setDescription("This link works whether the app is installed or not!")
-                    //.setImageUrl("https://www.example.com/icon.png") TODO create image
-                    .build()
-            }
-            googleAnalyticsParameters {
-                DynamicLink.GoogleAnalyticsParameters.Builder()
-                    .setSource("orkut")
-                    .setMedium("social")
-                    .setCampaign("example-promo")
-                    .build()
-            }
-        }
-        .addOnCompleteListener{
-            Log.d("MultiplayerDB","dynamic link task completed")
-
-        }
-        .addOnSuccessListener { (shortLink, flowchartLink) ->
-            // Short link created
-            Log.e("MultiplayerDB","dynamic link was created!")
-            multiplayerDBSearchInterface?.processShortLink(shortLink, flowchartLink)
-        }
-        .addOnFailureListener {
-            /*previous error: "com.google.android.gms.common.api.ApiException: 400: Your project does not own Dynamic Links domain"
-            solution: update google-services.json (firebase)*/
-            Log.e("MultiplayerDB","dynamic link could not be created: "+it.cause)
-        }
-
+    fun shareGameId(gameId: String) {
+        //TODO: create alternative to dynamic link
+        multiplayerDBSearchInterface?.processGameInvite(gameId)
     }
 
-    fun writePlayerMovement(gameId: String, movement: Movement){
-        var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        gameRef.update("moves", FieldValue.arrayUnion(Movement.fromMovementToString(movement)));
-    }
-
-    fun writePlayerMovement(gameId: String, promotionMovement: PromotionMovement){
-        var gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
-        gameRef.update("moves", FieldValue.arrayUnion(
-            Movement.fromMovementToString(
-                promotionMovement
-            )
-        ));
+    fun writeFenAfterMovement(gameId: String, fenAfterMovement : String){
+        val gameRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
+        gameRef.update(GAMEFIELD_FEN, fenAfterMovement);
     }
 
     /**
@@ -189,18 +135,18 @@ class MultiplayerDB {
      */
     fun createGame(gameName: String, timeMode: String, player1ID: String, player1ELO: Double) {
         // Create a new gameMode hashmap
-        val player1Color = Color.randomColor()
+        val player1Color = Color.WHITE//Color.randomColor()
         val player2Color = Color.oppositeColor(player1Color)
         val gameHash = hashMapOf(
             GAMEFIELD_GAMENAME to gameName,
             GAMEFIELD_FINISHED to false,
             GAMEFIELD_TIMEMODE to timeMode,
-            GAMEFIELD_MOVES to listOf<String>(),
+            GAMEFIELD_FEN to "",
             GAMEFIELD_PLAYER1ID to player1ID,
-            GAMEFIELD_PLAYER1Color to player1Color,
+            GAMEFIELD_PLAYER1Color to player1Color.stringValue,
             GAMEFIELD_PLAYER1ELO to player1ELO,
             GAMEFIELD_PLAYER2ID to "",
-            GAMEFIELD_PLAYER2Color to player2Color
+            GAMEFIELD_PLAYER2Color to player2Color.stringValue
         )
         // Add a new document with a generated ID
         db.collection(GAMECOLLECTIONPATH)
@@ -222,7 +168,7 @@ class MultiplayerDB {
     fun searchUsers(userName: String) {
         val resultList = mutableListOf<String>()
         db.collection(PLAYERCOLLECTIONPATH)
-            .whereEqualTo("name",userName)
+            .whereEqualTo(PLAYER_ID,userName)
             .get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -262,7 +208,7 @@ class MultiplayerDB {
                     val player1ELO = docRef.getDouble(GAMEFIELD_PLAYER1ELO)!!
                     val player2ELO = docRef.getDouble(GAMEFIELD_PLAYER2ELO)!!
                     var opponentID = player1ID
-                    var playerELO = player2ELO
+                    val playerELO = player2ELO
                     var opponentELO = player1ELO
                     if(opponentID == userName){
                         opponentID = player2ID
@@ -312,7 +258,7 @@ class MultiplayerDB {
             }
     }
 
-    class GameState(val gameFinished : Boolean, val moves : List<String>)
+    class GameState(val gameFinished : Boolean, val currentFen : String)
     /** add snapshotlistener to listen to changes in a created game without second player
      *  if change occurs call onGameChanged */
     fun listenToGameSearch(gameId: String) {
@@ -330,7 +276,7 @@ class MultiplayerDB {
             }
         }
     }
-    /** add snapshotlistener to listen to changes on game (moves and gamestatus)
+    /** add snapshotlistener to listen to changes on game (currentFen and gamestatus)
      *  if change occurs call readGameState */
     fun listenToGameIngame(gameId: String) {
         val docRef = db.collection(GAMECOLLECTIONPATH).document(gameId)
@@ -359,8 +305,8 @@ class MultiplayerDB {
                     if(task.result!!.exists()){
                         val document = task.result!!
                         if(document.exists()){
-                            val player1ID : String = document.getString("player1ID")!!
-                            val player2ID : String = document.getString("player2ID")!!
+                            val player1ID : String = document.getString(GAMEFIELD_PLAYER1ID)!!
+                            val player2ID : String = document.getString(GAMEFIELD_PLAYER2ID)!!
                             if(player1ID.isNotEmpty() && player2ID.isNotEmpty()){
                                 getGameDataAndJoinGame(gameId,player1ID)
                             }
@@ -384,7 +330,7 @@ class MultiplayerDB {
             .addOnSuccessListener { multiplayerDBGameInterface?.onFinishGame(gameId,cause)}
     }
 
-    /** read game state of game with gameID (document,finished,moves) and on sucess call onGameChanged,
+    /** read game state of game with gameID (document,finished,currentFen) and on sucess call onGameChanged,
      * (because this is only called if snapshot listener detects change in game document)*/
     fun readGameState(gameId: String) {
         db.collection(GAMECOLLECTIONPATH)
@@ -395,8 +341,8 @@ class MultiplayerDB {
                     if(task.result!!.exists()){
                         val document = task.result!!
                         val finished : Boolean = document.getBoolean(GAMEFIELD_FINISHED)!!
-                        val moves : List<String> = document.get("moves") as List<String>
-                        val gameState = GameState(finished,moves)
+                        val currentFen : String = document.get(GAMEFIELD_FEN) as String
+                        val gameState = GameState(finished,currentFen)
                         multiplayerDBGameInterface?.onGameChanged(gameId,gameState)
                     }
                 } else {
@@ -519,7 +465,7 @@ interface MultiplayerDBSearchInterface {
     fun onGameChanged(gameId : String)
 
     fun onGetPlayerstats(playerStats: MultiplayerDB.PlayerStats)
-    fun processShortLink(shortLink: Uri?, flowchartLink: Uri?)
+    fun processGameInvite(gameId: String)
 }
 
 interface MultiplayerDBGameInterface {
