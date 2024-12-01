@@ -22,7 +22,6 @@ class MainActivity : AppCompatActivity() {
         mainActivityListener = MainActivityListener(this, intent)
         binding.btnCreateGame.setOnClickListener(mainActivityListener)
         binding.btnSearchGame.setOnClickListener(mainActivityListener)
-        binding.btnQuickmatch.setOnClickListener(mainActivityListener)
         binding.btnAi.setOnClickListener(mainActivityListener)
     }
 

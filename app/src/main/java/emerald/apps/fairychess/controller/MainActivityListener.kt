@@ -91,10 +91,6 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
                 gameParameters.playMode = "ai"
                 displayAlertDialogAIMatch()
             }
-            R.id.btn_quickmatch -> {
-                gameParameters.playMode = "human"
-                quickMatch()
-            }
             R.id.btn_searchGame -> {
                 gameParameters.playMode = "human"
                 displayAlertDialogSearchForGames()
@@ -228,6 +224,13 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         )
 
         //create dialog
+        val btn_quickmatch : Button = searchDialogView.findViewById(R.id.btn_quickmatch)
+        btn_quickmatch.setOnClickListener {
+            createAIGameDialog?.show()
+            gameParameters.playMode = "human"
+            quickMatch()
+        }
+
         val spinner_gameName : Spinner = searchDialogView.findViewById(R.id.spinner_gameName)
         spinner_gameName.adapter = ArrayAdapter(
             mainActivity,
@@ -278,6 +281,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             android.R.layout.simple_list_item_1,
             timeModes
         )
+
         // Update TextView description when a game mode is selected
         val tv_gameMode_description : TextView = createGameDialogView.findViewById(R.id.tv_gameMode_description)
         spinner_gameName.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -479,8 +483,6 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         } else{
             AlertDialog.Builder(mainActivity)
                 .setTitle("no games found")
-                .setPositiveButton("create game"
-                ) { _, _ -> tryFirebaseOperation({multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)})}
                 .setNegativeButton("close",null)
                 .show()
         }
