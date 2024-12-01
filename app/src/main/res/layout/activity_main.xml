@@ -1,57 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/elterLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/wallpaper"
-    android:orientation="vertical"
     tools:context=".view.MainActivity">
 
-    <Button
-        android:id="@+id/btn_ai"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="10dp"
-        android:layout_weight="1"
-        android:background="#A97C7C7C"
-        android:text="@string/ai_match"
-        android:textColor="#FFFFFF"
-        android:textSize="50sp" />
-
-    <Button
-        android:id="@+id/btn_searchGame"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="10dp"
-        android:layout_weight="1"
-        android:background="#A97C7C7C"
-        android:text="@string/search_game"
-        android:textColor="#FFFFFF"
-        android:textSize="50sp" />
-
-    <Button
-        android:id="@+id/btn_createGame"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="10dp"
-        android:layout_weight="1"
-        android:background="#A97C7C7C"
-        android:text="@string/create_game"
-        android:textColor="#FFFFFF"
-        android:textSize="50sp" />
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/tv_playerstats"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_playerstats"
@@ -64,7 +25,8 @@
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="20sp"
-        android:visibility="visible" />
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@id/tv_powered_by" />
 
     <TextView
         android:id="@+id/tv_powered_by"
@@ -77,6 +39,17 @@
         android:textSize="14sp"
         android:autoLink="web"
         android:linksClickable="true"
-        android:textColorLink="#CCCCCC" />
+        android:textColorLink="#CCCCCC"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation" />
 
-</LinearLayout>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#A97C7C7C"
+        app:itemTextColor="@android:color/white"
+        app:itemIconTint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

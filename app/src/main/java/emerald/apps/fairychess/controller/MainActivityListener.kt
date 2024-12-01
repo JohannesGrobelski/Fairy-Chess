@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface.OnShowListener
 import android.content.Intent
+import android.os.Bundle
 import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.firestore.FirebaseFirestoreException
 import emerald.apps.fairychess.R
+import emerald.apps.fairychess.databinding.ActivityMainBinding
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDB.Companion.matchmakingWinningChanceOffset
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDBSearchInterface
@@ -28,6 +30,7 @@ import java.util.Locale
 
 class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterface {
     private lateinit var mainActivity : MainActivity
+    private lateinit var binding: ActivityMainBinding
     private lateinit var multiplayerDB: MultiplayerDB
 
     lateinit var userNameDialog : AlertDialog
@@ -79,6 +82,15 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         loadPlayerStats()
         handleDeepLink(intent)
     }
+
+
+
+    fun onResume() {
+        loadPlayerStats()
+    }
+
+
+
 
     fun loadPlayerStats(){
         playerStats = MultiplayerDB.PlayerStats.getDefault()
@@ -603,9 +615,6 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         }
     }
 
-    fun onResume() {
-        loadPlayerStats()
-    }
 
     private fun tryFirebaseOperation(function: () -> Unit){
         try {

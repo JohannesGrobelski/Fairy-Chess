@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_singleplayer"
+        android:icon="@drawable/white_king"
+        android:title="Singleplayer" />
+    <item
+        android:id="@+id/navigation_multiplayer"
+        android:icon="@drawable/multiplayer"
+        android:title="Multiplayer" />
+    <item
+        android:id="@+id/navigation_chesscreator"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="Chess Creator" />
+</menu>

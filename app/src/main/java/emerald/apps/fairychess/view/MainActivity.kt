@@ -3,6 +3,10 @@ package emerald.apps.fairychess.view
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.databinding.ActivityMainBinding
@@ -20,9 +24,26 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         mainActivityListener = MainActivityListener(this, intent)
-        binding.btnCreateGame.setOnClickListener(mainActivityListener)
-        binding.btnSearchGame.setOnClickListener(mainActivityListener)
-        binding.btnAi.setOnClickListener(mainActivityListener)
+
+        // Set up ViewPager2 with fragments
+        binding.viewPager.adapter = TabsPagerAdapter(this)
+
+        // Set up BottomNavigationView
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_singleplayer -> binding.viewPager.currentItem = 0
+                R.id.navigation_multiplayer -> binding.viewPager.currentItem = 1
+                R.id.navigation_chesscreator -> binding.viewPager.currentItem = 2
+            }
+            true
+        }
+
+        // Sync ViewPager2 with BottomNavigationView
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                binding.bottomNavigation.menu.getItem(position).isChecked = true
+            }
+        })
     }
 
     override fun onResume() {
@@ -34,4 +55,17 @@ class MainActivity : AppCompatActivity() {
         mainActivityListener.onClick(v)
     }
 
+}
+
+private class TabsPagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
+    override fun getItemCount(): Int = 3
+
+    override fun createFragment(position: Int): Fragment {
+        return when (position) {
+            0 -> SingleplayerFragment()
+            1 -> MultiplayerFragment()
+            2 -> ChessCreatorFragment()
+            else -> throw IllegalArgumentException("Invalid position $position")
+        }
+    }
 }
