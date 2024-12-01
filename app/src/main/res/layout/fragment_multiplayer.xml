@@ -7,22 +7,12 @@
 
     <Button
         android:id="@+id/btn_searchGame"
-        android:layout_width="match_parent"
-        android:layout_height="96dp"
-        android:layout_margin="20dp"
-        android:background="#A97C7C7C"
-        android:text="@string/search_game"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp" />
+        style="@style/CustomButtonStyle"
+        android:text="@string/search_game" />
 
     <Button
         android:id="@+id/btn_createGame"
-        android:layout_width="match_parent"
-        android:layout_height="96dp"
-        android:layout_margin="20dp"
-        android:background="#A97C7C7C"
-        android:text="@string/create_game"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp" />
+        style="@style/CustomButtonStyle"
+        android:text="@string/create_game" />
 
 </LinearLayout>

@@ -3,14 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="96dp"
-        android:text="Chess Creator Coming Soon"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"/>
+    <Button
+        android:id="@+id/chess_creator_coming_soon_btn"
+        style="@style/CustomButtonStyle"
+        android:text="@string/chess_creator_coming_soon"/>
 
 </LinearLayout>
