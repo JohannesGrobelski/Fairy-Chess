@@ -4,11 +4,12 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface.OnShowListener
 import android.content.Intent
-import android.os.Bundle
+import android.os.Build
 import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -206,7 +207,18 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             difficultyModes
         )
         val btn_create_game = createDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
-        createAIGameDialog = AlertDialog.Builder(mainActivity).setView(createDialogView).create()
+
+        // Create dialog with blur theme
+        createAIGameDialog = AlertDialog.Builder(mainActivity, R.style.BlurDialogTheme)
+            .setView(createDialogView)
+            .create()
+
+        // Apply background and other window attributes
+        createAIGameDialog?.window?.let { window ->
+            window.setBackgroundDrawableResource(R.drawable.dialog_background)
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes.blurBehindRadius = 15
+        }
 
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
@@ -256,7 +268,18 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             timeModes
         )
         val btn_search_game = searchDialogView.findViewById<Button>(R.id.btn_search_game)
-        val searchDialog = AlertDialog.Builder(mainActivity).setView(searchDialogView).create()
+
+        // Create dialog with blur theme
+        val searchDialog = AlertDialog.Builder(mainActivity, R.style.BlurDialogTheme)
+            .setView(searchDialogView)
+            .create()
+
+        // Apply background and other window attributes
+        searchDialog?.window?.let { window ->
+            window.setBackgroundDrawableResource(R.drawable.dialog_background)
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes.blurBehindRadius = 15
+        }
 
         btn_search_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
@@ -319,8 +342,19 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         val spinner_difficultymode : Spinner = createGameDialogView.findViewById(R.id.spinner_createGame_difficulty)
         spinner_difficultymode.visibility = View.GONE
 
+        // Create dialog with blur theme
         val btn_create_game = createGameDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
-        createHumanGameDialog= AlertDialog.Builder(mainActivity).setView(createGameDialogView).create()
+        createHumanGameDialog= AlertDialog.Builder(mainActivity, R.style.BlurDialogTheme)
+            .setView(createGameDialogView)
+            .create()
+
+        // Apply background and other window attributes
+        createHumanGameDialog?.window?.let { window ->
+            window.setBackgroundDrawableResource(R.drawable.dialog_background)
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes.blurBehindRadius = 15
+        }
+
 
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
@@ -333,20 +367,20 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
 
     /** display a simple alert dialog to input a username. */
     fun openCreateUserNameDialog(takenUserName: String){
-        val builder = AlertDialog.Builder(mainActivity)
-        builder.setTitle("Create User")
+        val createUserNameDialogBuilder = AlertDialog.Builder(mainActivity, R.style.BlurDialogTheme)
+        createUserNameDialogBuilder.setTitle("Create User")
 
         // Set up the input
         val input = EditText(mainActivity)
         input.inputType = InputType.TYPE_CLASS_TEXT
         input.hint = "Type in a unique user name"
         if(takenUserName.isNotEmpty()) input.hint = "$takenUserName is already taken"
-        builder.setView(input)
+        createUserNameDialogBuilder.setView(input)
 
         // Set up the buttons
-        builder.setPositiveButton("Create User") { dialog, which -> }
-        builder.setNegativeButton("Close") { dialog, which -> dialog.cancel()}
-        userNameDialog = builder.create()
+        createUserNameDialogBuilder.setPositiveButton("Create User") { dialog, which -> }
+        createUserNameDialogBuilder.setNegativeButton("Close") { dialog, which -> dialog.cancel()}
+        userNameDialog = createUserNameDialogBuilder.create()
         userNameDialog.setOnShowListener(OnShowListener {
             val button = (userNameDialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
             button.setOnClickListener {
@@ -356,6 +390,16 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
                 //dont dismiss dialog ... yet
             }
         })
+
+        val createUserNameDialog = createUserNameDialogBuilder.create()
+
+        // Apply background and other window attributes
+        createUserNameDialog?.window?.let { window ->
+            window.setBackgroundDrawableResource(R.drawable.dialog_background)
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes.blurBehindRadius = 15
+        }
+
         userNameDialog.show()
     }
 
@@ -483,20 +527,32 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
                     )
                 })
             } else {
-                AlertDialog.Builder(mainActivity)
-                    .setTitle("no games found")
-                    .setPositiveButton("create game"
-                    ) { _, _ -> tryFirebaseOperation({multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)})}
-                    .setNegativeButton("close",null)
-                    .show()
+                createNoGamesFoundDialog(true)
             }
         } else{
-            AlertDialog.Builder(mainActivity)
-                .setTitle("no games found")
-                .setNegativeButton("close",null)
-                .show()
+            createNoGamesFoundDialog(false)
         }
 
+    }
+
+    fun createNoGamesFoundDialog(withCreateOption : Boolean){
+        // Create dialog with blur theme
+        val noGamesFoundDialogBuilder = AlertDialog.Builder(mainActivity, R.style.BlurDialogTheme)
+            .setTitle("no games found")
+            .setNegativeButton("close",null)
+
+        if(withCreateOption){
+            noGamesFoundDialogBuilder.setPositiveButton("create game"
+            ) { _, _ -> tryFirebaseOperation({multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)})}
+        }
+        val noGamesFoundDialog =  noGamesFoundDialogBuilder.create()
+
+        // Apply background and other window attributes
+        noGamesFoundDialog?.window?.let { window ->
+            window.setBackgroundDrawableResource(R.drawable.dialog_background)
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes.blurBehindRadius = 15
+        }
     }
 
     /** call back method after creating multiplayer game in db
@@ -516,6 +572,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         val builder = AlertDialog.Builder(mainActivity)
         builder.setCancelable(false)
         builder.setView(R.layout.waiting_for_join_dialog)
+
         joinWaitDialog = builder.create()
         joinWaitDialog!!.show()
         val btn_canceln = joinWaitDialog!!.findViewById<Button>(R.id.btn_cancelJoinWait)

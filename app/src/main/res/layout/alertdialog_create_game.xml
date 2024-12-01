@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/tv_gameMode_description"
@@ -10,34 +11,37 @@
         android:layout_height="wrap_content"
         android:text="Select a game mode to see its description"
         android:padding="16dp"
-        android:layout_marginStart="10dp"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <Spinner
         android:id="@+id/spinner_createGame_gameName"
+        style="@style/CustomSpinnerStyle"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_weight="1" />
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp" />
 
     <Spinner
         android:id="@+id/spinner_createGame_timemode"
+        style="@style/CustomSpinnerStyle"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_weight="1" />
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp" />
 
     <Spinner
         android:id="@+id/spinner_createGame_difficulty"
+        style="@style/CustomSpinnerStyle"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_weight="1"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
         android:spinnerMode="dialog"
         android:contentDescription="@string/difficulty_hint" />
 
     <Button
         android:id="@+id/btn_createGame_create_game"
+        style="@style/CustomButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="create game" />
-
-
 </LinearLayout>

@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()  // Replacing jcenter() as it's deprecated
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.7.1'  // Updated for SDK 34 support
+        classpath 'com.android.tools.build:gradle:8.7.2'  // Updated for SDK 34 support
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.4.0'  // Updated Google Services plugin
     }

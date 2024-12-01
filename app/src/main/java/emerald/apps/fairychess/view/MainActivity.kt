@@ -1,7 +1,9 @@
 package emerald.apps.fairychess.view
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -65,10 +67,19 @@ class MainActivity : AppCompatActivity() {
         val packageInfo = packageManager.getPackageInfo(packageName, 0)
         dialogView.findViewById<TextView>(R.id.tvVersion).text = "Version ${packageInfo.versionName}"
 
-        AlertDialog.Builder(this, R.style.MaterialAlertDialog_Rounded)
+        val infoDialog = AlertDialog.Builder(this, R.style.BlurDialogTheme)
             .setView(dialogView)
             .setPositiveButton("OK", null)
-            .show()
+            .create()
+
+        // Apply background and other window attributes
+        infoDialog.window?.let { window ->
+            window.setBackgroundDrawableResource(R.drawable.dialog_background)
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes.blurBehindRadius = 15
+        }
+
+        infoDialog.show()
     }
 }
 
