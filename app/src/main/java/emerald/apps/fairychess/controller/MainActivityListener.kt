@@ -1,10 +1,10 @@
 package emerald.apps.fairychess.controller
 
+import emerald.apps.fairychess.view.ChessDesignerActivity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface.OnShowListener
 import android.content.Intent
-import android.os.Build
 import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
@@ -27,7 +27,7 @@ import emerald.apps.fairychess.model.multiplayer.MultiplayerDBSearchInterface
 import emerald.apps.fairychess.model.rating.ChessRatingSystem
 import emerald.apps.fairychess.view.ChessActivity
 import emerald.apps.fairychess.view.MainActivity
-import emerald.apps.fairychess.view.ProfileViewModel
+import emerald.apps.fairychess.view.fragments.main.ProfileViewModel
 import java.util.Locale
 
 
@@ -111,6 +111,17 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             R.id.btn_createGame -> {
                 gameParameters.playMode = "human"
                 displayAlertDialogCreateOnlineGame()
+            }
+            R.id.btn_chess_creator_new -> {
+                val intent = Intent(mainActivity, ChessDesignerActivity::class.java)
+                mainActivity.startActivity(intent)
+            }
+            R.id.btn_chess_creator_edit -> {
+                //TODO: open popup of variant to edit and then
+                //val variant_edit : String= ""
+                //val intent = Intent(mainActivity, emerald.apps.fairychess.view.ChessDesignerActivity::class.java)
+                //intent.putExtra("variant", variant_edit)
+                //mainActivity.startActivity(intent)
             }
             R.id.tv_playerstats -> {
                 if(this::playerStats.isInitialized) {
@@ -553,6 +564,8 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
             window.attributes.blurBehindRadius = 15
         }
+
+        noGamesFoundDialog.show()
     }
 
     /** call back method after creating multiplayer game in db

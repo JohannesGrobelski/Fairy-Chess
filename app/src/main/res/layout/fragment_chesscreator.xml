@@ -6,8 +6,13 @@
     android:padding="16dp">
 
     <Button
-        android:id="@+id/chess_creator_coming_soon_btn"
+        android:id="@+id/btn_chess_creator_new"
         style="@style/CustomButtonStyle"
-        android:text="@string/chess_creator_coming_soon"/>
+        android:text="@string/chess_creator_new"/>
+
+    <Button
+        android:id="@+id/btn_chess_creator_edit"
+        style="@style/CustomButtonStyle"
+        android:text="@string/chess_creator_edit"/>
 
 </LinearLayout>

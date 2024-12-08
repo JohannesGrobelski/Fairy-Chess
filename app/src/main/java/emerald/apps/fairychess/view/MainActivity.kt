@@ -1,6 +1,5 @@
 package emerald.apps.fairychess.view
 
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
@@ -14,6 +13,10 @@ import androidx.viewpager2.widget.ViewPager2
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.controller.MainActivityListener
 import emerald.apps.fairychess.databinding.ActivityMainBinding
+import emerald.apps.fairychess.view.fragments.main.ChessCreatorFragment
+import emerald.apps.fairychess.view.fragments.main.MultiplayerFragment
+import emerald.apps.fairychess.view.fragments.main.ProfileFragment
+import emerald.apps.fairychess.view.fragments.main.SingleplayerFragment
 
 class MainActivity : AppCompatActivity() {
     lateinit var mainActivityListener : MainActivityListener
@@ -22,8 +25,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

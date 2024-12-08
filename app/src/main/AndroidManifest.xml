@@ -9,20 +9,30 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".view.ChessActivity"></activity>
         <activity
-            android:exported="true"
+            android:name=".view.ChessDesignerActivity"
+            android:exported="false"
+            android:label="@string/title_activity_chess_designer"
+            android:theme="@style/AppTheme.NoActionBar.NoActionBar" />
+        <activity android:name=".view.ChessActivity" />
+        <activity
             android:name=".view.MainActivity"
+            android:exported="true"
             android:theme="@style/AppTheme.NoActionBar">
-        <intent-filter>
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="fairychess" android:host="game" />
+
+                <data
+                    android:host="game"
+                    android:scheme="fairychess" />
             </intent-filter>
         </activity>
     </application>

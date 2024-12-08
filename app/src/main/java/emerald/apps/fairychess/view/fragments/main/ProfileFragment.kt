@@ -1,4 +1,4 @@
-package emerald.apps.fairychess.view
+package emerald.apps.fairychess.view.fragments.main
 
 import android.content.Context
 import androidx.fragment.app.Fragment
@@ -14,6 +14,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import emerald.apps.fairychess.R
 import emerald.apps.fairychess.model.multiplayer.MultiplayerDB
+import emerald.apps.fairychess.view.MainActivity
 
 
 class ProfileViewModel : ViewModel() {
