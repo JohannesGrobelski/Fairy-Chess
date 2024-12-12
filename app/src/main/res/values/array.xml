@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="gamemode_categories">
+        <item>Assymetric Variants</item>
+        <item>Chess Variants</item>
+        <item>Fairy Chess Variants</item>
+    </string-array>
     <string-array name="gamemodes">
         <item>Normal</item>
         <item>Antichess</item>
