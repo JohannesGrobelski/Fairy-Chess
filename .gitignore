@@ -14,6 +14,8 @@
 .settings/*
 app/.settings
 app/.settings/*
+app/bin
+app/bin/*
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
@@ -25,3 +27,4 @@ app/.settings/*
 .externalNativeBuild
 .cxx
 google-services.json
+kls_database.db

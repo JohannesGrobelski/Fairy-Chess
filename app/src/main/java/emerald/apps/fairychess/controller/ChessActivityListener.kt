@@ -78,6 +78,9 @@ class ChessActivityListener() : MultiplayerDBGameInterface
         if (gameParameters.playMode == "human") {
             setupOnlineGame()
         }
+        if(gameParameters.playMode == "ai" && gameParameters.playerColor == "black"){
+            makeAIMove()
+        }
     }
 
     private fun initializeViews() {
@@ -203,19 +206,7 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                     val fenAfterMove = chessgame.getChessboard().getCurrentFEN()
                     multiplayerDB.writeFenAfterMovement(gameData.gameId, fenAfterMove)
                 } else if(gameParameters.playMode=="ai"){
-                    //calculate ai move in coroutine to avoid blocking the ui thread
-                    calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
-                        try{
-                            val aiMovement = chessgame.getChessboard().calcMove(chessgame.getChessboard().getCurrentFEN())
-                            chessgame.movePlayerWithoutCheck(aiMovement)
-                            withContext(Dispatchers.Main) {
-                                displayFigures()
-                            }
-                            handleGameEnd()
-                        } catch (e: Exception) {
-                            throw RuntimeException("To catch any exception thrown for yourTask", e)
-                        }
-                    }
+                    makeAIMove()
                 }
                 displayFigures()
                 resetFieldColor()
@@ -262,6 +253,22 @@ class ChessActivityListener() : MultiplayerDBGameInterface
                 // create and show the alert dialog
                 val dialog = builder.create()
                 dialog.show()
+            }
+        }
+    }
+
+    private fun makeAIMove(){
+        //calculate ai move in coroutine to avoid blocking the ui thread
+        calcMoveJob = CoroutineScope(Dispatchers.Default).launch {
+            try{
+                val aiMovement = chessgame.getChessboard().calcMove(chessgame.getChessboard().getCurrentFEN())
+                chessgame.movePlayerWithoutCheck(aiMovement)
+                withContext(Dispatchers.Main) {
+                    displayFigures()
+                }
+                handleGameEnd()
+            } catch (e: Exception) {
+                throw RuntimeException("To catch any exception thrown for yourTask", e)
             }
         }
     }

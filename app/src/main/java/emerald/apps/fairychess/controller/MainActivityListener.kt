@@ -162,11 +162,11 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
 
     /** alert dialog to search for online games  */
     fun displayAlertDialogAIMatch(){
-        val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
+        val colors = mainActivity.resources.getStringArray(R.array.colors)
         val gamemode_descriptions = mainActivity.resources.getStringArray(R.array.gamemode_descriptions)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
         val difficultyModes = mainActivity.resources.getStringArray(R.array.difficultyModes)
-
+        val gamemodes= mainActivity.resources.getStringArray(R.array.gamemodes)
         val inflater = LayoutInflater.from(mainActivity)
 
         //inflate the layout (depending on mode)
@@ -181,7 +181,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         spinner_gameName.adapter = ArrayAdapter(
             mainActivity,
             android.R.layout.simple_list_item_1,
-            gameModes
+            gamemodes
         )
 
         // Update TextView description when a game mode is selected
@@ -217,6 +217,14 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             android.R.layout.simple_list_item_1,
             difficultyModes
         )
+
+        val spinner_color : Spinner = createDialogView.findViewById(R.id.spinner_createGame_color)
+        spinner_color.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            colors 
+        )
+
         val btn_create_game = createDialogView.findViewById<Button>(R.id.btn_createGame_create_game)
 
         // Create dialog with blur theme
@@ -234,7 +242,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
-            gameParameters.playerColor = "white"
+            gameParameters.playerColor = spinner_color.selectedItem.toString()
             val diffAi = spinner_diff.selectedItem.toString().split(" ")[1].toDouble()
             gameParameters.difficulty = spinner_diff.selectedItem.toString().split(" ")[1].toInt();
             this.opponentStats = MultiplayerDB.PlayerStats(0L,0L,0L,diffAi)

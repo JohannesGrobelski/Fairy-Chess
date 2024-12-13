@@ -36,7 +36,17 @@
         android:layout_height="56dp"
         android:layout_marginBottom="16dp"
         android:spinnerMode="dialog"
-        android:contentDescription="@string/difficulty_hint" />
+    android:contentDescription="@string/difficulty_hint" />
+
+    <Spinner
+        android:id="@+id/spinner_createGame_color"
+        style="@style/CustomSpinnerStyle"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:spinnerMode="dialog"
+        android:contentDescription="@string/gameColor" />
+
 
     <Button
         android:id="@+id/btn_createGame_create_game"

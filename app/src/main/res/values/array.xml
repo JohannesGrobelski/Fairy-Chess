@@ -48,4 +48,9 @@
         <item>Depth 10 - Expert Level</item>
         <item>Depth 12 - Expert Level 2</item>
     </string-array>
+    <string-array name="colors">
+        <item>black</item>
+        <item>white</item>
+    </string-array>
+
 </resources>
