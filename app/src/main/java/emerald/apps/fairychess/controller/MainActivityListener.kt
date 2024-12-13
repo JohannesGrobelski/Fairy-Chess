@@ -242,7 +242,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
-            gameParameters.playerColor = spinner_color.selectedItem.toString()
+            gameParameters.playerColor = spinner_color.selectedItem.toString().toLowerCase()
             val diffAi = spinner_diff.selectedItem.toString().split(" ")[1].toDouble()
             gameParameters.difficulty = spinner_diff.selectedItem.toString().split(" ")[1].toInt();
             this.opponentStats = MultiplayerDB.PlayerStats(0L,0L,0L,diffAi)
@@ -255,6 +255,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
 
     /** alert dialog to search for online games  */
     fun displayAlertDialogSearchForGames(){
+        val colors = mainActivity.resources.getStringArray(R.array.colors)
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
         val inflater = LayoutInflater.from(mainActivity)
@@ -286,6 +287,14 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             android.R.layout.simple_list_item_1,
             timeModes
         )
+
+        val spinner_color : Spinner = searchDialogView.findViewById(R.id.spinner_createGame_color)
+        spinner_color.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            colors 
+        )
+
         val btn_search_game = searchDialogView.findViewById<Button>(R.id.btn_search_game)
 
         // Create dialog with blur theme
@@ -303,6 +312,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         btn_search_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
+            gameParameters.playerColor = spinner_color.selectedItem.toString().toLowerCase()
             searchForGames(gameParameters.name,gameParameters.time)
         }
         searchDialog.show()
@@ -310,6 +320,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
 
     /** alert dialog to create online game  */
     fun displayAlertDialogCreateOnlineGame(){
+        val colors = mainActivity.resources.getStringArray(R.array.colors)
         val gameModes = mainActivity.resources.getStringArray(R.array.gamemodes)
         val timeModes = mainActivity.resources.getStringArray(R.array.timemodes)
         val inflater = LayoutInflater.from(mainActivity)
@@ -335,6 +346,14 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
             android.R.layout.simple_list_item_1,
             timeModes
         )
+
+        val spinner_color : Spinner = createGameDialogView.findViewById(R.id.spinner_createGame_color)
+        spinner_color.adapter = ArrayAdapter(
+            mainActivity,
+            android.R.layout.simple_list_item_1,
+            colors 
+        )
+
 
         // Update TextView description when a game mode is selected
         val tv_gameMode_description : TextView = createGameDialogView.findViewById(R.id.tv_gameMode_description)
@@ -378,6 +397,7 @@ class MainActivityListener() : View.OnClickListener, MultiplayerDBSearchInterfac
         btn_create_game.setOnClickListener{
             gameParameters.name = spinner_gameName.selectedItem.toString().toLowerCase()
             gameParameters.time = spinner_timemode.selectedItem.toString()
+            gameParameters.playerColor = spinner_color.selectedItem.toString().toLowerCase()
             tryFirebaseOperation({multiplayerDB.createGame(gameParameters.name,gameParameters.time,userName,playerStats.ELO)})
         }
         createHumanGameDialog?.show()
