@@ -442,7 +442,7 @@ public class ChessActivityListener implements MultiplayerDBGameInterface, ChessT
         } 
 
         public int getRank(){
-            return file;
+            return rank;
         } 
 
         public void setFile(int file){
